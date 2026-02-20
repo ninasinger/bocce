@@ -1,0 +1,31 @@
+import { NextResponse } from "next/server";
+import { getServiceClient } from "@/lib/supabaseServer";
+import { requireRoleOrResponse } from "@/lib/api";
+
+export async function GET(
+  _request: Request,
+  { params }: { params: { id: string } }
+) {
+  const session = await requireRoleOrResponse("captain");
+  if (session instanceof Response) return session;
+  const client = getServiceClient();
+
+  const { data: match } = await client
+    .from("matches")
+    .select("id, status")
+    .eq("id", params.id)
+    .maybeSingle();
+
+  const { data: submission } = await client
+    .from("match_submissions")
+    .select("id")
+    .eq("match_id", params.id)
+    .eq("submitted_by_team_id", session.teamId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  return NextResponse.json({
+    status: match?.status ?? "unknown",
+    submitted: Boolean(submission)
+  });
+}
