@@ -32,22 +32,25 @@ export async function POST(request: Request) {
     .select("*")
     .eq("season_id", session.seasonId)
     .eq("week_number", Number(weekNumber));
+  const { data: allMatches } = await client
+    .from("matches")
+    .select("*")
+    .eq("season_id", session.seasonId);
 
-  const { data: week } = await client
-    .from("weeks")
-    .select("closed_at")
-    .eq("season_id", session.seasonId)
-    .eq("week_number", Number(weekNumber))
-    .maybeSingle();
+  const teamNameById = new Map((teams || []).map((team) => [team.id, team.name]));
+  const verifiedMatches = (matches || [])
+    .filter((m) => m.status === "verified" || m.status === "corrected")
+    .map((m) => ({
+      ...m,
+      home_team_name: teamNameById.get(m.home_team_id) || m.home_team_id,
+      away_team_name: teamNameById.get(m.away_team_id) || m.away_team_id
+    }));
 
-  const standings = computeStandings(teams || [], matches || []);
+  const standings = computeStandings(teams || [], allMatches || []);
   const email = buildWeeklyEmail({
     weekNumber: Number(weekNumber),
     standings,
-    verifiedMatches: (matches || []).filter((m) => m.status === "verified"),
-    pendingMatches: (matches || []).filter((m) => m.status === "pending_verification"),
-    disputedMatches: (matches || []).filter((m) => m.status === "disputed"),
-    weekClosed: Boolean(week?.closed_at)
+    verifiedMatches
   });
 
   const resend = new Resend(env.resendApiKey);

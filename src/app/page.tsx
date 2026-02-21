@@ -7,6 +7,7 @@ type Season = { id: string; name: string; year: number };
 type Standing = {
   rank: number;
   teamName: string;
+  gamesPlayed: number;
   gamesWon: number;
   matchPoints: number;
   totalPoints: number;
@@ -92,8 +93,8 @@ export default function HomePage() {
           return;
         }
 
-        setStandings((standingsJson.standings || []).slice(0, 3));
-        setMatches((scheduleJson.matches || []).slice(0, 2));
+        setStandings((standingsJson.standings || []).slice(0, 6));
+        setMatches((scheduleJson.matches || []).slice(0, 6));
       } catch {
         setError("Could not load home data");
         setStandings([]);

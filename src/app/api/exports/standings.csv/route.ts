@@ -22,10 +22,11 @@ export async function POST() {
   const standings = computeStandings(teams || [], matches || []);
 
   const csv = toCsv(
-    ["rank", "team", "games_won", "match_points", "total_points"],
+    ["rank", "team", "games_played", "games_won", "match_points", "total_points"],
     standings.map((row) => [
       row.rank,
       row.teamName,
+      row.gamesPlayed,
       row.gamesWon,
       row.matchPoints,
       row.totalPoints

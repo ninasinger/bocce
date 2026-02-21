@@ -85,14 +85,24 @@ export async function GET(request: Request) {
     await createSessionCookie({ role: "commissioner", seasonId: season.id });
 
     if (state.mode === "drive") {
-      await client
+      const { data: existingIntegration } = await client
+        .from("commissioner_integrations")
+        .select("refresh_token")
+        .eq("season_id", season.id)
+        .eq("provider", "google_drive")
+        .maybeSingle();
+
+      const refreshTokenToStore =
+        tokenJson.refresh_token || existingIntegration?.refresh_token || null;
+
+      const { error: upsertError } = await client
         .from("commissioner_integrations")
         .upsert(
           {
             season_id: season.id,
             provider: "google_drive",
             commissioner_email: email,
-            refresh_token: tokenJson.refresh_token || null,
+            refresh_token: refreshTokenToStore,
             access_token: tokenJson.access_token,
             token_expiry: tokenJson.expires_in
               ? new Date(Date.now() + tokenJson.expires_in * 1000).toISOString()
@@ -100,6 +110,14 @@ export async function GET(request: Request) {
           },
           { onConflict: "season_id,provider" }
         );
+
+      if (upsertError) {
+        return NextResponse.redirect(`${env.appUrl}/commissioner?google=drive_error`);
+      }
+
+      if (!refreshTokenToStore && !tokenJson.access_token) {
+        return NextResponse.redirect(`${env.appUrl}/commissioner?google=drive_missing_token`);
+      }
     }
 
     return NextResponse.redirect(`${env.appUrl}/commissioner?google=${state.mode}`);

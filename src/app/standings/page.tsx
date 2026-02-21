@@ -7,6 +7,7 @@ type Season = { id: string; name: string; year: number };
 type Standing = {
   rank: number;
   teamName: string;
+  gamesPlayed: number;
   gamesWon: number;
   matchPoints: number;
   totalPoints: number;
@@ -79,6 +80,7 @@ export default function StandingsPage() {
             <tr>
               <th className="p-3">Rank</th>
               <th className="p-3">Team</th>
+              <th className="p-3">Games Played</th>
               <th className="p-3">Games Won</th>
               <th className="p-3">Match Points</th>
               <th className="p-3">Total Points</th>
@@ -89,6 +91,7 @@ export default function StandingsPage() {
               <tr key={row.teamName}>
                 <td className="p-3">{row.rank}</td>
                 <td className="p-3 font-semibold">{formatTeamName(row.teamName)}</td>
+                <td className="p-3">{row.gamesPlayed}</td>
                 <td className="p-3">{row.gamesWon}</td>
                 <td className="p-3">{row.matchPoints}</td>
                 <td className="p-3">{row.totalPoints}</td>

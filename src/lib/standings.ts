@@ -19,6 +19,7 @@ export type MatchResult = {
 export type StandingRow = {
   teamId: string;
   teamName: string;
+  gamesPlayed: number;
   gamesWon: number;
   matchPoints: number;
   totalPoints: number;
@@ -74,6 +75,7 @@ export function computeStandings(teams: Team[], matches: MatchResult[]) {
     return {
       teamId: team.id,
       teamName: team.name,
+      gamesPlayed: teamMatches.length,
       gamesWon: totals.gamesWon,
       matchPoints: totals.matchPoints,
       totalPoints: totals.totalPoints,
@@ -93,7 +95,18 @@ export function computeStandings(teams: Team[], matches: MatchResult[]) {
   });
 
   rows.forEach((row, index) => {
-    row.rank = index + 1;
+    if (index === 0) {
+      row.rank = 1;
+      return;
+    }
+
+    const prev = rows[index - 1];
+    const isSameScoreline =
+      row.gamesWon === prev.gamesWon &&
+      row.matchPoints === prev.matchPoints &&
+      row.totalPoints === prev.totalPoints;
+
+    row.rank = isSameScoreline ? prev.rank : index + 1;
   });
 
   return rows;
