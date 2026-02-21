@@ -138,26 +138,6 @@ export default function CommissionerDashboard() {
     setMessage("Email preview loaded.");
   }
 
-  async function exportSeasonJson() {
-    setMessage("");
-    const res = await fetch("/api/exports/season.json", { method: "POST" });
-    const text = await res.text();
-    const json = safeParseJson(text);
-    if (!res.ok || !json || typeof json !== "object") {
-      setMessage(json.error || "Could not export JSON");
-      return;
-    }
-    const data = json;
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `season-${selectedWeek}.json`;
-    link.click();
-    URL.revokeObjectURL(url);
-    setMessage("Season JSON exported.");
-  }
-
   async function backupToDrive() {
     setMessage("");
     const res = await fetch("/api/backups/drive", {
@@ -241,12 +221,6 @@ export default function CommissionerDashboard() {
             className="rounded-xl bg-white/80 px-4 py-2 text-sm font-semibold"
           >
             Preview email
-          </button>
-          <button
-            onClick={exportSeasonJson}
-            className="rounded-xl bg-white/80 px-4 py-2 text-sm font-semibold"
-          >
-            Export season JSON
           </button>
           <button
             onClick={backupToDrive}

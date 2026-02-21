@@ -21,30 +21,10 @@ export function validateMatchScore(score: MatchScore, targetPoints = 16) {
   const games = [score.game1, score.game2];
   for (const game of games) {
     if (!Number.isInteger(game.home) || !Number.isInteger(game.away)) {
-      return { ok: false, error: "Scores must be integers." } as const;
+      return { ok: false, error: "Scores must be whole numbers." } as const;
     }
-    if (game.home < 0 || game.home > 20 || game.away < 0 || game.away > 20) {
-      return { ok: false, error: "Scores must be between 0 and 20." } as const;
-    }
-    const homeIsTarget = game.home === targetPoints;
-    const awayIsTarget = game.away === targetPoints;
-    if (homeIsTarget === awayIsTarget) {
-      return {
-        ok: false,
-        error: `Each game must have exactly one team scoring ${targetPoints}.`
-      } as const;
-    }
-    if (homeIsTarget && game.away >= targetPoints) {
-      return {
-        ok: false,
-        error: `When a team scores ${targetPoints}, the opponent must be below ${targetPoints}.`
-      } as const;
-    }
-    if (awayIsTarget && game.home >= targetPoints) {
-      return {
-        ok: false,
-        error: `When a team scores ${targetPoints}, the opponent must be below ${targetPoints}.`
-      } as const;
+    if (game.home < 0 || game.away < 0) {
+      return { ok: false, error: "Scores must be zero or greater." } as const;
     }
   }
   return { ok: true } as const;

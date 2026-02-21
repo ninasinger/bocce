@@ -86,8 +86,7 @@ export default function SubmitScorePage() {
     <main className="card p-6">
       <h2 className="section-title">Submit match score</h2>
       <p className="mt-2 text-sm text-stone">
-        Each game must have exactly one team scoring 16. Allowed score range is 0 to
-        20.
+        Enter whole-number scores for both games. Any non-negative score is allowed.
       </p>
       <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
         <div className="grid gap-3 md:grid-cols-2">
@@ -97,7 +96,6 @@ export default function SubmitScorePage() {
               name="game1_home_score"
               type="number"
               min={0}
-              max={20}
               step={1}
               required
               className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
@@ -109,7 +107,6 @@ export default function SubmitScorePage() {
               name="game1_away_score"
               type="number"
               min={0}
-              max={20}
               step={1}
               required
               className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
@@ -123,7 +120,6 @@ export default function SubmitScorePage() {
               name="game2_home_score"
               type="number"
               min={0}
-              max={20}
               step={1}
               required
               className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
@@ -135,7 +131,6 @@ export default function SubmitScorePage() {
               name="game2_away_score"
               type="number"
               min={0}
-              max={20}
               step={1}
               required
               className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"

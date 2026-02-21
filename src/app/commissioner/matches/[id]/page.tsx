@@ -167,7 +167,6 @@ export default function CommissionerMatchReview() {
               name="game1_home_score"
               type="number"
               min={0}
-              max={20}
               step={1}
               required
               className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
@@ -179,7 +178,6 @@ export default function CommissionerMatchReview() {
               name="game1_away_score"
               type="number"
               min={0}
-              max={20}
               step={1}
               required
               className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
@@ -193,7 +191,6 @@ export default function CommissionerMatchReview() {
               name="game2_home_score"
               type="number"
               min={0}
-              max={20}
               step={1}
               required
               className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
@@ -205,7 +202,6 @@ export default function CommissionerMatchReview() {
               name="game2_away_score"
               type="number"
               min={0}
-              max={20}
               step={1}
               required
               className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
