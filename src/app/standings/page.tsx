@@ -74,10 +74,10 @@ export default function StandingsPage() {
   }, [seasonId, selectedWeek]);
 
   return (
-    <main className="card p-6">
+    <main className="card p-4 md:p-6">
       <h2 className="section-title">Full standings</h2>
       <p className="mt-2 text-sm text-stone">
-        Rankings update automatically once matches are verified or corrected, through week {selectedWeek}.
+        Through week {selectedWeek}. Updates after matches are verified.
       </p>
 
       <div className="mt-4 grid gap-3 md:max-w-2xl md:grid-cols-2">
@@ -115,16 +115,39 @@ export default function StandingsPage() {
 
       {loading ? <p className="mt-4 text-sm text-stone">Loading standings...</p> : null}
 
-      <div className="mt-6 overflow-hidden rounded-xl border border-white/60">
+      {/* Mobile: card layout */}
+      <div className="mt-6 space-y-3 md:hidden">
+        {standings.map((row) => (
+          <div key={row.teamName} className="rounded-xl bg-white/70 p-4">
+            <div className="flex items-center justify-between">
+              <span className="inline-flex items-center gap-2">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-moss/10 text-sm font-bold text-moss">
+                  {row.rank}
+                </span>
+                <TeamName name={row.teamName} />
+              </span>
+              <span className="text-lg font-display">{row.gamesWon} <span className="text-xs text-stone">GW</span></span>
+            </div>
+            <div className="mt-2 flex gap-4 text-xs text-stone">
+              <span>{row.gamesPlayed} played</span>
+              <span>{row.matchPoints} MP</span>
+              <span>{row.totalPoints} TP</span>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Desktop: table layout */}
+      <div className="mt-6 hidden overflow-hidden rounded-xl border border-white/60 md:block">
         <table className="w-full text-sm">
           <thead className="bg-white/60 text-left">
             <tr>
               <th className="p-3">Rank</th>
               <th className="p-3">Team</th>
-              <th className="p-3">Games Played</th>
-              <th className="p-3">Games Won</th>
-              <th className="p-3">Match Points</th>
-              <th className="p-3">Total Points</th>
+              <th className="p-3">GP</th>
+              <th className="p-3">GW</th>
+              <th className="p-3">MP</th>
+              <th className="p-3">TP</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-white/60 bg-white/40">
