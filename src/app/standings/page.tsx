@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TeamName } from "@/components/TeamName";
+import { SkeletonStandingRow } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
 import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
@@ -61,30 +63,30 @@ export default function StandingsPage() {
     loadWeeks();
   }, [seasonId]);
 
-  useEffect(() => {
+  const loadStandings = useCallback(async () => {
     if (!seasonId) return;
-    async function reloadForWeek() {
-      setLoading(true);
-      const res = await fetch(`/api/seasons/${seasonId}/standings?week=${selectedWeek}`);
-      const json = await res.json();
-      setStandings(json.standings || []);
-      setLoading(false);
-    }
-    reloadForWeek();
+    setLoading(true);
+    const res = await fetch(`/api/seasons/${seasonId}/standings?week=${selectedWeek}`);
+    const json = await res.json();
+    setStandings(json.standings || []);
+    setLoading(false);
   }, [seasonId, selectedWeek]);
+
+  useEffect(() => {
+    loadStandings();
+  }, [loadStandings]);
 
   return (
     <main className="card p-4 md:p-6">
       <h2 className="section-title">Full standings</h2>
-      <p className="mt-2 text-sm text-stone">
-        Through week {selectedWeek}. Updates after matches are verified.
+      <p className="mt-1 text-sm text-stone">
+        Through week {selectedWeek}. Updates after verification.
       </p>
 
-      <div className="mt-4 grid gap-3 md:max-w-2xl md:grid-cols-2">
-        <label className="grid gap-2 text-sm font-semibold">
-          Season
+      <div className="sticky-filters mt-3">
+        <div className="flex items-center gap-3">
           <select
-            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            className="flex-1 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base font-semibold"
             value={seasonId}
             onChange={(event) => setSeasonId(event.target.value)}
           >
@@ -95,30 +97,45 @@ export default function StandingsPage() {
               </option>
             ))}
           </select>
-        </label>
-        <label className="grid gap-2 text-sm font-semibold">
-          Week
           <select
-            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            className="w-28 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base font-semibold"
             value={selectedWeek}
             onChange={(event) => setSelectedWeek(Number(event.target.value))}
           >
-            {weeks.length === 0 ? <option value={1}>Week 1</option> : null}
+            {weeks.length === 0 ? <option value={1}>Wk 1</option> : null}
             {weeks.map((week) => (
               <option key={week} value={week}>
-                Week {week}
+                Wk {week}
               </option>
             ))}
           </select>
-        </label>
+          <button
+            onClick={loadStandings}
+            className="tap flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/70 border border-white/60"
+            aria-label="Refresh"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-stone">
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {loading ? <p className="mt-4 text-sm text-stone">Loading standings...</p> : null}
-
       {/* Mobile: card layout */}
-      <div className="mt-6 space-y-3 md:hidden">
-        {standings.map((row) => (
-          <div key={row.teamName} className="rounded-xl bg-white/70 p-4">
+      <div className="mt-4 space-y-2 md:hidden">
+        {loading ? (
+          <>
+            <SkeletonStandingRow />
+            <SkeletonStandingRow />
+            <SkeletonStandingRow />
+            <SkeletonStandingRow />
+            <SkeletonStandingRow />
+          </>
+        ) : standings.length === 0 ? (
+          <EmptyState icon="trophy" message="No standings yet. Matches need to be verified first." />
+        ) : standings.map((row) => (
+          <div key={row.teamName} className="rounded-xl bg-white/70 p-3">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-2">
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-moss/10 text-sm font-bold text-moss">
@@ -128,7 +145,7 @@ export default function StandingsPage() {
               </span>
               <span className="text-lg font-display">{row.gamesWon} <span className="text-xs text-stone">GW</span></span>
             </div>
-            <div className="mt-2 flex gap-4 text-xs text-stone">
+            <div className="mt-1.5 flex gap-4 text-xs text-stone">
               <span>{row.gamesPlayed} played</span>
               <span>{row.matchPoints} MP</span>
               <span>{row.totalPoints} TP</span>
@@ -138,33 +155,43 @@ export default function StandingsPage() {
       </div>
 
       {/* Desktop: table layout */}
-      <div className="mt-6 hidden overflow-hidden rounded-xl border border-white/60 md:block">
-        <table className="w-full text-sm">
-          <thead className="bg-white/60 text-left">
-            <tr>
-              <th className="p-3">Rank</th>
-              <th className="p-3">Team</th>
-              <th className="p-3">GP</th>
-              <th className="p-3">GW</th>
-              <th className="p-3">MP</th>
-              <th className="p-3">TP</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-white/60 bg-white/40">
-            {standings.map((row) => (
-              <tr key={row.teamName}>
-                <td className="p-3">{row.rank}</td>
-                <td className="p-3 font-semibold">
-                  <TeamName name={row.teamName} />
-                </td>
-                <td className="p-3">{row.gamesPlayed}</td>
-                <td className="p-3">{row.gamesWon}</td>
-                <td className="p-3">{row.matchPoints}</td>
-                <td className="p-3">{row.totalPoints}</td>
+      <div className="mt-4 hidden overflow-hidden rounded-xl border border-white/60 md:block">
+        {loading ? (
+          <div className="space-y-2 p-4">
+            <SkeletonStandingRow />
+            <SkeletonStandingRow />
+            <SkeletonStandingRow />
+          </div>
+        ) : standings.length === 0 ? (
+          <EmptyState icon="trophy" message="No standings yet. Matches need to be verified first." />
+        ) : (
+          <table className="w-full text-sm">
+            <thead className="bg-white/60 text-left">
+              <tr>
+                <th className="p-3">Rank</th>
+                <th className="p-3">Team</th>
+                <th className="p-3">GP</th>
+                <th className="p-3">GW</th>
+                <th className="p-3">MP</th>
+                <th className="p-3">TP</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-white/60 bg-white/40">
+              {standings.map((row) => (
+                <tr key={row.teamName}>
+                  <td className="p-3">{row.rank}</td>
+                  <td className="p-3 font-semibold">
+                    <TeamName name={row.teamName} />
+                  </td>
+                  <td className="p-3">{row.gamesPlayed}</td>
+                  <td className="p-3">{row.gamesWon}</td>
+                  <td className="p-3">{row.matchPoints}</td>
+                  <td className="p-3">{row.totalPoints}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
     </main>
   );

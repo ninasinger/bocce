@@ -12,6 +12,12 @@ body {
   background-image: radial-gradient(circle at 10% 20%, rgba(243, 200, 92, 0.2), transparent 35%),
     radial-gradient(circle at 80% 0%, rgba(47, 93, 80, 0.15), transparent 40%),
     linear-gradient(180deg, #f8f3ee 0%, #f0e7dd 100%);
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Prevent iOS zoom on form elements */
+input, select, textarea {
+  font-size: 16px;
 }
 
 .card {
@@ -24,6 +30,15 @@ body {
 
 .badge {
   @apply inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold uppercase tracking-wide;
+}
+
+/* Touch-friendly interactive elements */
+.tap {
+  @apply transition-all active:scale-[0.97] active:opacity-80;
+}
+
+.tap-btn {
+  @apply transition-all active:scale-[0.98];
 }
 
 .fade-in {
@@ -46,9 +61,9 @@ body {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Score stepper buttons */
+/* Score stepper buttons — sized to fit two sets side-by-side on small phones */
 .stepper-btn {
-  @apply flex h-14 w-14 items-center justify-center rounded-2xl text-2xl font-bold transition-all active:scale-95;
+  @apply flex h-11 w-11 items-center justify-center rounded-xl text-xl font-bold transition-all active:scale-90;
 }
 
 .stepper-btn-minus {
@@ -57,6 +72,23 @@ body {
 
 .stepper-btn-plus {
   @apply stepper-btn bg-emerald-100 text-emerald-700 active:bg-emerald-200;
+}
+
+@media (min-width: 400px) {
+  .stepper-btn {
+    @apply h-14 w-14 rounded-2xl text-2xl;
+  }
+}
+
+/* Stepper score flash on change */
+@keyframes scoreBump {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+
+.score-bump {
+  animation: scoreBump 0.15s ease-out;
 }
 
 /* Success animation */
@@ -78,4 +110,22 @@ body {
 /* Award cards */
 .award-card {
   @apply rounded-2xl p-4 border border-white/60;
+}
+
+/* Sticky filter bar */
+.sticky-filters {
+  @apply sticky top-0 z-10 -mx-4 bg-field/95 px-4 py-3 backdrop-blur-sm md:-mx-6 md:px-6;
+}
+
+/* Condensed mobile header */
+@media (max-width: 767px) {
+  .site-header h1 {
+    @apply text-xl;
+  }
+  .site-header .site-subtitle {
+    @apply hidden;
+  }
+  .site-header .site-badge {
+    @apply text-[10px] px-2 py-0.5;
+  }
 }

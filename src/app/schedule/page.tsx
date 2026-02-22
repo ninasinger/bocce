@@ -1,7 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { TeamName } from "@/components/TeamName";
+import { StatusBadge } from "@/components/StatusBadge";
+import { SkeletonCard } from "@/components/Skeleton";
+import { EmptyState } from "@/components/EmptyState";
 import { formatTeamName } from "@/lib/display";
 import { getCurrentWeek } from "@/lib/week";
 
@@ -43,6 +46,34 @@ export default function SchedulePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const loadSchedule = useCallback(async () => {
+    if (!seasonId) {
+      setMatches([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch(`/api/seasons/${seasonId}/schedule`);
+      const json = await res.json();
+      if (!res.ok) {
+        setError(json.error || "Failed to load schedule");
+        setMatches([]);
+        return;
+      }
+      const loadedMatches = json.matches || [];
+      setMatches(loadedMatches);
+      setSelectedWeek(getCurrentWeek(loadedMatches));
+    } catch {
+      setError("Failed to load schedule");
+      setMatches([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [seasonId]);
+
   useEffect(() => {
     async function loadSeasons() {
       try {
@@ -60,40 +91,8 @@ export default function SchedulePage() {
   }, []);
 
   useEffect(() => {
-    if (!seasonId) {
-      setMatches([]);
-      setLoading(false);
-      return;
-    }
-
-    async function loadSchedule() {
-      setLoading(true);
-      setError("");
-      try {
-        const res = await fetch(`/api/seasons/${seasonId}/schedule`);
-        const json = await res.json();
-        if (!res.ok) {
-          setError(json.error || "Failed to load schedule");
-          setMatches([]);
-          return;
-        }
-        const loadedMatches = json.matches || [];
-        setMatches(loadedMatches);
-        setSelectedWeek(getCurrentWeek(loadedMatches));
-      } catch {
-        setError("Failed to load schedule");
-        setMatches([]);
-      } finally {
-        setLoading(false);
-      }
-    }
-
     loadSchedule();
-  }, [seasonId]);
-
-  const seasonName = useMemo(() => {
-    return seasons.find((season) => season.id === seasonId)?.name || "Schedule";
-  }, [seasons, seasonId]);
+  }, [loadSchedule]);
 
   const weeks = useMemo(
     () => Array.from(new Set(matches.map((match) => match.week_number))).sort((a, b) => a - b),
@@ -105,15 +104,13 @@ export default function SchedulePage() {
   );
 
   return (
-    <main className="card p-6">
+    <main className="card p-4 md:p-6">
       <h2 className="section-title">Weekly schedule</h2>
-      <p className="mt-2 text-sm text-stone">{seasonName}</p>
 
-      <div className="mt-4 grid gap-3 md:max-w-2xl md:grid-cols-2">
-        <label className="grid gap-2 text-sm font-semibold">
-          Season
+      <div className="sticky-filters mt-3">
+        <div className="flex items-center gap-3">
           <select
-            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            className="flex-1 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base font-semibold"
             value={seasonId}
             onChange={(event) => setSeasonId(event.target.value)}
           >
@@ -124,41 +121,51 @@ export default function SchedulePage() {
               </option>
             ))}
           </select>
-        </label>
-        <label className="grid gap-2 text-sm font-semibold">
-          Week
           <select
-            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            className="w-28 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base font-semibold"
             value={selectedWeek}
             onChange={(event) => setSelectedWeek(Number(event.target.value))}
           >
-            {weeks.length === 0 ? <option value={1}>Week 1</option> : null}
+            {weeks.length === 0 ? <option value={1}>Wk 1</option> : null}
             {weeks.map((week) => (
               <option key={week} value={week}>
-                Week {week}
+                Wk {week}
               </option>
             ))}
           </select>
-        </label>
+          <button
+            onClick={loadSchedule}
+            className="tap flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/70 border border-white/60"
+            aria-label="Refresh"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-stone">
+              <polyline points="23 4 23 10 17 10" />
+              <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+            </svg>
+          </button>
+        </div>
       </div>
 
-      {loading ? <p className="mt-4 text-sm text-stone">Loading schedule...</p> : null}
-      {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
-      {!loading && !error && visibleMatches.length === 0 ? (
-        <p className="mt-4 text-sm text-stone">No scheduled matches found.</p>
-      ) : null}
+      {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
 
-      <div className="mt-4 space-y-4">
-        {visibleMatches.map((item) => (
-          <div key={item.id} className="rounded-xl bg-white/70 p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="font-semibold">Week {item.week_number}</p>
-              <span className="badge bg-clay/30 text-ink">{item.status}</span>
+      <div className="mt-4 space-y-3">
+        {loading ? (
+          <>
+            <SkeletonCard />
+            <SkeletonCard />
+            <SkeletonCard />
+          </>
+        ) : visibleMatches.length === 0 ? (
+          <EmptyState icon="calendar" message={`No matches scheduled for week ${selectedWeek}.`} />
+        ) : visibleMatches.map((item) => (
+          <div key={item.id} className="tap rounded-xl bg-white/70 p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <StatusBadge status={item.status} />
+              <span className="text-xs text-stone">{formatWhen(item.scheduled_datetime)}</span>
             </div>
-            <p className="mt-2 text-sm text-stone">{formatWhen(item.scheduled_datetime)}</p>
-            <div className="mt-1 flex flex-wrap items-center gap-2 font-semibold">
+            <div className="mt-2 flex flex-wrap items-center gap-2 font-semibold">
               <TeamName name={teamName(item.home_team)} />
-              <span>vs.</span>
+              <span className="text-stone font-normal">vs</span>
               <TeamName name={teamName(item.away_team)} />
             </div>
             {item.notes ? <p className="mt-1 text-xs text-stone">{item.notes}</p> : null}

@@ -36,32 +36,32 @@ export default function RootLayout({
         <link rel="icon" href="/icon-192.svg" type="image/svg+xml" />
       </head>
       <body className={`${display.variable} ${body.variable}`}>
-        <div className="mx-auto max-w-5xl px-4 pb-28 pt-8">
-          <header className="mb-10 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="mx-auto max-w-5xl px-4 pb-28 pt-6 md:pt-8">
+          <header className="site-header mb-6 flex flex-col gap-3 md:mb-10 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="badge bg-sun/30 text-ink">Bocce League</p>
-              <h1 className="mt-3 text-3xl font-display md:text-4xl">
+              <p className="site-badge badge bg-sun/30 text-ink">Bocce League</p>
+              <h1 className="mt-2 text-3xl font-display md:mt-3 md:text-4xl">
                 League Scoring Hub
               </h1>
-              <p className="mt-2 text-sm text-stone">
+              <p className="site-subtitle mt-1 text-sm text-stone md:mt-2">
                 Verified results, accurate standings, and simple captain submissions.
               </p>
             </div>
             <nav className="hidden flex-wrap gap-3 text-sm font-semibold md:flex">
-              <a className="rounded-full bg-white/80 px-4 py-2" href="/">
+              <a className="tap rounded-full bg-white/80 px-4 py-2" href="/">
                 Home
               </a>
-              <a className="rounded-full bg-white/80 px-4 py-2" href="/standings">
+              <a className="tap rounded-full bg-white/80 px-4 py-2" href="/standings">
                 Standings
               </a>
-              <a className="rounded-full bg-white/80 px-4 py-2" href="/schedule">
+              <a className="tap rounded-full bg-white/80 px-4 py-2" href="/schedule">
                 Schedule
               </a>
-              <a className="rounded-full bg-white/80 px-4 py-2" href="/captain/login">
+              <a className="tap rounded-full bg-white/80 px-4 py-2" href="/captain/login">
                 Score Entry
               </a>
               <a
-                className="rounded-full bg-moss/90 px-4 py-2 text-white"
+                className="tap rounded-full bg-moss/90 px-4 py-2 text-white"
                 href="/commissioner/login"
               >
                 Commissioner

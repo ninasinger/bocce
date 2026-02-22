@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { TeamName } from "@/components/TeamName";
+import { StatusBadge } from "@/components/StatusBadge";
+import { Skeleton, SkeletonCard, SkeletonStandingRow, SkeletonAwardCard } from "@/components/Skeleton";
 import { formatTeamName } from "@/lib/display";
 
 type Season = { id: string; name: string; year: number };
@@ -61,6 +63,7 @@ export default function HomePage() {
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [awards, setAwards] = useState<Award[]>([]);
   const [awardsWeek, setAwardsWeek] = useState<number | null>(null);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -73,6 +76,7 @@ export default function HomePage() {
           setError(json.error || "Could not load seasons");
           setSeasons([]);
           setSeasonId("");
+          setLoading(false);
           return;
         }
         const list: Season[] = json.seasons || [];
@@ -82,6 +86,7 @@ export default function HomePage() {
         setError("Could not load seasons");
         setSeasons([]);
         setSeasonId("");
+        setLoading(false);
       }
     }
 
@@ -92,6 +97,7 @@ export default function HomePage() {
     if (!seasonId) return;
 
     async function loadData() {
+      setLoading(true);
       try {
         const [standingsRes, scheduleRes, awardsRes] = await Promise.all([
           fetch(`/api/seasons/${seasonId}/standings`),
@@ -122,6 +128,8 @@ export default function HomePage() {
         setError("Could not load home data");
         setStandings([]);
         setMatches([]);
+      } finally {
+        setLoading(false);
       }
     }
 
@@ -134,15 +142,15 @@ export default function HomePage() {
   );
 
   return (
-    <main className="space-y-8">
-      <section className="card fade-in p-6">
+    <main className="space-y-6">
+      <section className="card fade-in p-4 md:p-6">
         {error ? (
           <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         ) : null}
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="section-title">This week at a glance</h2>
           <select
-            className="rounded-xl border border-white/60 bg-white/70 px-3 py-2 text-sm"
+            className="rounded-xl border border-white/60 bg-white/70 px-3 py-2 text-base"
             value={seasonId}
             onChange={(event) => setSeasonId(event.target.value)}
           >
@@ -154,30 +162,47 @@ export default function HomePage() {
             ))}
           </select>
         </div>
-        <div className="mt-4 grid gap-4 md:grid-cols-3">
-          <div className="rounded-xl bg-field/80 p-4">
-            <p className="text-xs uppercase tracking-wide text-stone">Matches in preview</p>
-            <p className="mt-2 text-3xl font-display">{matches.length}</p>
+        {loading ? (
+          <div className="mt-4 grid gap-4 md:grid-cols-3">
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
+            <Skeleton className="h-20 rounded-xl" />
           </div>
-          <div className="rounded-xl bg-field/80 p-4">
-            <p className="text-xs uppercase tracking-wide text-stone">Top teams shown</p>
-            <p className="mt-2 text-3xl font-display">{standings.length}</p>
+        ) : (
+          <div className="mt-4 grid gap-3 grid-cols-3">
+            <div className="rounded-xl bg-field/80 p-3">
+              <p className="text-[10px] uppercase tracking-wide text-stone">Matches</p>
+              <p className="mt-1 text-2xl font-display">{matches.length}</p>
+            </div>
+            <div className="rounded-xl bg-field/80 p-3">
+              <p className="text-[10px] uppercase tracking-wide text-stone">Teams</p>
+              <p className="mt-1 text-2xl font-display">{standings.length}</p>
+            </div>
+            <div className="rounded-xl bg-field/80 p-3">
+              <p className="text-[10px] uppercase tracking-wide text-stone">Verified</p>
+              <p className="mt-1 text-2xl font-display">{verifiedCount}</p>
+            </div>
           </div>
-          <div className="rounded-xl bg-field/80 p-4">
-            <p className="text-xs uppercase tracking-wide text-stone">Verified in preview</p>
-            <p className="mt-2 text-3xl font-display">{verifiedCount}</p>
-          </div>
-        </div>
+        )}
       </section>
 
       {/* Weekly Awards */}
-      {awards.length > 0 ? (
-        <section className="card fade-in p-6">
+      {loading ? (
+        <section className="card fade-in p-4 md:p-6">
+          <Skeleton className="h-6 w-40" />
+          <Skeleton className="mt-2 h-4 w-56" />
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <SkeletonAwardCard />
+            <SkeletonAwardCard />
+          </div>
+        </section>
+      ) : awards.length > 0 ? (
+        <section className="card fade-in p-4 md:p-6">
           <h2 className="section-title">
             Week {awardsWeek} Awards
           </h2>
-          <p className="mt-2 text-sm text-stone">
-            Auto-generated highlights from this week&apos;s verified matches.
+          <p className="mt-1 text-sm text-stone">
+            Highlights from this week&apos;s verified matches.
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {awards.map((award) => (
@@ -190,11 +215,11 @@ export default function HomePage() {
                     {award.emoji}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-stone">
+                    <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">
                       {award.title}
                     </p>
-                    <p className="mt-1 font-display text-lg">{award.team}</p>
-                    <p className="mt-0.5 text-sm text-stone">{award.detail}</p>
+                    <p className="mt-0.5 font-display text-base leading-tight">{award.team}</p>
+                    <p className="mt-0.5 text-xs text-stone">{award.detail}</p>
                   </div>
                 </div>
               </div>
@@ -204,43 +229,56 @@ export default function HomePage() {
       ) : null}
 
       <section className="grid gap-6 md:grid-cols-2">
-        <div className="card p-6">
+        <div className="card p-4 md:p-6">
           <h2 className="section-title">Standings preview</h2>
-          <p className="mt-2 text-sm text-stone">
-            Verified results only. Ranking uses games won, match points, total
-            points, head-to-head, then alphabetical.
+          <p className="mt-1 text-sm text-stone">
+            Top teams by games won.
           </p>
-          <div className="mt-4 space-y-3 text-sm">
-            {standings.map((row) => (
-              <div key={row.teamName} className="flex items-center justify-between rounded-lg bg-white/70 p-3">
+          <div className="mt-4 space-y-2 text-sm">
+            {loading ? (
+              <>
+                <SkeletonStandingRow />
+                <SkeletonStandingRow />
+                <SkeletonStandingRow />
+                <SkeletonStandingRow />
+              </>
+            ) : standings.map((row) => (
+              <div key={row.teamName} className="tap flex items-center justify-between rounded-lg bg-white/70 p-3">
                 <span className="inline-flex items-center gap-2">
-                  <span>{row.rank}.</span>
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-moss/10 text-xs font-bold text-moss">
+                    {row.rank}
+                  </span>
                   <TeamName name={formatTeamName(row.teamName)} />
                 </span>
-                <span className="font-semibold">{row.gamesWon} GW</span>
+                <span className="font-semibold">{row.gamesWon} <span className="text-xs text-stone">GW</span></span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="card p-6">
+        <div className="card p-4 md:p-6">
           <h2 className="section-title">Next matches</h2>
-          <p className="mt-2 text-sm text-stone">
-            Captains can submit scores only for their scheduled matches.
+          <p className="mt-1 text-sm text-stone">
+            Upcoming games this week.
           </p>
-          <div className="mt-4 space-y-3 text-sm">
-            {matches.map((item) => (
+          <div className="mt-4 space-y-2 text-sm">
+            {loading ? (
+              <>
+                <SkeletonCard />
+                <SkeletonCard />
+                <SkeletonCard />
+              </>
+            ) : matches.map((item) => (
               <div key={item.id} className="rounded-lg bg-white/70 p-3">
-                <p className="font-semibold">
-                  Week {item.week_number} · {formatWhen(item.scheduled_datetime)}
-                </p>
-                <p>
-                  <span className="inline-flex items-center gap-2">
-                    <TeamName name={teamName(item.home_team)} />
-                    <span>vs.</span>
-                    <TeamName name={teamName(item.away_team)} />
-                  </span>
-                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={item.status} />
+                  <span className="text-xs text-stone">Wk {item.week_number} · {formatWhen(item.scheduled_datetime)}</span>
+                </div>
+                <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                  <TeamName name={teamName(item.home_team)} />
+                  <span className="text-stone">vs</span>
+                  <TeamName name={teamName(item.away_team)} />
+                </div>
               </div>
             ))}
           </div>

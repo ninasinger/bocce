@@ -19,6 +19,17 @@ function getTeamName(team: TeamRef) {
   return team.name || "Team";
 }
 
+function shortName(name: string) {
+  if (name.length <= 8) return name;
+  // Use initials from each word
+  const initials = name
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase();
+  return initials.length >= 2 ? initials : name.slice(0, 8);
+}
+
 type Step = "entry" | "confirm" | "success";
 
 function ScoreStepper({
@@ -30,27 +41,35 @@ function ScoreStepper({
   onChange: (v: number) => void;
   label: string;
 }) {
+  const [bumping, setBumping] = useState(false);
+
+  function handleChange(next: number) {
+    onChange(next);
+    setBumping(true);
+    setTimeout(() => setBumping(false), 150);
+  }
+
   return (
-    <div className="flex flex-col items-center gap-2">
-      <span className="text-xs font-semibold uppercase tracking-wide text-stone">
+    <div className="flex flex-col items-center gap-1.5">
+      <span className="text-[10px] font-semibold uppercase tracking-wide text-stone">
         {label}
       </span>
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <button
           type="button"
           className="stepper-btn-minus"
-          onClick={() => onChange(Math.max(0, value - 1))}
+          onClick={() => handleChange(Math.max(0, value - 1))}
           aria-label={`Decrease ${label}`}
         >
           &minus;
         </button>
-        <span className="w-14 text-center text-4xl font-display tabular-nums">
+        <span className={`w-10 text-center text-3xl font-display tabular-nums ${bumping ? "score-bump" : ""}`}>
           {value}
         </span>
         <button
           type="button"
           className="stepper-btn-plus"
-          onClick={() => onChange(value + 1)}
+          onClick={() => handleChange(value + 1)}
           aria-label={`Increase ${label}`}
         >
           +
@@ -121,6 +140,9 @@ export default function SubmitScorePage() {
     [g1h, g1a, g2h, g2a]
   );
 
+  const homeShort = shortName(homeTeamName);
+  const awayShort = shortName(awayTeamName);
+
   async function handleSubmit() {
     setSubmitting(true);
     setError(null);
@@ -163,8 +185,8 @@ export default function SubmitScorePage() {
   // ── Success screen ──
   if (step === "success") {
     return (
-      <main className="card p-6 text-center">
-        <div className="success-pop mx-auto my-8 flex h-20 w-20 items-center justify-center rounded-full bg-emerald-100">
+      <main className="card p-5 text-center">
+        <div className="success-pop mx-auto my-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
           <svg
             viewBox="0 0 24 24"
             fill="none"
@@ -172,7 +194,7 @@ export default function SubmitScorePage() {
             strokeWidth={3}
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="h-10 w-10 text-emerald-600"
+            className="h-8 w-8 text-emerald-600"
           >
             <polyline points="20 6 9 17 4 12" />
           </svg>
@@ -181,16 +203,16 @@ export default function SubmitScorePage() {
         <p className="mt-2 text-sm text-stone">
           Awaiting the other team&apos;s submission for verification.
         </p>
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-5 flex flex-col gap-3">
           <a
             href="/captain/matches"
-            className="rounded-xl bg-moss px-6 py-3 text-center font-semibold text-white"
+            className="rounded-xl bg-moss px-5 py-3 text-center font-semibold text-white"
           >
             Back to my matches
           </a>
           <a
             href="/"
-            className="rounded-xl bg-white/80 px-6 py-3 text-center font-semibold text-ink"
+            className="rounded-xl bg-white/80 px-5 py-3 text-center font-semibold text-ink"
           >
             Go home
           </a>
@@ -202,79 +224,81 @@ export default function SubmitScorePage() {
   // ── Confirmation screen ──
   if (step === "confirm") {
     return (
-      <main className="card p-6">
+      <main className="card p-4">
         <h2 className="section-title text-center">Confirm scores</h2>
-        <p className="mt-2 text-center text-sm text-stone">
+        <p className="mt-1 text-center text-sm text-stone">
           Double-check before submitting.
         </p>
 
-        <div className="mt-6 space-y-4">
-          <div className="rounded-xl bg-white/70 p-4">
-            <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-stone">
+        <div className="mt-4 space-y-3">
+          {/* Game 1 */}
+          <div className="rounded-xl bg-white/70 p-3">
+            <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
               Game 1
             </p>
-            <div className="flex items-center justify-center gap-6">
+            <div className="flex items-center justify-center gap-4">
               <div className="text-center">
-                <TeamName name={formatTeamName(homeTeamName)} />
-                <p className="mt-1 text-3xl font-display">{g1h}</p>
+                <p className="text-xs font-semibold text-stone">{homeShort}</p>
+                <p className="text-3xl font-display">{g1h}</p>
               </div>
               <span className="text-lg text-stone">&ndash;</span>
               <div className="text-center">
-                <TeamName name={formatTeamName(awayTeamName)} />
-                <p className="mt-1 text-3xl font-display">{g1a}</p>
+                <p className="text-xs font-semibold text-stone">{awayShort}</p>
+                <p className="text-3xl font-display">{g1a}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl bg-white/70 p-4">
-            <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-stone">
+          {/* Game 2 */}
+          <div className="rounded-xl bg-white/70 p-3">
+            <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
               Game 2
             </p>
-            <div className="flex items-center justify-center gap-6">
+            <div className="flex items-center justify-center gap-4">
               <div className="text-center">
-                <TeamName name={formatTeamName(homeTeamName)} />
-                <p className="mt-1 text-3xl font-display">{g2h}</p>
+                <p className="text-xs font-semibold text-stone">{homeShort}</p>
+                <p className="text-3xl font-display">{g2h}</p>
               </div>
               <span className="text-lg text-stone">&ndash;</span>
               <div className="text-center">
-                <TeamName name={formatTeamName(awayTeamName)} />
-                <p className="mt-1 text-3xl font-display">{g2a}</p>
+                <p className="text-xs font-semibold text-stone">{awayShort}</p>
+                <p className="text-3xl font-display">{g2a}</p>
               </div>
             </div>
           </div>
 
-          <div className="rounded-xl bg-moss/10 p-4 text-center">
-            <p className="text-xs font-semibold uppercase tracking-wide text-stone">
+          <div className="rounded-xl bg-moss/10 p-3 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">
               Match points
             </p>
-            <p className="mt-1 text-2xl font-display">
+            <p className="mt-1 text-xl font-display">
               {live.homePts} &ndash; {live.awayPts}
             </p>
           </div>
 
           {notes ? (
-            <div className="rounded-xl bg-white/70 p-4">
-              <p className="text-xs font-semibold uppercase tracking-wide text-stone">Notes</p>
+            <div className="rounded-xl bg-white/70 p-3">
+              <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">Notes</p>
               <p className="mt-1 text-sm">{notes}</p>
             </div>
           ) : null}
         </div>
 
         {error ? (
-          <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+          <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         ) : null}
 
-        <div className="mt-6 flex flex-col gap-3">
+        <div className="mt-4 flex flex-col gap-3">
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="rounded-xl bg-moss px-6 py-4 text-lg font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+            className="rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-60"
           >
             {submitting ? "Submitting..." : "Submit scores"}
           </button>
           <button
             onClick={() => setStep("entry")}
-            className="rounded-xl bg-white/80 px-6 py-3 font-semibold text-ink"
+            className="rounded-xl bg-white/80 px-5 py-3 font-semibold text-ink"
           >
             Go back & edit
           </button>
@@ -285,78 +309,65 @@ export default function SubmitScorePage() {
 
   // ── Score entry screen ──
   return (
-    <main className="card p-6">
+    <main className="card p-4">
       <h2 className="section-title text-center">Enter scores</h2>
-      <div className="mt-2 flex items-center justify-center gap-3 text-sm">
-        <TeamName name={formatTeamName(homeTeamName)} />
-        <span className="text-stone">vs.</span>
-        <TeamName name={formatTeamName(awayTeamName)} />
+      <div className="mt-1 flex items-center justify-center gap-2 text-sm">
+        <TeamName name={formatTeamName(homeTeamName)} compact />
+        <span className="font-semibold">{formatTeamName(homeTeamName)}</span>
+        <span className="text-stone">vs</span>
+        <TeamName name={formatTeamName(awayTeamName)} compact />
+        <span className="font-semibold">{formatTeamName(awayTeamName)}</span>
       </div>
 
       {error ? (
-        <p className="mt-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+        <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
       ) : null}
 
       {/* Game 1 */}
-      <div className="mt-6 rounded-xl bg-white/70 p-5">
-        <p className="mb-4 text-center text-xs font-semibold uppercase tracking-wide text-stone">
+      <div className="mt-4 rounded-xl bg-white/70 p-3">
+        <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
           Game 1
         </p>
-        <div className="flex items-start justify-center gap-8">
-          <ScoreStepper
-            value={g1h}
-            onChange={setG1h}
-            label={homeTeamName.length > 10 ? homeTeamName.slice(0, 10) + "..." : homeTeamName}
-          />
-          <ScoreStepper
-            value={g1a}
-            onChange={setG1a}
-            label={awayTeamName.length > 10 ? awayTeamName.slice(0, 10) + "..." : awayTeamName}
-          />
+        <div className="flex items-start justify-evenly">
+          <ScoreStepper value={g1h} onChange={setG1h} label={homeShort} />
+          <ScoreStepper value={g1a} onChange={setG1a} label={awayShort} />
         </div>
       </div>
 
       {/* Game 2 */}
-      <div className="mt-4 rounded-xl bg-white/70 p-5">
-        <p className="mb-4 text-center text-xs font-semibold uppercase tracking-wide text-stone">
+      <div className="mt-3 rounded-xl bg-white/70 p-3">
+        <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
           Game 2
         </p>
-        <div className="flex items-start justify-center gap-8">
-          <ScoreStepper
-            value={g2h}
-            onChange={setG2h}
-            label={homeTeamName.length > 10 ? homeTeamName.slice(0, 10) + "..." : homeTeamName}
-          />
-          <ScoreStepper
-            value={g2a}
-            onChange={setG2a}
-            label={awayTeamName.length > 10 ? awayTeamName.slice(0, 10) + "..." : awayTeamName}
-          />
+        <div className="flex items-start justify-evenly">
+          <ScoreStepper value={g2h} onChange={setG2h} label={homeShort} />
+          <ScoreStepper value={g2a} onChange={setG2a} label={awayShort} />
         </div>
       </div>
 
       {/* Live match points preview */}
-      <div className="mt-4 rounded-xl bg-moss/10 p-4 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-stone">
-          Match points preview
+      <div className="mt-3 rounded-xl bg-moss/10 p-3 text-center">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">
+          Match points
         </p>
-        <p className="mt-1 text-2xl font-display">
+        <p className="mt-1 text-xl font-display">
           {live.homePts} &ndash; {live.awayPts}
         </p>
-        <p className="mt-1 text-xs text-stone">
+        <p className="text-xs text-stone">
           Total: {live.homeTotal} &ndash; {live.awayTotal}
         </p>
       </div>
 
       {/* Notes */}
-      <div className="mt-4">
-        <label className="grid gap-2 text-sm font-semibold">
+      <div className="mt-3">
+        <label className="grid gap-1.5 text-sm font-semibold">
           Notes (optional)
           <textarea
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Anything worth noting..."
-            className="min-h-[80px] rounded-xl border border-white/60 bg-white/70 px-4 py-3 text-base"
+            rows={2}
+            className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base"
           />
         </label>
       </div>
@@ -371,7 +382,7 @@ export default function SubmitScorePage() {
           setError(null);
           setStep("confirm");
         }}
-        className="mt-6 w-full rounded-xl bg-moss px-6 py-4 text-lg font-semibold text-white transition-all active:scale-[0.98]"
+        className="mt-4 w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white transition-all active:scale-[0.98]"
       >
         Review & submit
       </button>
