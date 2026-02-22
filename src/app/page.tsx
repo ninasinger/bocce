@@ -21,6 +21,21 @@ type MatchRow = {
   home_team: { name: string } | { name: string }[] | null;
   away_team: { name: string } | { name: string }[] | null;
 };
+type Award = {
+  id: string;
+  emoji: string;
+  title: string;
+  team: string;
+  detail: string;
+};
+
+const AWARD_COLORS: Record<string, string> = {
+  blowout: "bg-red-50",
+  nailbiter: "bg-amber-50",
+  topscorer: "bg-sky-50",
+  hotstreak: "bg-orange-50",
+  risingstar: "bg-violet-50",
+};
 
 function teamName(team: MatchRow["home_team"]) {
   if (!team) return "TBD";
@@ -44,6 +59,8 @@ export default function HomePage() {
   const [seasonId, setSeasonId] = useState("");
   const [standings, setStandings] = useState<Standing[]>([]);
   const [matches, setMatches] = useState<MatchRow[]>([]);
+  const [awards, setAwards] = useState<Award[]>([]);
+  const [awardsWeek, setAwardsWeek] = useState<number | null>(null);
   const [error, setError] = useState("");
 
   useEffect(() => {
@@ -76,14 +93,17 @@ export default function HomePage() {
 
     async function loadData() {
       try {
-        const [standingsRes, scheduleRes] = await Promise.all([
+        const [standingsRes, scheduleRes, awardsRes] = await Promise.all([
           fetch(`/api/seasons/${seasonId}/standings`),
-          fetch(`/api/seasons/${seasonId}/schedule`)
+          fetch(`/api/seasons/${seasonId}/schedule`),
+          fetch(`/api/seasons/${seasonId}/awards`)
         ]);
         const standingsText = await standingsRes.text();
         const scheduleText = await scheduleRes.text();
+        const awardsText = await awardsRes.text();
         const standingsJson = standingsText ? JSON.parse(standingsText) : {};
         const scheduleJson = scheduleText ? JSON.parse(scheduleText) : {};
+        const awardsJson = awardsText ? JSON.parse(awardsText) : {};
 
         if (!standingsRes.ok || !scheduleRes.ok) {
           setError(
@@ -96,6 +116,8 @@ export default function HomePage() {
 
         setStandings((standingsJson.standings || []).slice(0, 6));
         setMatches((scheduleJson.matches || []).slice(0, 6));
+        setAwards(awardsJson.awards || []);
+        setAwardsWeek(awardsJson.week || null);
       } catch {
         setError("Could not load home data");
         setStandings([]);
@@ -147,6 +169,39 @@ export default function HomePage() {
           </div>
         </div>
       </section>
+
+      {/* Weekly Awards */}
+      {awards.length > 0 ? (
+        <section className="card fade-in p-6">
+          <h2 className="section-title">
+            Week {awardsWeek} Awards
+          </h2>
+          <p className="mt-2 text-sm text-stone">
+            Auto-generated highlights from this week&apos;s verified matches.
+          </p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {awards.map((award) => (
+              <div
+                key={award.id}
+                className={`award-card ${AWARD_COLORS[award.id] || "bg-white/70"}`}
+              >
+                <div className="flex items-start gap-3">
+                  <span className="text-2xl" role="img" aria-label={award.title}>
+                    {award.emoji}
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-stone">
+                      {award.title}
+                    </p>
+                    <p className="mt-1 font-display text-lg">{award.team}</p>
+                    <p className="mt-0.5 text-sm text-stone">{award.detail}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       <section className="grid gap-6 md:grid-cols-2">
         <div className="card p-6">

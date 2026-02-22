@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#2f5d50"/>
+  <circle cx="256" cy="230" r="130" fill="#f4efe9" stroke="#d9a26f" stroke-width="10"/>
+  <path d="M218 133 Q256 175 294 133" fill="none" stroke="#2f5d50" stroke-width="7" stroke-linecap="round"/>
+  <path d="M218 327 Q256 285 294 327" fill="none" stroke="#2f5d50" stroke-width="7" stroke-linecap="round"/>
+  <circle cx="256" cy="230" r="16" fill="#d9a26f" opacity="0.4"/>
+  <text x="256" y="425" text-anchor="middle" font-family="serif" font-weight="bold" font-size="60" fill="#f4efe9">BOCCE</text>
+</svg>
