@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { TeamName } from "@/components/TeamName";
 import { formatTeamName } from "@/lib/display";
+import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
 type MatchRow = {
@@ -37,6 +39,7 @@ export default function SchedulePage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState("");
   const [matches, setMatches] = useState<MatchRow[]>([]);
+  const [selectedWeek, setSelectedWeek] = useState<number>(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -74,7 +77,9 @@ export default function SchedulePage() {
           setMatches([]);
           return;
         }
-        setMatches(json.matches || []);
+        const loadedMatches = json.matches || [];
+        setMatches(loadedMatches);
+        setSelectedWeek(getCurrentWeek(loadedMatches));
       } catch {
         setError("Failed to load schedule");
         setMatches([]);
@@ -90,44 +95,72 @@ export default function SchedulePage() {
     return seasons.find((season) => season.id === seasonId)?.name || "Schedule";
   }, [seasons, seasonId]);
 
+  const weeks = useMemo(
+    () => Array.from(new Set(matches.map((match) => match.week_number))).sort((a, b) => a - b),
+    [matches]
+  );
+  const visibleMatches = useMemo(
+    () => matches.filter((match) => match.week_number === selectedWeek),
+    [matches, selectedWeek]
+  );
+
   return (
     <main className="card p-6">
       <h2 className="section-title">Weekly schedule</h2>
       <p className="mt-2 text-sm text-stone">{seasonName}</p>
 
-      <label className="mt-4 grid gap-2 text-sm font-semibold">
-        Season
-        <select
-          className="max-w-sm rounded-xl border border-white/60 bg-white/70 px-4 py-3"
-          value={seasonId}
-          onChange={(event) => setSeasonId(event.target.value)}
-        >
-          {seasons.length === 0 ? <option value="">No seasons found</option> : null}
-          {seasons.map((season) => (
-            <option key={season.id} value={season.id}>
-              {season.name} ({season.year})
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className="mt-4 grid gap-3 md:max-w-2xl md:grid-cols-2">
+        <label className="grid gap-2 text-sm font-semibold">
+          Season
+          <select
+            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            value={seasonId}
+            onChange={(event) => setSeasonId(event.target.value)}
+          >
+            {seasons.length === 0 ? <option value="">No seasons found</option> : null}
+            {seasons.map((season) => (
+              <option key={season.id} value={season.id}>
+                {season.name} ({season.year})
+              </option>
+            ))}
+          </select>
+        </label>
+        <label className="grid gap-2 text-sm font-semibold">
+          Week
+          <select
+            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            value={selectedWeek}
+            onChange={(event) => setSelectedWeek(Number(event.target.value))}
+          >
+            {weeks.length === 0 ? <option value={1}>Week 1</option> : null}
+            {weeks.map((week) => (
+              <option key={week} value={week}>
+                Week {week}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
 
       {loading ? <p className="mt-4 text-sm text-stone">Loading schedule...</p> : null}
       {error ? <p className="mt-4 text-sm text-red-700">{error}</p> : null}
-      {!loading && !error && matches.length === 0 ? (
+      {!loading && !error && visibleMatches.length === 0 ? (
         <p className="mt-4 text-sm text-stone">No scheduled matches found.</p>
       ) : null}
 
       <div className="mt-4 space-y-4">
-        {matches.map((item) => (
+        {visibleMatches.map((item) => (
           <div key={item.id} className="rounded-xl bg-white/70 p-4">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="font-semibold">Week {item.week_number}</p>
               <span className="badge bg-clay/30 text-ink">{item.status}</span>
             </div>
             <p className="mt-2 text-sm text-stone">{formatWhen(item.scheduled_datetime)}</p>
-            <p className="mt-1 font-semibold">
-              {teamName(item.home_team)} vs. {teamName(item.away_team)}
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2 font-semibold">
+              <TeamName name={teamName(item.home_team)} />
+              <span>vs.</span>
+              <TeamName name={teamName(item.away_team)} />
+            </div>
             {item.notes ? <p className="mt-1 text-xs text-stone">{item.notes}</p> : null}
           </div>
         ))}

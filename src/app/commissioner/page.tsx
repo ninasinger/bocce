@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { TeamName } from "@/components/TeamName";
 import { formatTeamName } from "@/lib/display";
+import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
 type TeamRef = { name: string } | { name: string }[] | null;
@@ -104,14 +106,19 @@ export default function CommissionerDashboard() {
 
   const weeks = useMemo(() => {
     const values = Array.from(new Set(matches.map((m) => m.week_number))).sort((a, b) => a - b);
+    const currentWeek = getCurrentWeek(matches);
     if (values.length > 0 && !values.includes(selectedWeek)) {
-      setSelectedWeek(values[0]);
+      setSelectedWeek(currentWeek);
     }
     return values;
   }, [matches, selectedWeek]);
 
   const weekMatches = matches.filter((m) => m.week_number === selectedWeek);
   const disputes = weekMatches.filter((m) => m.status === "disputed");
+  const missingSubmissions = weekMatches.filter((m) =>
+    ["scheduled", "awaiting_submission", "pending_verification"].includes(m.status)
+  );
+  const nextActionMatch = disputes[0] || missingSubmissions[0] || null;
 
   async function closeWeek() {
     setMessage("");
@@ -249,6 +256,34 @@ export default function CommissionerDashboard() {
       </section>
 
       <section className="card p-6">
+        <h3 className="section-title">Action queue</h3>
+        <p className="mt-2 text-sm text-stone">Week {selectedWeek} priorities</p>
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="rounded-xl bg-white/70 p-4">
+            <p className="text-xs uppercase tracking-wide text-stone">Disputes</p>
+            <p className="mt-1 text-2xl font-display">{disputes.length}</p>
+          </div>
+          <div className="rounded-xl bg-white/70 p-4">
+            <p className="text-xs uppercase tracking-wide text-stone">Missing submissions</p>
+            <p className="mt-1 text-2xl font-display">{missingSubmissions.length}</p>
+          </div>
+          <div className="rounded-xl bg-white/70 p-4">
+            <p className="text-xs uppercase tracking-wide text-stone">Next action</p>
+            {nextActionMatch ? (
+              <a
+                href={`/commissioner/matches/${nextActionMatch.id}`}
+                className="mt-2 inline-flex rounded-lg bg-moss px-3 py-2 text-xs font-semibold text-white"
+              >
+                Review next match
+              </a>
+            ) : (
+              <p className="mt-2 text-sm text-stone">All clear for this week</p>
+            )}
+          </div>
+        </div>
+      </section>
+
+      <section className="card p-6">
         <h3 className="section-title">Disputes</h3>
         <div className="mt-4 space-y-3">
           {disputes.length === 0 ? (
@@ -258,7 +293,8 @@ export default function CommissionerDashboard() {
             <div key={match.id} className="rounded-xl bg-white/70 p-4">
               <div className="flex items-center justify-between">
                 <p className="font-semibold">
-                  Week {match.week_number} · {teamName(match.home_team)} vs {teamName(match.away_team)}
+                  Week {match.week_number} · <TeamName name={teamName(match.home_team)} /> vs{" "}
+                  <TeamName name={teamName(match.away_team)} />
                 </p>
                 <a
                   href={`/commissioner/matches/${match.id}`}

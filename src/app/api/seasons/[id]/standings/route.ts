@@ -3,10 +3,13 @@ import { getServiceClient } from "@/lib/supabaseServer";
 import { computeStandings } from "@/lib/standings";
 
 export async function GET(
-  _request: Request,
+  request: Request,
   { params }: { params: { id: string } }
 ) {
   const client = getServiceClient();
+  const { searchParams } = new URL(request.url);
+  const week = searchParams.get("week");
+  const weekNumber = week ? Number(week) : null;
   const { data: teams, error: teamError } = await client
     .from("teams")
     .select("id, name")
@@ -25,6 +28,11 @@ export async function GET(
     return NextResponse.json({ error: matchError.message }, { status: 500 });
   }
 
-  const standings = computeStandings(teams || [], matches || []);
+  const scopedMatches =
+    weekNumber && !Number.isNaN(weekNumber)
+      ? (matches || []).filter((match) => match.week_number <= weekNumber)
+      : matches || [];
+
+  const standings = computeStandings(teams || [], scopedMatches);
   return NextResponse.json({ standings });
 }

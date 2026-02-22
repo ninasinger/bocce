@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { TeamName } from "@/components/TeamName";
 import { formatTeamName } from "@/lib/display";
 
 type Season = { id: string; name: string; year: number };
@@ -157,8 +158,9 @@ export default function HomePage() {
           <div className="mt-4 space-y-3 text-sm">
             {standings.map((row) => (
               <div key={row.teamName} className="flex items-center justify-between rounded-lg bg-white/70 p-3">
-                <span>
-                  {row.rank}. {formatTeamName(row.teamName)}
+                <span className="inline-flex items-center gap-2">
+                  <span>{row.rank}.</span>
+                  <TeamName name={formatTeamName(row.teamName)} />
                 </span>
                 <span className="font-semibold">{row.gamesWon} GW</span>
               </div>
@@ -178,7 +180,11 @@ export default function HomePage() {
                   Week {item.week_number} · {formatWhen(item.scheduled_datetime)}
                 </p>
                 <p>
-                  {teamName(item.home_team)} vs. {teamName(item.away_team)}
+                  <span className="inline-flex items-center gap-2">
+                    <TeamName name={teamName(item.home_team)} />
+                    <span>vs.</span>
+                    <TeamName name={teamName(item.away_team)} />
+                  </span>
                 </p>
               </div>
             ))}

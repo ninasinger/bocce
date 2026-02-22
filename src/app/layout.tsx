@@ -42,7 +42,7 @@ export default function RootLayout({
                 Schedule
               </a>
               <a className="rounded-full bg-white/80 px-4 py-2" href="/captain/login">
-                Captain
+                Score Entry
               </a>
               <a
                 className="rounded-full bg-moss/90 px-4 py-2 text-white"
