@@ -4,11 +4,13 @@ import { useParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { queueSubmission } from "@/lib/offlineQueue";
 import { TeamName } from "@/components/TeamName";
+import { StatusBadge } from "@/components/StatusBadge";
 import { formatTeamName } from "@/lib/display";
 
 type TeamRef = { name: string } | { name: string }[] | null;
 type MatchResponse = {
   id: string;
+  status: string;
   home_team: TeamRef;
   away_team: TeamRef;
 };
@@ -21,7 +23,6 @@ function getTeamName(team: TeamRef) {
 
 function shortName(name: string) {
   if (name.length <= 8) return name;
-  // Use initials from each word
   const initials = name
     .split(/\s+/)
     .map((w) => w[0])
@@ -30,7 +31,8 @@ function shortName(name: string) {
   return initials.length >= 2 ? initials : name.slice(0, 8);
 }
 
-type Step = "entry" | "confirm" | "success";
+type Step = "loading" | "already_submitted" | "entry" | "confirm" | "success";
+type SubmitResult = "pending_verification" | "verified" | "disputed" | "queued";
 
 function ScoreStepper({
   value,
@@ -99,14 +101,70 @@ function computeLivePoints(scores: {
   return { homePts, awayPts, homeTotal, awayTotal };
 }
 
+function ScoreRecap({
+  g1h, g1a, g2h, g2a,
+  homeLabel, awayLabel,
+}: {
+  g1h: number; g1a: number; g2h: number; g2a: number;
+  homeLabel: string; awayLabel: string;
+}) {
+  const live = computeLivePoints({ g1h, g1a, g2h, g2a });
+  return (
+    <div className="space-y-3">
+      <div className="rounded-xl bg-white/70 p-3">
+        <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
+          Game 1
+        </p>
+        <div className="flex items-center justify-center gap-4">
+          <div className="text-center">
+            <p className="text-xs font-semibold text-stone">{homeLabel}</p>
+            <p className="text-3xl font-display">{g1h}</p>
+          </div>
+          <span className="text-lg text-stone">&ndash;</span>
+          <div className="text-center">
+            <p className="text-xs font-semibold text-stone">{awayLabel}</p>
+            <p className="text-3xl font-display">{g1a}</p>
+          </div>
+        </div>
+      </div>
+      <div className="rounded-xl bg-white/70 p-3">
+        <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
+          Game 2
+        </p>
+        <div className="flex items-center justify-center gap-4">
+          <div className="text-center">
+            <p className="text-xs font-semibold text-stone">{homeLabel}</p>
+            <p className="text-3xl font-display">{g2h}</p>
+          </div>
+          <span className="text-lg text-stone">&ndash;</span>
+          <div className="text-center">
+            <p className="text-xs font-semibold text-stone">{awayLabel}</p>
+            <p className="text-3xl font-display">{g2a}</p>
+          </div>
+        </div>
+      </div>
+      <div className="rounded-xl bg-moss/10 p-3 text-center">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">
+          Match points
+        </p>
+        <p className="mt-1 text-xl font-display">
+          {live.homePts} &ndash; {live.awayPts}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 export default function SubmitScorePage() {
   const params = useParams();
   const matchId = String(params.id);
-  const [step, setStep] = useState<Step>("entry");
+  const [step, setStep] = useState<Step>("loading");
+  const [result, setResult] = useState<SubmitResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [homeTeamName, setHomeTeamName] = useState("Home");
   const [awayTeamName, setAwayTeamName] = useState("Away");
+  const [matchStatus, setMatchStatus] = useState("");
 
   const [g1h, setG1h] = useState(0);
   const [g1a, setG1a] = useState(0);
@@ -114,21 +172,49 @@ export default function SubmitScorePage() {
   const [g2a, setG2a] = useState(0);
   const [notes, setNotes] = useState("");
 
+  // Previously submitted scores (if any)
+  const [existingScores, setExistingScores] = useState<{
+    g1h: number; g1a: number; g2h: number; g2a: number;
+  } | null>(null);
+
   useEffect(() => {
     async function loadMatch() {
       try {
-        const res = await fetch(`/api/matches/${matchId}`);
-        const text = await res.text();
-        const json = text ? JSON.parse(text) : {};
-        if (!res.ok) {
-          setError(json.error || "Could not load match details");
+        const [matchRes, statusRes] = await Promise.all([
+          fetch(`/api/matches/${matchId}`),
+          fetch(`/api/matches/${matchId}/submission-status`),
+        ]);
+        const matchText = await matchRes.text();
+        const matchJson = matchText ? JSON.parse(matchText) : {};
+        if (!matchRes.ok) {
+          setError(matchJson.error || "Could not load match details");
+          setStep("entry");
           return;
         }
-        const match = json.match as MatchResponse;
+        const match = matchJson.match as MatchResponse;
         setHomeTeamName(getTeamName(match.home_team));
         setAwayTeamName(getTeamName(match.away_team));
+        setMatchStatus(match.status || "");
+
+        // Check if already submitted
+        const statusText = await statusRes.text();
+        const statusJson = statusText ? JSON.parse(statusText) : {};
+        if (statusRes.ok && statusJson.submitted) {
+          const s = statusJson.submission;
+          setExistingScores({
+            g1h: s.game1_home_score,
+            g1a: s.game1_away_score,
+            g2h: s.game2_home_score,
+            g2a: s.game2_away_score,
+          });
+          setStep("already_submitted");
+          return;
+        }
+
+        setStep("entry");
       } catch {
         setError("Could not load match details");
+        setStep("entry");
       }
     }
 
@@ -142,6 +228,8 @@ export default function SubmitScorePage() {
 
   const homeShort = shortName(homeTeamName);
   const awayShort = shortName(awayTeamName);
+  const homeFmt = formatTeamName(homeTeamName);
+  const awayFmt = formatTeamName(awayTeamName);
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -161,15 +249,17 @@ export default function SubmitScorePage() {
         body: JSON.stringify(payload),
       });
 
+      const text = await res.text();
+      const json = text ? JSON.parse(text) : {};
+
       if (!res.ok) {
-        const text = await res.text();
-        const json = text ? JSON.parse(text) : {};
         setError(json.error || "Submission failed");
         setStep("entry");
         setSubmitting(false);
         return;
       }
 
+      setResult(json.status as SubmitResult);
       setStep("success");
     } catch {
       queueSubmission({
@@ -177,43 +267,121 @@ export default function SubmitScorePage() {
         payload,
         createdAt: new Date().toISOString(),
       });
+      setResult("queued");
       setStep("success");
     }
     setSubmitting(false);
   }
 
-  // ── Success screen ──
-  if (step === "success") {
+  // ── Loading ──
+  if (step === "loading") {
     return (
-      <main className="card p-5 text-center">
-        <div className="success-pop mx-auto my-6 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100">
-          <svg
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth={3}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="h-8 w-8 text-emerald-600"
-          >
+      <main className="card p-4 text-center">
+        <div className="animate-pulse py-12">
+          <div className="mx-auto h-6 w-32 rounded-lg bg-stone/15" />
+          <div className="mx-auto mt-3 h-4 w-48 rounded-lg bg-stone/10" />
+        </div>
+      </main>
+    );
+  }
+
+  // ── Already submitted ──
+  if (step === "already_submitted" && existingScores) {
+    return (
+      <main className="card p-4 text-center">
+        <div className="mx-auto my-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7 text-emerald-600">
             <polyline points="20 6 9 17 4 12" />
           </svg>
         </div>
-        <h2 className="section-title">Scores submitted!</h2>
-        <p className="mt-2 text-sm text-stone">
-          Awaiting the other team&apos;s submission for verification.
+        <h2 className="section-title">Already submitted</h2>
+        <p className="mt-1 text-sm text-stone">
+          Your scores for this match have been recorded.
         </p>
+        <div className="mt-1">
+          <StatusBadge status={matchStatus} />
+        </div>
+
+        <div className="mt-4">
+          <ScoreRecap
+            g1h={existingScores.g1h} g1a={existingScores.g1a}
+            g2h={existingScores.g2h} g2a={existingScores.g2a}
+            homeLabel={homeShort} awayLabel={awayShort}
+          />
+        </div>
+
         <div className="mt-5 flex flex-col gap-3">
-          <a
-            href="/captain/matches"
-            className="rounded-xl bg-moss px-5 py-3 text-center font-semibold text-white"
-          >
+          <a href="/captain/matches" className="tap-btn rounded-xl bg-moss px-5 py-3 text-center font-semibold text-white">
             Back to my matches
           </a>
-          <a
-            href="/"
-            className="rounded-xl bg-white/80 px-5 py-3 text-center font-semibold text-ink"
-          >
+        </div>
+      </main>
+    );
+  }
+
+  // ── Success screen ──
+  if (step === "success") {
+    const resultMessages: Record<string, { title: string; desc: string; color: string }> = {
+      verified: {
+        title: "Match verified!",
+        desc: "Both teams submitted matching scores. The match is now official.",
+        color: "bg-emerald-100 text-emerald-600",
+      },
+      pending_verification: {
+        title: "Scores submitted!",
+        desc: "Waiting for the other team to submit their scores. If both match, the result is auto-verified.",
+        color: "bg-amber-100 text-amber-600",
+      },
+      disputed: {
+        title: "Scores submitted",
+        desc: "The other team submitted different scores. The commissioner will review and decide the official result.",
+        color: "bg-red-100 text-red-600",
+      },
+      queued: {
+        title: "Saved offline",
+        desc: "You appear to be offline. Your scores are saved and will be submitted automatically when you reconnect.",
+        color: "bg-sky-100 text-sky-600",
+      },
+    };
+
+    const msg = resultMessages[result || "pending_verification"];
+
+    return (
+      <main className="card p-4 text-center">
+        <div className={`success-pop mx-auto my-5 flex h-16 w-16 items-center justify-center rounded-full ${msg.color}`}>
+          {result === "verified" ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : result === "disputed" ? (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
+              <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+              <line x1="12" y1="9" x2="12" y2="13" />
+              <line x1="12" y1="17" x2="12.01" y2="17" />
+            </svg>
+          ) : (
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" className="h-8 w-8">
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="12 6 12 12 16 14" />
+            </svg>
+          )}
+        </div>
+        <h2 className="section-title">{msg.title}</h2>
+        <p className="mt-2 text-sm text-stone">{msg.desc}</p>
+
+        {/* Show submitted scores */}
+        <div className="mt-4">
+          <ScoreRecap
+            g1h={g1h} g1a={g1a} g2h={g2h} g2a={g2a}
+            homeLabel={homeShort} awayLabel={awayShort}
+          />
+        </div>
+
+        <div className="mt-5 flex flex-col gap-3">
+          <a href="/captain/matches" className="tap-btn rounded-xl bg-moss px-5 py-3 text-center font-semibold text-white">
+            Back to my matches
+          </a>
+          <a href="/" className="tap-btn rounded-xl bg-white/80 px-5 py-3 text-center font-semibold text-ink">
             Go home
           </a>
         </div>
@@ -230,59 +398,25 @@ export default function SubmitScorePage() {
           Double-check before submitting.
         </p>
 
-        <div className="mt-4 space-y-3">
-          {/* Game 1 */}
-          <div className="rounded-xl bg-white/70 p-3">
-            <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
-              Game 1
-            </p>
-            <div className="flex items-center justify-center gap-4">
-              <div className="text-center">
-                <p className="text-xs font-semibold text-stone">{homeShort}</p>
-                <p className="text-3xl font-display">{g1h}</p>
-              </div>
-              <span className="text-lg text-stone">&ndash;</span>
-              <div className="text-center">
-                <p className="text-xs font-semibold text-stone">{awayShort}</p>
-                <p className="text-3xl font-display">{g1a}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Game 2 */}
-          <div className="rounded-xl bg-white/70 p-3">
-            <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
-              Game 2
-            </p>
-            <div className="flex items-center justify-center gap-4">
-              <div className="text-center">
-                <p className="text-xs font-semibold text-stone">{homeShort}</p>
-                <p className="text-3xl font-display">{g2h}</p>
-              </div>
-              <span className="text-lg text-stone">&ndash;</span>
-              <div className="text-center">
-                <p className="text-xs font-semibold text-stone">{awayShort}</p>
-                <p className="text-3xl font-display">{g2a}</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="rounded-xl bg-moss/10 p-3 text-center">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">
-              Match points
-            </p>
-            <p className="mt-1 text-xl font-display">
-              {live.homePts} &ndash; {live.awayPts}
-            </p>
-          </div>
-
-          {notes ? (
-            <div className="rounded-xl bg-white/70 p-3">
-              <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">Notes</p>
-              <p className="mt-1 text-sm">{notes}</p>
-            </div>
-          ) : null}
+        <div className="mt-3 flex items-center justify-center gap-2 text-sm">
+          <TeamName name={homeFmt} />
+          <span className="text-stone">vs</span>
+          <TeamName name={awayFmt} />
         </div>
+
+        <div className="mt-4">
+          <ScoreRecap
+            g1h={g1h} g1a={g1a} g2h={g2h} g2a={g2a}
+            homeLabel={homeShort} awayLabel={awayShort}
+          />
+        </div>
+
+        {notes ? (
+          <div className="mt-3 rounded-xl bg-white/70 p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">Notes</p>
+            <p className="mt-1 text-sm">{notes}</p>
+          </div>
+        ) : null}
 
         {error ? (
           <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
@@ -292,13 +426,13 @@ export default function SubmitScorePage() {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white transition-all active:scale-[0.98] disabled:opacity-60"
+            className="tap-btn rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white disabled:opacity-60"
           >
             {submitting ? "Submitting..." : "Submit scores"}
           </button>
           <button
             onClick={() => setStep("entry")}
-            className="rounded-xl bg-white/80 px-5 py-3 font-semibold text-ink"
+            className="tap-btn rounded-xl bg-white/80 px-5 py-3 font-semibold text-ink"
           >
             Go back & edit
           </button>
@@ -312,11 +446,14 @@ export default function SubmitScorePage() {
     <main className="card p-4">
       <h2 className="section-title text-center">Enter scores</h2>
       <div className="mt-1 flex items-center justify-center gap-2 text-sm">
-        <TeamName name={formatTeamName(homeTeamName)} compact />
-        <span className="font-semibold">{formatTeamName(homeTeamName)}</span>
+        <TeamName name={homeFmt} />
         <span className="text-stone">vs</span>
-        <TeamName name={formatTeamName(awayTeamName)} compact />
-        <span className="font-semibold">{formatTeamName(awayTeamName)}</span>
+        <TeamName name={awayFmt} />
+      </div>
+
+      {/* How it works hint */}
+      <div className="mt-3 rounded-xl bg-sky-50 p-2.5 text-center text-xs text-sky-800">
+        Both teams submit scores separately. If they match, the result is verified automatically.
       </div>
 
       {error ? (
@@ -382,7 +519,7 @@ export default function SubmitScorePage() {
           setError(null);
           setStep("confirm");
         }}
-        className="mt-4 w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white transition-all active:scale-[0.98]"
+        className="tap-btn mt-4 w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white"
       >
         Review & submit
       </button>

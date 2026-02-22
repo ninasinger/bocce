@@ -18,7 +18,7 @@ export async function GET(
 
   const { data: submission } = await client
     .from("match_submissions")
-    .select("id")
+    .select("id, game1_home_score, game1_away_score, game2_home_score, game2_away_score, notes")
     .eq("match_id", params.id)
     .eq("submitted_by_team_id", session.teamId)
     .eq("status", "active")
@@ -26,6 +26,7 @@ export async function GET(
 
   return NextResponse.json({
     status: match?.status ?? "unknown",
-    submitted: Boolean(submission)
+    submitted: Boolean(submission),
+    submission: submission || null
   });
 }

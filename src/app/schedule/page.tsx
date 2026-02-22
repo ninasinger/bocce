@@ -17,6 +17,10 @@ type MatchRow = {
   notes: string | null;
   home_team: { name: string } | { name: string }[] | null;
   away_team: { name: string } | { name: string }[] | null;
+  game1_home_score: number | null;
+  game1_away_score: number | null;
+  game2_home_score: number | null;
+  game2_away_score: number | null;
 };
 
 function teamName(team: MatchRow["home_team"]) {
@@ -168,6 +172,15 @@ export default function SchedulePage() {
               <span className="text-stone font-normal">vs</span>
               <TeamName name={teamName(item.away_team)} />
             </div>
+            {(item.status === "verified" || item.status === "corrected") &&
+              item.game1_home_score != null && item.game1_away_score != null ? (
+              <p className="mt-1 text-xs text-stone">
+                Game 1: {item.game1_home_score}-{item.game1_away_score}
+                {item.game2_home_score != null && item.game2_away_score != null
+                  ? ` | Game 2: ${item.game2_home_score}-${item.game2_away_score}`
+                  : null}
+              </p>
+            ) : null}
             {item.notes ? <p className="mt-1 text-xs text-stone">{item.notes}</p> : null}
           </div>
         ))}

@@ -28,11 +28,36 @@ export async function GET(
     return NextResponse.json({ error: matchError.message }, { status: 500 });
   }
 
+  const allMatches = matches || [];
   const scopedMatches =
     weekNumber && !Number.isNaN(weekNumber)
-      ? (matches || []).filter((match) => match.week_number <= weekNumber)
-      : matches || [];
+      ? allMatches.filter((match) => match.week_number <= weekNumber)
+      : allMatches;
 
   const standings = computeStandings(teams || [], scopedMatches);
-  return NextResponse.json({ standings });
+
+  // Compute previous week standings for rank movement
+  const prevWeek = weekNumber && !Number.isNaN(weekNumber) ? weekNumber - 1 : null;
+  let prevRankMap: Record<string, number> | null = null;
+
+  if (prevWeek && prevWeek >= 1) {
+    const prevMatches = allMatches.filter((match) => match.week_number <= prevWeek);
+    const prevStandings = computeStandings(teams || [], prevMatches);
+    // Only build the map if there were verified matches in the previous weeks
+    if (prevStandings.some((s) => s.gamesPlayed > 0)) {
+      prevRankMap = {};
+      for (const s of prevStandings) {
+        if (s.gamesPlayed > 0) {
+          prevRankMap[s.teamName] = s.rank;
+        }
+      }
+    }
+  }
+
+  const standingsWithMovement = standings.map((s) => ({
+    ...s,
+    prevRank: prevRankMap && prevRankMap[s.teamName] != null ? prevRankMap[s.teamName] : null,
+  }));
+
+  return NextResponse.json({ standings: standingsWithMovement });
 }

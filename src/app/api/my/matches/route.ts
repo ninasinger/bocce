@@ -16,7 +16,11 @@ export async function GET() {
       scheduled_datetime,
       status,
       home_team:teams!matches_home_team_id_fkey(name),
-      away_team:teams!matches_away_team_id_fkey(name)
+      away_team:teams!matches_away_team_id_fkey(name),
+      home_games_won,
+      away_games_won,
+      home_total_score,
+      away_total_score
     `
     )
     .or(`home_team_id.eq.${session.teamId},away_team_id.eq.${session.teamId}`)

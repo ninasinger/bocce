@@ -2,6 +2,8 @@
 
 import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import { StatusBadge } from "@/components/StatusBadge";
+import { SkeletonCard } from "@/components/Skeleton";
 import { formatTeamName } from "@/lib/display";
 
 type TeamRef = { name: string } | { name: string }[] | null;
@@ -120,110 +122,135 @@ export default function CommissionerMatchReview() {
 
   if (!authorized) {
     return (
-      <main className="card p-6">
+      <main className="card p-4 md:p-6">
         <p className="text-sm text-stone">Checking commissioner access...</p>
       </main>
     );
   }
 
   return (
-    <main className="card p-6">
-      <h2 className="section-title">Match review</h2>
-      <p className="mt-2 text-sm text-stone">
+    <main className="card p-4 md:p-6">
+      <a href="/commissioner" className="tap inline-flex items-center gap-1 text-sm font-semibold text-moss">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+        Back to dashboard
+      </a>
+
+      <h2 className="section-title mt-3">Match review</h2>
+      <p className="mt-1 text-sm text-stone">
         Compare submissions and enter an official correction if needed.
       </p>
 
       {match ? (
-        <p className="mt-3 text-sm font-semibold">
-          Week {match.week_number} · {teamName(match.home_team)} vs {teamName(match.away_team)}
-        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <StatusBadge status={match.status} />
+          <span className="text-sm font-semibold">
+            Week {match.week_number} &middot; {teamName(match.home_team)} vs {teamName(match.away_team)}
+          </span>
+        </div>
+      ) : !error ? (
+        <div className="mt-3">
+          <SkeletonCard />
+        </div>
       ) : null}
 
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
       {message ? <p className="mt-3 text-sm text-moss">{message}</p> : null}
 
-      <div className="mt-6 grid gap-4 md:grid-cols-2">
-        {submissions.map((submission) => (
-          <div key={submission.id} className="rounded-xl bg-white/70 p-4">
-            <p className="text-xs uppercase tracking-wide text-stone">
-              {teamName(submission.submitted_team)} submission
-            </p>
-            <p className="mt-2 font-semibold">
-              Game 1: {submission.game1_home_score} - {submission.game1_away_score}
-            </p>
-            <p className="font-semibold">
-              Game 2: {submission.game2_home_score} - {submission.game2_away_score}
-            </p>
-            <p className="mt-2 text-sm">Notes: {submission.notes || "None"}</p>
-          </div>
-        ))}
-      </div>
+      <h3 className="section-title mt-6 text-base">Submissions</h3>
+      {submissions.length === 0 && !error ? (
+        <div className="mt-3 space-y-3">
+          <SkeletonCard />
+          <SkeletonCard />
+        </div>
+      ) : (
+        <div className="mt-3 space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
+          {submissions.map((submission) => (
+            <div key={submission.id} className="rounded-xl bg-white/70 p-3 md:p-4">
+              <p className="text-xs uppercase tracking-wide text-stone">
+                {teamName(submission.submitted_team)} submission
+              </p>
+              <div className="mt-2 space-y-1">
+                <p className="font-semibold">
+                  Game 1: {submission.game1_home_score} - {submission.game1_away_score}
+                </p>
+                <p className="font-semibold">
+                  Game 2: {submission.game2_home_score} - {submission.game2_away_score}
+                </p>
+              </div>
+              <p className="mt-2 text-sm text-stone">Notes: {submission.notes || "None"}</p>
+            </div>
+          ))}
+        </div>
+      )}
 
-      <form className="mt-6 grid gap-4" onSubmit={onCorrect}>
-        <div className="grid gap-3 md:grid-cols-2">
-          <label className="grid gap-2 text-sm font-semibold">
-            Official Game 1 · {match ? teamName(match.home_team) : "Home"}
+      <h3 className="section-title mt-6 text-base">Official correction</h3>
+      <form className="mt-3 grid gap-3" onSubmit={onCorrect}>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="grid gap-1.5 text-sm font-semibold">
+            G1 &middot; {match ? teamName(match.home_team) : "Home"}
             <input
               name="game1_home_score"
               type="number"
               min={0}
               step={1}
               required
-              className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
             />
           </label>
-          <label className="grid gap-2 text-sm font-semibold">
-            Official Game 1 · {match ? teamName(match.away_team) : "Away"}
+          <label className="grid gap-1.5 text-sm font-semibold">
+            G1 &middot; {match ? teamName(match.away_team) : "Away"}
             <input
               name="game1_away_score"
               type="number"
               min={0}
               step={1}
               required
-              className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
             />
           </label>
         </div>
-        <div className="grid gap-3 md:grid-cols-2">
-          <label className="grid gap-2 text-sm font-semibold">
-            Official Game 2 · {match ? teamName(match.home_team) : "Home"}
+        <div className="grid grid-cols-2 gap-3">
+          <label className="grid gap-1.5 text-sm font-semibold">
+            G2 &middot; {match ? teamName(match.home_team) : "Home"}
             <input
               name="game2_home_score"
               type="number"
               min={0}
               step={1}
               required
-              className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
             />
           </label>
-          <label className="grid gap-2 text-sm font-semibold">
-            Official Game 2 · {match ? teamName(match.away_team) : "Away"}
+          <label className="grid gap-1.5 text-sm font-semibold">
+            G2 &middot; {match ? teamName(match.away_team) : "Away"}
             <input
               name="game2_away_score"
               type="number"
               min={0}
               step={1}
               required
-              className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
             />
           </label>
         </div>
-        <label className="grid gap-2 text-sm font-semibold">
+        <label className="grid gap-1.5 text-sm font-semibold">
           Correction reason
           <textarea
             name="reason"
             required
-            className="min-h-[100px] rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            className="min-h-[80px] rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
           />
         </label>
-        <label className="grid gap-2 text-sm font-semibold">
+        <label className="grid gap-1.5 text-sm font-semibold">
           Notes (optional)
           <textarea
             name="notes"
-            className="min-h-[100px] rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            className="min-h-[80px] rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
           />
         </label>
-        <button className="rounded-xl bg-moss px-4 py-3 font-semibold text-white">
+        <button className="tap-btn rounded-xl bg-moss px-4 py-3 font-semibold text-white">
           Save correction
         </button>
       </form>

@@ -5,6 +5,7 @@ import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton, SkeletonCard, SkeletonStandingRow, SkeletonAwardCard } from "@/components/Skeleton";
 import { formatTeamName } from "@/lib/display";
+import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
 type Standing = {
@@ -63,6 +64,7 @@ export default function HomePage() {
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [awards, setAwards] = useState<Award[]>([]);
   const [awardsWeek, setAwardsWeek] = useState<number | null>(null);
+  const [currentWeek, setCurrentWeek] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -121,7 +123,11 @@ export default function HomePage() {
         }
 
         setStandings((standingsJson.standings || []).slice(0, 6));
-        setMatches((scheduleJson.matches || []).slice(0, 6));
+        const allMatches: MatchRow[] = scheduleJson.matches || [];
+        const week = getCurrentWeek(allMatches);
+        setCurrentWeek(week);
+        const weekMatches = allMatches.filter((m) => m.week_number === week);
+        setMatches(weekMatches);
         setAwards(awardsJson.awards || []);
         setAwardsWeek(awardsJson.week || null);
       } catch {
@@ -257,9 +263,9 @@ export default function HomePage() {
         </div>
 
         <div className="card p-4 md:p-6">
-          <h2 className="section-title">Next matches</h2>
+          <h2 className="section-title">Week {currentWeek ?? "..."} matches</h2>
           <p className="mt-1 text-sm text-stone">
-            Upcoming games this week.
+            {matches.length === 0 && !loading ? "No matches this week." : "Current week\u2019s games."}
           </p>
           <div className="mt-4 space-y-2 text-sm">
             {loading ? (

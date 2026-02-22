@@ -9,12 +9,25 @@ import { getCurrentWeek } from "@/lib/week";
 type Season = { id: string; name: string; year: number };
 type Standing = {
   rank: number;
+  prevRank: number | null;
   teamName: string;
   gamesPlayed: number;
   gamesWon: number;
   matchPoints: number;
   totalPoints: number;
 };
+
+function RankMovement({ rank, prevRank }: { rank: number; prevRank: number | null }) {
+  if (prevRank == null) return null;
+  const diff = prevRank - rank;
+  if (diff > 0) {
+    return <span className="text-xs font-semibold text-emerald-600">▲{diff}</span>;
+  }
+  if (diff < 0) {
+    return <span className="text-xs font-semibold text-red-500">▼{Math.abs(diff)}</span>;
+  }
+  return <span className="text-xs text-stone">–</span>;
+}
 
 export default function StandingsPage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
@@ -141,6 +154,7 @@ export default function StandingsPage() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-moss/10 text-sm font-bold text-moss">
                   {row.rank}
                 </span>
+                <RankMovement rank={row.rank} prevRank={row.prevRank} />
                 <TeamName name={row.teamName} />
               </span>
               <span className="text-lg font-display">{row.gamesWon} <span className="text-xs text-stone">GW</span></span>
@@ -179,7 +193,11 @@ export default function StandingsPage() {
             <tbody className="divide-y divide-white/60 bg-white/40">
               {standings.map((row) => (
                 <tr key={row.teamName}>
-                  <td className="p-3">{row.rank}</td>
+                  <td className="p-3">
+                    <span className="inline-flex items-center gap-1">
+                      {row.rank} <RankMovement rank={row.rank} prevRank={row.prevRank} />
+                    </span>
+                  </td>
                   <td className="p-3 font-semibold">
                     <TeamName name={row.teamName} />
                   </td>
