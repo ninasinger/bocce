@@ -5,21 +5,15 @@ import { useEffect, useMemo, useState } from "react";
 import { queueSubmission } from "@/lib/offlineQueue";
 import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
-import { formatTeamName } from "@/lib/display";
+import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
+import { formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 
-type TeamRef = { name: string } | { name: string }[] | null;
 type MatchResponse = {
   id: string;
   status: string;
   home_team: TeamRef;
   away_team: TeamRef;
 };
-
-function getTeamName(team: TeamRef) {
-  if (!team) return "Team";
-  if (Array.isArray(team)) return team[0]?.name || "Team";
-  return team.name || "Team";
-}
 
 function shortName(name: string) {
   if (name.length <= 8) return name;
@@ -180,27 +174,31 @@ export default function SubmitScorePage() {
   useEffect(() => {
     async function loadMatch() {
       try {
-        const [matchRes, statusRes] = await Promise.all([
-          fetch(`/api/matches/${matchId}`),
-          fetch(`/api/matches/${matchId}/submission-status`),
+        const [matchResult, statusResult] = await Promise.all([
+          fetchJson<{ match?: MatchResponse; error?: string }>(`/api/matches/${matchId}`),
+          fetchJson<{
+            submitted?: boolean;
+            submission?: {
+              game1_home_score: number;
+              game1_away_score: number;
+              game2_home_score: number;
+              game2_away_score: number;
+            };
+          }>(`/api/matches/${matchId}/submission-status`)
         ]);
-        const matchText = await matchRes.text();
-        const matchJson = matchText ? JSON.parse(matchText) : {};
-        if (!matchRes.ok) {
-          setError(matchJson.error || "Could not load match details");
+        if (!matchResult.response.ok) {
+          setError(errorMessageFromData(matchResult.data, "Could not load match details"));
           setStep("entry");
           return;
         }
-        const match = matchJson.match as MatchResponse;
-        setHomeTeamName(getTeamName(match.home_team));
-        setAwayTeamName(getTeamName(match.away_team));
+        const match = matchResult.data.match as MatchResponse;
+        setHomeTeamName(formatMatchTeamName(match.home_team, "Team"));
+        setAwayTeamName(formatMatchTeamName(match.away_team, "Team"));
         setMatchStatus(match.status || "");
 
         // Check if already submitted
-        const statusText = await statusRes.text();
-        const statusJson = statusText ? JSON.parse(statusText) : {};
-        if (statusRes.ok && statusJson.submitted) {
-          const s = statusJson.submission;
+        if (statusResult.response.ok && statusResult.data.submitted && statusResult.data.submission) {
+          const s = statusResult.data.submission;
           setExistingScores({
             g1h: s.game1_home_score,
             g1a: s.game1_away_score,
@@ -228,8 +226,8 @@ export default function SubmitScorePage() {
 
   const homeShort = shortName(homeTeamName);
   const awayShort = shortName(awayTeamName);
-  const homeFmt = formatTeamName(homeTeamName);
-  const awayFmt = formatTeamName(awayTeamName);
+  const homeFmt = formatMatchTeamName({ name: homeTeamName }, "Team");
+  const awayFmt = formatMatchTeamName({ name: awayTeamName }, "Team");
 
   async function handleSubmit() {
     setSubmitting(true);
@@ -243,23 +241,23 @@ export default function SubmitScorePage() {
     };
 
     try {
-      const res = await fetch(`/api/matches/${matchId}/submissions`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+      const { response, data } = await fetchJson<{ error?: string; status?: SubmitResult }>(
+        `/api/matches/${matchId}/submissions`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        }
+      );
 
-      const text = await res.text();
-      const json = text ? JSON.parse(text) : {};
-
-      if (!res.ok) {
-        setError(json.error || "Submission failed");
+      if (!response.ok) {
+        setError(errorMessageFromData(data, "Submission failed"));
         setStep("entry");
         setSubmitting(false);
         return;
       }
 
-      setResult(json.status as SubmitResult);
+      setResult((data.status || "pending_verification") as SubmitResult);
       setStep("success");
     } catch {
       queueSubmission({

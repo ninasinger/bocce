@@ -5,7 +5,8 @@ import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SkeletonCard } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { formatTeamName } from "@/lib/display";
+import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
+import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 import { getCurrentWeek } from "@/lib/week";
 
 type MatchRow = {
@@ -13,28 +14,9 @@ type MatchRow = {
   week_number: number;
   scheduled_datetime: string | null;
   status: string;
-  home_team: { name: string } | { name: string }[] | null;
-  away_team: { name: string } | { name: string }[] | null;
+  home_team: TeamRef;
+  away_team: TeamRef;
 };
-
-function teamName(team: MatchRow["home_team"]) {
-  if (!team) return "TBD";
-  if (Array.isArray(team)) return team[0]?.name ? formatTeamName(team[0].name) : "TBD";
-  return team.name ? formatTeamName(team.name) : "TBD";
-}
-
-function formatWhen(value: string | null) {
-  if (!value) return "TBD";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
-}
 
 export default function CaptainMatchesPage() {
   const [matches, setMatches] = useState<MatchRow[]>([]);
@@ -45,13 +27,14 @@ export default function CaptainMatchesPage() {
   const loadMatches = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/my/matches");
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json.error || "Could not load your matches");
+      const { response, data } = await fetchJson<{ matches?: MatchRow[]; error?: string }>(
+        "/api/my/matches"
+      );
+      if (!response.ok) {
+        setError(errorMessageFromData(data, "Could not load your matches"));
         return;
       }
-      const loadedMatches = json.matches || [];
+      const loadedMatches = data.matches || [];
       setMatches(loadedMatches);
       setSelectedWeek(getCurrentWeek(loadedMatches));
     } catch {
@@ -118,12 +101,20 @@ export default function CaptainMatchesPage() {
           <div key={match.id} className="rounded-xl bg-white/70 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={match.status} />
-              <span className="text-xs text-stone">{formatWhen(match.scheduled_datetime)}</span>
+              <span className="text-xs text-stone">
+                {formatMatchDateTime(match.scheduled_datetime, {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit"
+                })}
+              </span>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
-              <TeamName name={teamName(match.home_team)} />
+              <TeamName name={formatMatchTeamName(match.home_team)} />
               <span className="text-stone">vs</span>
-              <TeamName name={teamName(match.away_team)} />
+              <TeamName name={formatMatchTeamName(match.away_team)} />
             </div>
             <a
               href={`/captain/matches/${match.id}/submit`}

@@ -5,7 +5,8 @@ import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SkeletonCard } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { formatTeamName } from "@/lib/display";
+import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
+import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
@@ -15,32 +16,13 @@ type MatchRow = {
   scheduled_datetime: string | null;
   status: string;
   notes: string | null;
-  home_team: { name: string } | { name: string }[] | null;
-  away_team: { name: string } | { name: string }[] | null;
+  home_team: TeamRef;
+  away_team: TeamRef;
   game1_home_score: number | null;
   game1_away_score: number | null;
   game2_home_score: number | null;
   game2_away_score: number | null;
 };
-
-function teamName(team: MatchRow["home_team"]) {
-  if (!team) return "TBD";
-  if (Array.isArray(team)) return team[0]?.name ? formatTeamName(team[0].name) : "TBD";
-  return team.name ? formatTeamName(team.name) : "TBD";
-}
-
-function formatWhen(value: string | null) {
-  if (!value) return "TBD";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit"
-  });
-}
 
 export default function SchedulePage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
@@ -60,14 +42,15 @@ export default function SchedulePage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(`/api/seasons/${seasonId}/schedule`);
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json.error || "Failed to load schedule");
+      const { response, data } = await fetchJson<{ matches?: MatchRow[]; error?: string }>(
+        `/api/seasons/${seasonId}/schedule`
+      );
+      if (!response.ok) {
+        setError(errorMessageFromData(data, "Failed to load schedule"));
         setMatches([]);
         return;
       }
-      const loadedMatches = json.matches || [];
+      const loadedMatches = data.matches || [];
       setMatches(loadedMatches);
       setSelectedWeek(getCurrentWeek(loadedMatches));
     } catch {
@@ -81,9 +64,8 @@ export default function SchedulePage() {
   useEffect(() => {
     async function loadSeasons() {
       try {
-        const res = await fetch("/api/seasons");
-        const json = await res.json();
-        const list: Season[] = json.seasons || [];
+        const { data } = await fetchJson<{ seasons?: Season[] }>("/api/seasons");
+        const list: Season[] = data.seasons || [];
         setSeasons(list);
         setSeasonId(list[0]?.id || "");
       } catch {
@@ -165,12 +147,20 @@ export default function SchedulePage() {
           <div key={item.id} className="tap rounded-xl bg-white/70 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={item.status} />
-              <span className="text-xs text-stone">{formatWhen(item.scheduled_datetime)}</span>
+              <span className="text-xs text-stone">
+                {formatMatchDateTime(item.scheduled_datetime, {
+                  weekday: "short",
+                  month: "short",
+                  day: "numeric",
+                  hour: "numeric",
+                  minute: "2-digit"
+                })}
+              </span>
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 font-semibold">
-              <TeamName name={teamName(item.home_team)} />
+              <TeamName name={formatMatchTeamName(item.home_team)} />
               <span className="text-stone font-normal">vs</span>
-              <TeamName name={teamName(item.away_team)} />
+              <TeamName name={formatMatchTeamName(item.away_team)} />
             </div>
             {(item.status === "verified" || item.status === "corrected") &&
               item.game1_home_score != null && item.game1_away_score != null ? (

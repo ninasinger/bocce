@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { requireRoleOrResponse } from "@/lib/api";
-import { computeOutcome, scoresMatch, validateMatchScore } from "@/lib/scoring";
+import { computeOutcome, validateMatchScore, type MatchScore } from "@/lib/scoring";
+import { resolveSubmissionStatus } from "@/lib/submissionResolution";
 
 export async function GET(
   _request: Request,
@@ -117,17 +118,20 @@ export async function POST(
     return NextResponse.json({ status: "pending_verification" });
   }
 
-  const [first, second] = submissions;
-  const firstScore = {
-    game1: { home: first.game1_home_score, away: first.game1_away_score },
-    game2: { home: first.game2_home_score, away: first.game2_away_score }
-  };
-  const secondScore = {
-    game1: { home: second.game1_home_score, away: second.game1_away_score },
-    game2: { home: second.game2_home_score, away: second.game2_away_score }
-  };
+  const [first] = submissions;
+  const submissionScores: MatchScore[] = submissions.map((submission) => ({
+    game1: {
+      home: submission.game1_home_score,
+      away: submission.game1_away_score
+    },
+    game2: {
+      home: submission.game2_home_score,
+      away: submission.game2_away_score
+    }
+  }));
+  const resolution = resolveSubmissionStatus(submissionScores);
 
-  if (!scoresMatch(firstScore, secondScore)) {
+  if (resolution.status === "disputed") {
     await client
       .from("matches")
       .update({ status: "disputed" })
@@ -144,7 +148,16 @@ export async function POST(
     return NextResponse.json({ status: "disputed" });
   }
 
-  const outcome = computeOutcome(firstScore);
+  if (resolution.status === "pending_verification") {
+    await client
+      .from("matches")
+      .update({ status: "pending_verification" })
+      .eq("id", matchId);
+
+    return NextResponse.json({ status: "pending_verification" });
+  }
+
+  const { outcome } = resolution;
   await client
     .from("matches")
     .update({

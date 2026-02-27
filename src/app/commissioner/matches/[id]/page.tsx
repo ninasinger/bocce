@@ -4,9 +4,9 @@ import { FormEvent, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SkeletonCard } from "@/components/Skeleton";
-import { formatTeamName } from "@/lib/display";
+import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
+import { formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 
-type TeamRef = { name: string } | { name: string }[] | null;
 type MatchData = {
   id: string;
   week_number: number;
@@ -25,12 +25,6 @@ type Submission = {
   notes: string | null;
 };
 
-function teamName(team: TeamRef) {
-  if (!team) return "Team";
-  if (Array.isArray(team)) return team[0]?.name ? formatTeamName(team[0].name) : "Team";
-  return team.name ? formatTeamName(team.name) : "Team";
-}
-
 export default function CommissionerMatchReview() {
   const router = useRouter();
   const params = useParams();
@@ -44,10 +38,8 @@ export default function CommissionerMatchReview() {
 
   useEffect(() => {
     async function checkSession() {
-      const res = await fetch("/api/auth/session");
-      const text = await res.text();
-      const json = text ? JSON.parse(text) : {};
-      if (!res.ok || json.session?.role !== "commissioner") {
+      const { response, data } = await fetchJson<{ session?: { role?: string } }>("/api/auth/session");
+      if (!response.ok || data.session?.role !== "commissioner") {
         router.replace("/commissioner/login");
         return;
       }
@@ -62,27 +54,22 @@ export default function CommissionerMatchReview() {
 
     async function loadData() {
       setError("");
-      const [matchRes, submissionsRes] = await Promise.all([
-        fetch(`/api/matches/${matchId}`),
-        fetch(`/api/matches/${matchId}/submissions`)
+      const [matchResult, submissionsResult] = await Promise.all([
+        fetchJson<{ match?: MatchData; error?: string }>(`/api/matches/${matchId}`),
+        fetchJson<{ submissions?: Submission[]; error?: string }>(`/api/matches/${matchId}/submissions`)
       ]);
 
-      const matchText = await matchRes.text();
-      const submissionsText = await submissionsRes.text();
-      const matchJson = matchText ? JSON.parse(matchText) : {};
-      const submissionsJson = submissionsText ? JSON.parse(submissionsText) : {};
-
-      if (!matchRes.ok) {
-        setError(matchJson.error || "Could not load match");
+      if (!matchResult.response.ok) {
+        setError(errorMessageFromData(matchResult.data, "Could not load match"));
         return;
       }
-      if (!submissionsRes.ok) {
-        setError(submissionsJson.error || "Could not load submissions");
+      if (!submissionsResult.response.ok) {
+        setError(errorMessageFromData(submissionsResult.data, "Could not load submissions"));
         return;
       }
 
-      setMatch(matchJson.match || null);
-      setSubmissions(submissionsJson.submissions || []);
+      setMatch(matchResult.data.match || null);
+      setSubmissions(submissionsResult.data.submissions || []);
     }
 
     loadData();
@@ -103,17 +90,14 @@ export default function CommissionerMatchReview() {
       notes: String(form.get("notes") || "")
     };
 
-    const res = await fetch(`/api/matches/${matchId}/correct`, {
+    const { response, data } = await fetchJson<{ error?: string }>(`/api/matches/${matchId}/correct`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     });
 
-    const text = await res.text();
-    const json = text ? JSON.parse(text) : {};
-
-    if (!res.ok) {
-      setError(json.error || "Correction failed");
+    if (!response.ok) {
+      setError(errorMessageFromData(data, "Correction failed"));
       return;
     }
 
@@ -145,8 +129,9 @@ export default function CommissionerMatchReview() {
       {match ? (
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <StatusBadge status={match.status} />
-          <span className="text-sm font-semibold">
-            Week {match.week_number} &middot; {teamName(match.home_team)} vs {teamName(match.away_team)}
+            <span className="text-sm font-semibold">
+            Week {match.week_number} &middot; {formatMatchTeamName(match.home_team, "Team")} vs{" "}
+            {formatMatchTeamName(match.away_team, "Team")}
           </span>
         </div>
       ) : !error ? (
@@ -169,7 +154,7 @@ export default function CommissionerMatchReview() {
           {submissions.map((submission) => (
             <div key={submission.id} className="rounded-xl bg-white/70 p-3 md:p-4">
               <p className="text-xs uppercase tracking-wide text-stone">
-                {teamName(submission.submitted_team)} submission
+                {formatMatchTeamName(submission.submitted_team, "Team")} submission
               </p>
               <div className="mt-2 space-y-1">
                 <p className="font-semibold">
@@ -189,7 +174,7 @@ export default function CommissionerMatchReview() {
       <form className="mt-3 grid gap-3" onSubmit={onCorrect}>
         <div className="grid grid-cols-2 gap-3">
           <label className="grid gap-1.5 text-sm font-semibold">
-            G1 &middot; {match ? teamName(match.home_team) : "Home"}
+            G1 &middot; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"}
             <input
               name="game1_home_score"
               type="number"
@@ -200,7 +185,7 @@ export default function CommissionerMatchReview() {
             />
           </label>
           <label className="grid gap-1.5 text-sm font-semibold">
-            G1 &middot; {match ? teamName(match.away_team) : "Away"}
+            G1 &middot; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"}
             <input
               name="game1_away_score"
               type="number"
@@ -213,7 +198,7 @@ export default function CommissionerMatchReview() {
         </div>
         <div className="grid grid-cols-2 gap-3">
           <label className="grid gap-1.5 text-sm font-semibold">
-            G2 &middot; {match ? teamName(match.home_team) : "Home"}
+            G2 &middot; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"}
             <input
               name="game2_home_score"
               type="number"
@@ -224,7 +209,7 @@ export default function CommissionerMatchReview() {
             />
           </label>
           <label className="grid gap-1.5 text-sm font-semibold">
-            G2 &middot; {match ? teamName(match.away_team) : "Away"}
+            G2 &middot; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"}
             <input
               name="game2_away_score"
               type="number"

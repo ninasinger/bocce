@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { fetchJson } from "@/lib/clientFetch";
 
 type Season = { id: string; name: string; year: number };
 
@@ -12,10 +13,8 @@ export default function CommissionerLoginPage() {
   useEffect(() => {
     async function loadSeasons() {
       try {
-        const res = await fetch("/api/seasons");
-        const text = await res.text();
-        const json = text ? JSON.parse(text) : {};
-        const list: Season[] = json.seasons || [];
+        const { data } = await fetchJson<{ seasons?: Season[] }>("/api/seasons");
+        const list: Season[] = data.seasons || [];
         setSeasons(list);
         setSeasonId(list[0]?.id || "");
       } catch {

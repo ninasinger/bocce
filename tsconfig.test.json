@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": ".test-dist",
+    "module": "commonjs",
+    "moduleResolution": "node",
+    "types": ["node"],
+    "incremental": false
+  },
+  "include": [
+    "tests/**/*.ts",
+    "src/lib/scoring.ts",
+    "src/lib/submissionResolution.ts"
+  ],
+  "exclude": ["node_modules", ".next"]
+}

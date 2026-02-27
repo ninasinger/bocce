@@ -5,9 +5,9 @@ import { useParams } from "next/navigation";
 import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SkeletonCard } from "@/components/Skeleton";
-import { formatTeamName } from "@/lib/display";
+import { fetchJson } from "@/lib/clientFetch";
+import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 
-type TeamRef = { name: string } | { name: string }[] | null;
 type Match = {
   id: string;
   status: string;
@@ -22,12 +22,6 @@ type Match = {
   notes: string | null;
 };
 
-function teamName(team: TeamRef) {
-  if (!team) return "TBD";
-  if (Array.isArray(team)) return team[0]?.name ? formatTeamName(team[0].name) : "TBD";
-  return team.name ? formatTeamName(team.name) : "TBD";
-}
-
 export default function MatchDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [match, setMatch] = useState<Match | null>(null);
@@ -39,13 +33,12 @@ export default function MatchDetailPage() {
       setLoading(true);
       setError(false);
       try {
-        const res = await fetch(`/api/matches/${id}`);
-        if (!res.ok) {
+        const { response, data } = await fetchJson<{ match?: Match }>(`/api/matches/${id}`);
+        if (!response.ok) {
           setError(true);
           return;
         }
-        const json = await res.json();
-        setMatch(json.match);
+        setMatch(data.match || null);
       } catch {
         setError(true);
       } finally {
@@ -77,15 +70,13 @@ export default function MatchDetailPage() {
           <div className="mt-2 flex items-center gap-2">
             <StatusBadge status={match.status} />
             <span className="text-sm text-stone">
-              {new Date(match.scheduled_datetime).toLocaleDateString(undefined, {
+              {formatMatchDateTime(match.scheduled_datetime, {
                 weekday: "short",
                 month: "short",
                 day: "numeric",
                 year: "numeric",
-              })}{" "}
-              {new Date(match.scheduled_datetime).toLocaleTimeString(undefined, {
                 hour: "numeric",
-                minute: "2-digit",
+                minute: "2-digit"
               })}
             </span>
           </div>
@@ -94,9 +85,9 @@ export default function MatchDetailPage() {
             <div className="rounded-xl bg-white/70 p-4">
               <p className="text-xs uppercase tracking-wide text-stone">Teams</p>
               <div className="mt-2 flex items-center gap-2 font-semibold">
-                <TeamName name={teamName(match.home_team)} />
+                <TeamName name={formatMatchTeamName(match.home_team)} />
                 <span className="text-stone">vs</span>
-                <TeamName name={teamName(match.away_team)} />
+                <TeamName name={formatMatchTeamName(match.away_team)} />
               </div>
             </div>
 
@@ -105,13 +96,13 @@ export default function MatchDetailPage() {
                 <p className="text-xs uppercase tracking-wide text-stone">Scoreline</p>
                 <div className="mt-2 space-y-1">
                   <div className="flex items-center gap-2">
-                    <TeamName name={teamName(match.home_team)} compact />
+                    <TeamName name={formatMatchTeamName(match.home_team)} compact />
                     <span className="font-semibold">
                       {match.game1_home_score}, {match.game2_home_score}
                     </span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <TeamName name={teamName(match.away_team)} compact />
+                    <TeamName name={formatMatchTeamName(match.away_team)} compact />
                     <span className="font-semibold">
                       {match.game1_away_score}, {match.game2_away_score}
                     </span>

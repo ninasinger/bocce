@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton, SkeletonCard, SkeletonStandingRow, SkeletonAwardCard } from "@/components/Skeleton";
-import { formatTeamName } from "@/lib/display";
+import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
+import { formatMatchDateTime, formatMatchTeamName } from "@/lib/matchFormat";
 import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
@@ -40,23 +41,6 @@ const AWARD_COLORS: Record<string, string> = {
   risingstar: "bg-violet-50",
 };
 
-function teamName(team: MatchRow["home_team"]) {
-  if (!team) return "TBD";
-  if (Array.isArray(team)) return team[0]?.name ? formatTeamName(team[0].name) : "TBD";
-  return team.name ? formatTeamName(team.name) : "TBD";
-}
-
-function formatWhen(value: string | null) {
-  if (!value) return "TBD";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString(undefined, {
-    weekday: "short",
-    hour: "numeric",
-    minute: "2-digit"
-  });
-}
-
 export default function HomePage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState("");
@@ -71,17 +55,15 @@ export default function HomePage() {
   useEffect(() => {
     async function loadSeasons() {
       try {
-        const res = await fetch("/api/seasons");
-        const text = await res.text();
-        const json = text ? JSON.parse(text) : {};
-        if (!res.ok) {
-          setError(json.error || "Could not load seasons");
+        const { response, data } = await fetchJson<{ seasons?: Season[]; error?: string }>("/api/seasons");
+        if (!response.ok) {
+          setError(errorMessageFromData(data, "Could not load seasons"));
           setSeasons([]);
           setSeasonId("");
           setLoading(false);
           return;
         }
-        const list: Season[] = json.seasons || [];
+        const list: Season[] = data.seasons || [];
         setSeasons(list);
         setSeasonId(list[0]?.id || "");
       } catch {
@@ -101,35 +83,33 @@ export default function HomePage() {
     async function loadData() {
       setLoading(true);
       try {
-        const [standingsRes, scheduleRes, awardsRes] = await Promise.all([
-          fetch(`/api/seasons/${seasonId}/standings`),
-          fetch(`/api/seasons/${seasonId}/schedule`),
-          fetch(`/api/seasons/${seasonId}/awards`)
+        const [standingsResult, scheduleResult, awardsResult] = await Promise.all([
+          fetchJson<{ standings?: Standing[]; error?: string }>(`/api/seasons/${seasonId}/standings`),
+          fetchJson<{ matches?: MatchRow[]; error?: string }>(`/api/seasons/${seasonId}/schedule`),
+          fetchJson<{ awards?: Award[]; week?: number | null; error?: string }>(
+            `/api/seasons/${seasonId}/awards`
+          )
         ]);
-        const standingsText = await standingsRes.text();
-        const scheduleText = await scheduleRes.text();
-        const awardsText = await awardsRes.text();
-        const standingsJson = standingsText ? JSON.parse(standingsText) : {};
-        const scheduleJson = scheduleText ? JSON.parse(scheduleText) : {};
-        const awardsJson = awardsText ? JSON.parse(awardsText) : {};
 
-        if (!standingsRes.ok || !scheduleRes.ok) {
+        if (!standingsResult.response.ok || !scheduleResult.response.ok) {
           setError(
-            standingsJson.error || scheduleJson.error || "Could not load home data"
+            errorMessageFromData(standingsResult.data, "") ||
+              errorMessageFromData(scheduleResult.data, "") ||
+              "Could not load home data"
           );
           setStandings([]);
           setMatches([]);
           return;
         }
 
-        setStandings((standingsJson.standings || []).slice(0, 6));
-        const allMatches: MatchRow[] = scheduleJson.matches || [];
+        setStandings((standingsResult.data.standings || []).slice(0, 6));
+        const allMatches: MatchRow[] = scheduleResult.data.matches || [];
         const week = getCurrentWeek(allMatches);
         setCurrentWeek(week);
         const weekMatches = allMatches.filter((m) => m.week_number === week);
         setMatches(weekMatches);
-        setAwards(awardsJson.awards || []);
-        setAwardsWeek(awardsJson.week || null);
+        setAwards(awardsResult.data.awards || []);
+        setAwardsWeek(awardsResult.data.week || null);
       } catch {
         setError("Could not load home data");
         setStandings([]);
@@ -250,11 +230,11 @@ export default function HomePage() {
               </>
             ) : standings.map((row) => (
               <div key={row.teamName} className="tap flex items-center justify-between rounded-lg bg-white/70 p-3">
-                <span className="inline-flex items-center gap-2">
+                  <span className="inline-flex items-center gap-2">
                   <span className="flex h-6 w-6 items-center justify-center rounded-full bg-moss/10 text-xs font-bold text-moss">
                     {row.rank}
                   </span>
-                  <TeamName name={formatTeamName(row.teamName)} />
+                  <TeamName name={formatMatchTeamName({ name: row.teamName })} />
                 </span>
                 <span className="font-semibold">{row.gamesWon} <span className="text-xs text-stone">GW</span></span>
               </div>
@@ -278,12 +258,19 @@ export default function HomePage() {
               <div key={item.id} className="rounded-lg bg-white/70 p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={item.status} />
-                  <span className="text-xs text-stone">Wk {item.week_number} · {formatWhen(item.scheduled_datetime)}</span>
+                  <span className="text-xs text-stone">
+                    Wk {item.week_number} ·{" "}
+                    {formatMatchDateTime(item.scheduled_datetime, {
+                      weekday: "short",
+                      hour: "numeric",
+                      minute: "2-digit"
+                    })}
+                  </span>
                 </div>
                 <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                  <TeamName name={teamName(item.home_team)} />
+                  <TeamName name={formatMatchTeamName(item.home_team)} />
                   <span className="text-stone">vs</span>
-                  <TeamName name={teamName(item.away_team)} />
+                  <TeamName name={formatMatchTeamName(item.away_team)} />
                 </div>
               </div>
             ))}

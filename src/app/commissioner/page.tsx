@@ -5,11 +5,11 @@ import { useRouter } from "next/navigation";
 import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SkeletonCard } from "@/components/Skeleton";
-import { formatTeamName } from "@/lib/display";
+import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
+import { formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
-type TeamRef = { name: string } | { name: string }[] | null;
 type MatchRow = {
   id: string;
   week_number: number;
@@ -18,21 +18,6 @@ type MatchRow = {
   home_team: TeamRef;
   away_team: TeamRef;
 };
-
-function teamName(team: TeamRef) {
-  if (!team) return "TBD";
-  if (Array.isArray(team)) return team[0]?.name ? formatTeamName(team[0].name) : "TBD";
-  return team.name ? formatTeamName(team.name) : "TBD";
-}
-
-function safeParseJson(text: string) {
-  if (!text) return {};
-  try {
-    return JSON.parse(text);
-  } catch {
-    return {};
-  }
-}
 
 export default function CommissionerDashboard() {
   const router = useRouter();
@@ -48,10 +33,10 @@ export default function CommissionerDashboard() {
 
   useEffect(() => {
     async function checkSession() {
-      const res = await fetch("/api/auth/session");
-      const text = await res.text();
-      const json = safeParseJson(text);
-      if (!res.ok || json.session?.role !== "commissioner") {
+      const { response, data } = await fetchJson<{ session?: { role?: string } }>(
+        "/api/auth/session"
+      );
+      if (!response.ok || data.session?.role !== "commissioner") {
         router.replace("/commissioner/login");
         return;
       }
@@ -65,10 +50,8 @@ export default function CommissionerDashboard() {
     if (!authorized) return;
 
     async function loadSeasons() {
-      const res = await fetch("/api/seasons");
-      const text = await res.text();
-      const json = safeParseJson(text);
-      const list: Season[] = json.seasons || [];
+      const { data } = await fetchJson<{ seasons?: Season[] }>("/api/seasons");
+      const list: Season[] = data.seasons || [];
       setSeasons(list);
       setSeasonId(list[0]?.id || "");
     }
@@ -83,10 +66,8 @@ export default function CommissionerDashboard() {
     }
 
     async function loadSchedule() {
-      const res = await fetch(`/api/seasons/${seasonId}/schedule`);
-      const text = await res.text();
-      const json = safeParseJson(text);
-      setMatches(json.matches || []);
+      const { data } = await fetchJson<{ matches?: MatchRow[] }>(`/api/seasons/${seasonId}/schedule`);
+      setMatches(data.matches || []);
     }
 
     loadSchedule();
@@ -95,13 +76,11 @@ export default function CommissionerDashboard() {
   useEffect(() => {
     if (!authorized || !seasonId) return;
     async function loadDriveStatus() {
-      const res = await fetch(
+      const { data } = await fetchJson<{ connected?: boolean; commissionerEmail?: string }>(
         `/api/integrations/google-drive/status?seasonId=${encodeURIComponent(seasonId)}`
       );
-      const text = await res.text();
-      const json = safeParseJson(text);
-      setDriveConnected(Boolean(json.connected));
-      setDriveEmail(json.commissionerEmail || "");
+      setDriveConnected(Boolean(data.connected));
+      setDriveEmail(data.commissionerEmail || "");
     }
     loadDriveStatus();
   }, [seasonId, authorized]);
@@ -124,39 +103,40 @@ export default function CommissionerDashboard() {
 
   async function closeWeek() {
     setMessage("");
-    const res = await fetch(`/api/weeks/${selectedWeek}/close`, { method: "POST" });
-    const text = await res.text();
-    const json = safeParseJson(text);
-    setMessage(res.ok ? `Week ${selectedWeek} closed.` : json.error || "Could not close week");
+    const { response, data } = await fetchJson<{ error?: string }>(`/api/weeks/${selectedWeek}/close`, {
+      method: "POST"
+    });
+    setMessage(
+      response.ok ? `Week ${selectedWeek} closed.` : errorMessageFromData(data, "Could not close week")
+    );
   }
 
   async function previewEmail() {
     setMessage("");
-    const res = await fetch("/api/email/preview", {
+    const { response, data } = await fetchJson<{ error?: string; email?: { html?: string } }>(
+      "/api/email/preview",
+      {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ weekNumber: selectedWeek })
-    });
-    const text = await res.text();
-    const json = safeParseJson(text);
-    if (!res.ok) {
-      setMessage(json.error || "Could not preview email");
+    }
+    );
+    if (!response.ok) {
+      setMessage(errorMessageFromData(data, "Could not preview email"));
       return;
     }
-    setEmailPreview(json.email?.html || "");
+    setEmailPreview(data.email?.html || "");
     setMessage("Email preview loaded.");
   }
 
   async function backupToDrive() {
     setMessage("");
-    const res = await fetch("/api/backups/drive", {
+    const { response, data } = await fetchJson<{ error?: string }>("/api/backups/drive", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ weekNumber: selectedWeek })
     });
-    const text = await res.text();
-    const json = safeParseJson(text);
-    setMessage(res.ok ? "Backup uploaded to Drive." : json.error || "Drive backup failed");
+    setMessage(response.ok ? "Backup uploaded to Drive." : errorMessageFromData(data, "Drive backup failed"));
   }
 
   function connectDrive() {
@@ -299,10 +279,10 @@ export default function CommissionerDashboard() {
                     <StatusBadge status={match.status} />
                     <span className="text-xs text-stone">Wk {match.week_number}</span>
                   </div>
-                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm">
-                    <TeamName name={teamName(match.home_team)} />
+                    <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm">
+                    <TeamName name={formatMatchTeamName(match.home_team)} />
                     <span className="text-stone">vs</span>
-                    <TeamName name={teamName(match.away_team)} />
+                    <TeamName name={formatMatchTeamName(match.away_team)} />
                   </div>
                 </div>
                 <a
@@ -330,9 +310,9 @@ export default function CommissionerDashboard() {
                       <span className="text-xs text-stone">Week {match.week_number}</span>
                     </div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm">
-                      <TeamName name={teamName(match.home_team)} />
+                      <TeamName name={formatMatchTeamName(match.home_team)} />
                       <span className="text-stone">vs</span>
-                      <TeamName name={teamName(match.away_team)} />
+                      <TeamName name={formatMatchTeamName(match.away_team)} />
                     </div>
                   </div>
                   <a

@@ -5,47 +5,29 @@ import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton, SkeletonCard } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { formatTeamName } from "@/lib/display";
+import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
+import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 
 type MatchRow = {
   id: string;
   week_number: number;
   scheduled_datetime: string | null;
   status: string;
-  home_team: { name: string } | { name: string }[] | null;
-  away_team: { name: string } | { name: string }[] | null;
+  home_team: TeamRef;
+  away_team: TeamRef;
   home_games_won: number | null;
   away_games_won: number | null;
   home_total_score: number | null;
   away_total_score: number | null;
 };
 
-function resolveTeamName(team: MatchRow["home_team"]) {
-  if (!team) return "TBD";
-  if (Array.isArray(team)) return team[0]?.name ? formatTeamName(team[0].name) : "TBD";
-  return team.name ? formatTeamName(team.name) : "TBD";
-}
-
-function formatWhen(value: string | null) {
-  if (!value) return "TBD";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleString(undefined, {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
-}
-
 function inferMyTeam(matches: MatchRow[]): string | null {
   // The captain's team appears in every match as either home or away.
   // Find the team name that appears most frequently.
   const counts = new Map<string, number>();
   for (const m of matches) {
-    const home = resolveTeamName(m.home_team);
-    const away = resolveTeamName(m.away_team);
+    const home = formatMatchTeamName(m.home_team);
+    const away = formatMatchTeamName(m.away_team);
     counts.set(home, (counts.get(home) || 0) + 1);
     counts.set(away, (counts.get(away) || 0) + 1);
   }
@@ -61,13 +43,13 @@ function inferMyTeam(matches: MatchRow[]): string | null {
 }
 
 function getOpponent(match: MatchRow, myTeam: string): string {
-  const home = resolveTeamName(match.home_team);
-  const away = resolveTeamName(match.away_team);
+  const home = formatMatchTeamName(match.home_team);
+  const away = formatMatchTeamName(match.away_team);
   return home === myTeam ? away : home;
 }
 
 function isMyHomeTeam(match: MatchRow, myTeam: string): boolean {
-  return resolveTeamName(match.home_team) === myTeam;
+  return formatMatchTeamName(match.home_team) === myTeam;
 }
 
 export default function CaptainDashboardPage() {
@@ -78,13 +60,14 @@ export default function CaptainDashboardPage() {
   const loadMatches = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await fetch("/api/my/matches");
-      const json = await res.json();
-      if (!res.ok) {
-        setError(json.error || "Could not load your matches");
+      const { response, data } = await fetchJson<{ matches?: MatchRow[]; error?: string }>(
+        "/api/my/matches"
+      );
+      if (!response.ok) {
+        setError(errorMessageFromData(data, "Could not load your matches"));
         return;
       }
-      setMatches(json.matches || []);
+      setMatches(data.matches || []);
     } catch {
       setError("Could not load your matches");
     } finally {
@@ -205,7 +188,13 @@ export default function CaptainDashboardPage() {
               vs <TeamName name={getOpponent(nextMatch, myTeam)} />
             </p>
             <p className="mt-1 text-xs text-stone">
-              {formatWhen(nextMatch.scheduled_datetime)}
+              {formatMatchDateTime(nextMatch.scheduled_datetime, {
+                weekday: "short",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "2-digit"
+              })}
             </p>
             <a
               href={`/captain/matches/${nextMatch.id}/submit`}
