@@ -38,7 +38,7 @@ export async function PATCH(
 
   const outcome = computeOutcome(score);
 
-  await client.from("match_corrections").insert({
+  const { error: correctionError } = await client.from("match_corrections").insert({
     match_id: params.id,
     season_id: match.season_id,
     corrected_by: session.seasonId,
@@ -63,8 +63,11 @@ export async function PATCH(
       notes: body.notes || null
     }
   });
+  if (correctionError) {
+    return NextResponse.json({ error: correctionError.message }, { status: 500 });
+  }
 
-  await client
+  const { error: updateError } = await client
     .from("matches")
     .update({
       status: "corrected",
@@ -75,11 +78,16 @@ export async function PATCH(
       home_match_points: outcome.homeMatchPoints,
       away_match_points: outcome.awayMatchPoints,
       notes: body.notes || null,
+      updated_by_role: "commissioner",
+      updated_by_id: session.seasonId,
       updated_at: new Date().toISOString()
     })
     .eq("id", params.id);
+  if (updateError) {
+    return NextResponse.json({ error: updateError.message }, { status: 500 });
+  }
 
-  await client.from("audit_log").insert({
+  const { error: auditError } = await client.from("audit_log").insert({
     actor_role: "commissioner",
     actor_id: session.seasonId,
     action: "match_corrected",
@@ -87,6 +95,9 @@ export async function PATCH(
     entity_id: params.id,
     details: { reason: body.reason }
   });
+  if (auditError) {
+    return NextResponse.json({ error: auditError.message }, { status: 500 });
+  }
 
   return NextResponse.json({ status: "corrected" });
 }

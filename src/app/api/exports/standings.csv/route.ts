@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { requireRoleOrResponse } from "@/lib/api";
 import { computeStandings } from "@/lib/standings";
-import { toCsv } from "@/lib/csv";
+import { toRankingCsv } from "@/lib/rankingExport";
 
 export async function POST() {
   const session = await requireRoleOrResponse("commissioner");
@@ -21,17 +21,7 @@ export async function POST() {
 
   const standings = computeStandings(teams || [], matches || []);
 
-  const csv = toCsv(
-    ["rank", "team", "games_played", "games_won", "match_points", "total_points"],
-    standings.map((row) => [
-      row.rank,
-      row.teamName,
-      row.gamesPlayed,
-      row.gamesWon,
-      row.matchPoints,
-      row.totalPoints
-    ])
-  );
+  const csv = toRankingCsv(standings);
 
   return new NextResponse(csv, {
     headers: {

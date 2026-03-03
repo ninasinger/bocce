@@ -4,6 +4,7 @@ import "./globals.css";
 import { OfflineSync } from "@/components/OfflineSync";
 import { BottomNav } from "@/components/BottomNav";
 import { DesktopNav } from "@/components/DesktopNav";
+import { SessionIndicator } from "@/components/SessionIndicator";
 
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display" });
 const body = Work_Sans({ subsets: ["latin"], variable: "--font-body" });
@@ -48,7 +49,10 @@ export default function RootLayout({
                 Verified results, accurate standings, and simple captain submissions.
               </p>
             </div>
-            <DesktopNav />
+            <div className="flex flex-col items-start gap-2 md:items-end">
+              <DesktopNav />
+              <SessionIndicator />
+            </div>
           </header>
           <OfflineSync />
           {children}

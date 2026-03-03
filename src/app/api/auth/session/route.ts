@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getSession } from "@/lib/auth";
+import { getSession, refreshSessionCookie } from "@/lib/auth";
 
 export async function GET() {
   const session = await getSession();
@@ -7,5 +7,6 @@ export async function GET() {
     return NextResponse.json({ authenticated: false }, { status: 401 });
   }
 
+  await refreshSessionCookie(session);
   return NextResponse.json({ authenticated: true, session });
 }

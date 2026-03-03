@@ -5,21 +5,8 @@ import { getServiceClient } from "@/lib/supabaseServer";
 import { requireRoleOrResponse } from "@/lib/api";
 import { computeStandings } from "@/lib/standings";
 import { toCsv } from "@/lib/csv";
+import { toRankingCsv } from "@/lib/rankingExport";
 import { env } from "@/lib/env";
-
-function getDriveClient() {
-  if (!env.googleServiceAccountEmail || !env.googleServiceAccountKey) {
-    throw new Error("Missing Google Drive service account env vars");
-  }
-
-  const auth = new google.auth.JWT({
-    email: env.googleServiceAccountEmail,
-    key: env.googleServiceAccountKey.replace(/\\n/g, "\n"),
-    scopes: ["https://www.googleapis.com/auth/drive.file"]
-  });
-
-  return google.drive({ version: "v3", auth });
-}
 
 function getDriveClientWithOAuth(refreshToken: string) {
   if (!env.googleOAuthClientId || !env.googleOAuthClientSecret) {
@@ -120,17 +107,7 @@ export async function POST(request: Request) {
     ])
   );
 
-  const standingsCsv = toCsv(
-    ["rank", "team", "games_played", "games_won", "match_points", "total_points"],
-    standings.map((row) => [
-      row.rank,
-      row.teamName,
-      row.gamesPlayed,
-      row.gamesWon,
-      row.matchPoints,
-      row.totalPoints
-    ])
-  );
+  const standingsCsv = toRankingCsv(standings);
 
   const { data: integration } = await client
     .from("commissioner_integrations")
@@ -139,9 +116,16 @@ export async function POST(request: Request) {
     .eq("provider", "google_drive")
     .maybeSingle();
 
-  const drive = integration?.refresh_token
-    ? getDriveClientWithOAuth(integration.refresh_token)
-    : getDriveClient();
+  if (!integration?.refresh_token) {
+    return NextResponse.json(
+      {
+        error: "Google Drive is not connected. Connect Drive in Commissioner settings to back up to your Google Drive."
+      },
+      { status: 400 }
+    );
+  }
+
+  const drive = getDriveClientWithOAuth(integration.refresh_token);
   const folderName = `season-${season?.year ?? "unknown"}/week-${weekNumber}`;
 
   const folder = await drive.files.create({

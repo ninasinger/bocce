@@ -110,10 +110,17 @@ export async function POST(
     .eq("status", "active");
 
   if (!submissions || submissions.length < 2) {
-    await client
+    const { error: pendingError } = await client
       .from("matches")
-      .update({ status: "pending_verification" })
+      .update({
+        status: "pending_verification",
+        updated_by_role: "system",
+        updated_by_id: null
+      })
       .eq("id", matchId);
+    if (pendingError) {
+      return NextResponse.json({ error: pendingError.message }, { status: 500 });
+    }
 
     return NextResponse.json({ status: "pending_verification" });
   }
@@ -132,33 +139,50 @@ export async function POST(
   const resolution = resolveSubmissionStatus(submissionScores);
 
   if (resolution.status === "disputed") {
-    await client
+    const { error: disputedError } = await client
       .from("matches")
-      .update({ status: "disputed" })
+      .update({
+        status: "disputed",
+        updated_by_role: "system",
+        updated_by_id: null
+      })
       .eq("id", matchId);
+    if (disputedError) {
+      return NextResponse.json({ error: disputedError.message }, { status: 500 });
+    }
 
-    await client.from("audit_log").insert({
+    const { error: auditError } = await client.from("audit_log").insert({
       actor_role: "system",
       action: "match_disputed",
       entity_type: "match",
       entity_id: matchId,
       details: { reason: "Submission mismatch" }
     });
+    if (auditError) {
+      return NextResponse.json({ error: auditError.message }, { status: 500 });
+    }
 
     return NextResponse.json({ status: "disputed" });
   }
 
   if (resolution.status === "pending_verification") {
-    await client
+    const { error: pendingError } = await client
       .from("matches")
-      .update({ status: "pending_verification" })
+      .update({
+        status: "pending_verification",
+        updated_by_role: "system",
+        updated_by_id: null
+      })
       .eq("id", matchId);
+    if (pendingError) {
+      return NextResponse.json({ error: pendingError.message }, { status: 500 });
+    }
 
     return NextResponse.json({ status: "pending_verification" });
   }
 
   const { outcome } = resolution;
-  await client
+  const { error: verifyError } = await client
     .from("matches")
     .update({
       status: "verified",
@@ -169,16 +193,24 @@ export async function POST(
       home_match_points: outcome.homeMatchPoints,
       away_match_points: outcome.awayMatchPoints,
       notes: first.notes || null,
+      updated_by_role: "system",
+      updated_by_id: null,
       updated_at: new Date().toISOString()
     })
     .eq("id", matchId);
+  if (verifyError) {
+    return NextResponse.json({ error: verifyError.message }, { status: 500 });
+  }
 
-  await client.from("audit_log").insert({
+  const { error: auditError } = await client.from("audit_log").insert({
     actor_role: "system",
     action: "match_verified",
     entity_type: "match",
     entity_id: matchId
   });
+  if (auditError) {
+    return NextResponse.json({ error: auditError.message }, { status: 500 });
+  }
 
   return NextResponse.json({ status: "verified" });
 }

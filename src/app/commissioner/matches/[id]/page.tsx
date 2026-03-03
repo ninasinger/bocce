@@ -25,6 +25,15 @@ type Submission = {
   notes: string | null;
 };
 
+type ScoreHistoryItem = {
+  id: string;
+  created_at: string;
+  actor_role: string;
+  action: string;
+  before_values: Record<string, unknown> | null;
+  after_values: Record<string, unknown> | null;
+};
+
 export default function CommissionerMatchReview() {
   const router = useRouter();
   const params = useParams();
@@ -32,6 +41,7 @@ export default function CommissionerMatchReview() {
 
   const [match, setMatch] = useState<MatchData | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [history, setHistory] = useState<ScoreHistoryItem[]>([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [authorized, setAuthorized] = useState(false);
@@ -54,9 +64,10 @@ export default function CommissionerMatchReview() {
 
     async function loadData() {
       setError("");
-      const [matchResult, submissionsResult] = await Promise.all([
+      const [matchResult, submissionsResult, historyResult] = await Promise.all([
         fetchJson<{ match?: MatchData; error?: string }>(`/api/matches/${matchId}`),
-        fetchJson<{ submissions?: Submission[]; error?: string }>(`/api/matches/${matchId}/submissions`)
+        fetchJson<{ submissions?: Submission[]; error?: string }>(`/api/matches/${matchId}/submissions`),
+        fetchJson<{ history?: ScoreHistoryItem[]; error?: string }>(`/api/matches/${matchId}/history`)
       ]);
 
       if (!matchResult.response.ok) {
@@ -67,9 +78,14 @@ export default function CommissionerMatchReview() {
         setError(errorMessageFromData(submissionsResult.data, "Could not load submissions"));
         return;
       }
+      if (!historyResult.response.ok) {
+        setError(errorMessageFromData(historyResult.data, "Could not load score history"));
+        return;
+      }
 
       setMatch(matchResult.data.match || null);
       setSubmissions(submissionsResult.data.submissions || []);
+      setHistory(historyResult.data.history || []);
     }
 
     loadData();
@@ -102,6 +118,12 @@ export default function CommissionerMatchReview() {
     }
 
     setMessage("Correction saved.");
+    const historyResult = await fetchJson<{ history?: ScoreHistoryItem[] }>(
+      `/api/matches/${matchId}/history`
+    );
+    if (historyResult.response.ok) {
+      setHistory(historyResult.data.history || []);
+    }
   }
 
   if (!authorized) {
@@ -239,6 +261,39 @@ export default function CommissionerMatchReview() {
           Save correction
         </button>
       </form>
+
+      <h3 className="section-title mt-6 text-base">Score history</h3>
+      <p className="mt-1 text-sm text-stone">
+        Immutable event log for submissions and official score changes.
+      </p>
+      {history.length === 0 ? (
+        <p className="mt-3 text-sm text-stone">No history entries yet for this match.</p>
+      ) : (
+        <div className="mt-3 space-y-2">
+          {history.map((item) => (
+            <div key={item.id} className="rounded-xl bg-white/70 p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge status="verified" />
+                <span className="text-xs text-stone">
+                  {new Date(item.created_at).toLocaleString()}
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-stone">
+                  {item.actor_role}
+                </span>
+              </div>
+              <p className="mt-1 text-sm font-semibold">{item.action.replace(/_/g, " ")}</p>
+              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                <pre className="overflow-x-auto rounded-lg bg-white/80 p-2 text-xs text-stone">
+                  before: {JSON.stringify(item.before_values || {}, null, 2)}
+                </pre>
+                <pre className="overflow-x-auto rounded-lg bg-white/80 p-2 text-xs text-stone">
+                  after: {JSON.stringify(item.after_values || {}, null, 2)}
+                </pre>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </main>
   );
 }

@@ -12,6 +12,7 @@ export type SessionPayload = {
 };
 
 const COOKIE_NAME = "bocce_session";
+const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
 
 function getSecret() {
   if (!env.appSecret) {
@@ -20,20 +21,44 @@ function getSecret() {
   return new TextEncoder().encode(env.appSecret);
 }
 
-export async function createSessionCookie(payload: SessionPayload) {
-  const token = await new SignJWT(payload)
+async function createSessionToken(payload: SessionPayload) {
+  return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime("7d")
+    .setExpirationTime(`${SESSION_MAX_AGE_SECONDS}s`)
     .sign(getSecret());
+}
+
+export async function createSessionCookie(payload: SessionPayload) {
+  const token = await createSessionToken(payload);
 
   cookies().set({
     name: COOKIE_NAME,
     value: token,
     httpOnly: true,
     sameSite: "lax",
-    path: "/"
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_MAX_AGE_SECONDS
   });
+}
+
+export async function refreshSessionCookie(payload: SessionPayload) {
+  const token = await createSessionToken(payload);
+
+  cookies().set({
+    name: COOKIE_NAME,
+    value: token,
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/",
+    maxAge: SESSION_MAX_AGE_SECONDS
+  });
+}
+
+export async function clearSessionCookie() {
+  cookies().delete(COOKIE_NAME);
 }
 
 export async function getSession(): Promise<SessionPayload | null> {
@@ -43,6 +68,7 @@ export async function getSession(): Promise<SessionPayload | null> {
     const { payload } = await jwtVerify(token, getSecret());
     return payload as SessionPayload;
   } catch {
+    await clearSessionCookie();
     return null;
   }
 }
