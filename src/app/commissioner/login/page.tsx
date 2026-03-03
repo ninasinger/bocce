@@ -9,6 +9,14 @@ export default function CommissionerLoginPage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState("");
   const [error, setError] = useState("");
+  const [oauthErrorMessage, setOauthErrorMessage] = useState("");
+
+  useEffect(() => {
+    const oauthError = new URLSearchParams(window.location.search).get("error");
+    if (oauthError === "email_not_allowed") {
+      setOauthErrorMessage("Only commissioners can log in to the commissioner portal at this time.");
+    }
+  }, []);
 
   useEffect(() => {
     async function loadSeasons() {
@@ -59,6 +67,7 @@ export default function CommissionerLoginPage() {
           </select>
         </label>
 
+        {oauthErrorMessage ? <p className="text-sm text-red-700">{oauthErrorMessage}</p> : null}
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
         <button

@@ -16,6 +16,13 @@ type GoogleUser = {
   email?: string;
 };
 
+const ALLOWED_COMMISSIONER_EMAILS = new Set([
+  "sharongsmith1310@gmail.com",
+  "nina.singer860@gmail.com",
+  "mgvarney@gmail.com",
+  "caitlin.smith1310@gmail.com"
+]);
+
 export async function GET(request: Request) {
   try {
     if (!env.googleOAuthClientId || !env.googleOAuthClientSecret) {
@@ -60,6 +67,9 @@ export async function GET(request: Request) {
     if (!email) {
       return NextResponse.redirect(`${env.appUrl}/commissioner/login?error=no_email`);
     }
+    if (!ALLOWED_COMMISSIONER_EMAILS.has(email)) {
+      return NextResponse.redirect(`${env.appUrl}/commissioner/login?error=email_not_allowed`);
+    }
 
     const client = getServiceClient();
     const { data: season } = await client
@@ -78,8 +88,6 @@ export async function GET(request: Request) {
         .from("seasons")
         .update({ commissioner_email: email })
         .eq("id", season.id);
-    } else if (existingEmail !== email) {
-      return NextResponse.redirect(`${env.appUrl}/commissioner/login?error=email_not_allowed`);
     }
 
     await createSessionCookie({ role: "commissioner", seasonId: season.id });
