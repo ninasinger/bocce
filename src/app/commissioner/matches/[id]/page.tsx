@@ -42,6 +42,7 @@ export default function CommissionerMatchReview() {
   const [match, setMatch] = useState<MatchData | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [history, setHistory] = useState<ScoreHistoryItem[]>([]);
+  const [loadingSubmissions, setLoadingSubmissions] = useState(true);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [authorized, setAuthorized] = useState(false);
@@ -64,6 +65,7 @@ export default function CommissionerMatchReview() {
 
     async function loadData() {
       setError("");
+      setLoadingSubmissions(true);
       const [matchResult, submissionsResult, historyResult] = await Promise.all([
         fetchJson<{ match?: MatchData; error?: string }>(`/api/matches/${matchId}`),
         fetchJson<{ submissions?: Submission[]; error?: string }>(`/api/matches/${matchId}/submissions`),
@@ -86,6 +88,7 @@ export default function CommissionerMatchReview() {
       setMatch(matchResult.data.match || null);
       setSubmissions(submissionsResult.data.submissions || []);
       setHistory(historyResult.data.history || []);
+      setLoadingSubmissions(false);
     }
 
     loadData();
@@ -166,11 +169,13 @@ export default function CommissionerMatchReview() {
       {message ? <p className="mt-3 text-sm text-moss">{message}</p> : null}
 
       <h3 className="section-title mt-6 text-base">Submissions</h3>
-      {submissions.length === 0 && !error ? (
+      {loadingSubmissions ? (
         <div className="mt-3 space-y-3">
           <SkeletonCard />
           <SkeletonCard />
         </div>
+      ) : submissions.length === 0 && !error ? (
+        <p className="mt-3 text-sm text-stone">No submissions.</p>
       ) : (
         <div className="mt-3 space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
           {submissions.map((submission) => (
@@ -226,7 +231,10 @@ export default function CommissionerMatchReview() {
       )}
 
       <h3 className="section-title mt-6 text-base">Commissioner correction</h3>
-      <form className="mt-3 grid gap-3" onSubmit={onCorrect}>
+      <p className="mt-1 text-sm text-stone">
+        Enter the official final scores for this match.
+      </p>
+      <form className="mt-3 grid gap-3 rounded-2xl border-2 border-moss/30 bg-field/30 p-3 md:p-4" onSubmit={onCorrect}>
         <div className="grid grid-cols-2 gap-3">
           <label className="grid gap-1.5 text-sm font-semibold">
             G1 &middot; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"}
@@ -236,7 +244,7 @@ export default function CommissionerMatchReview() {
               min={0}
               step={1}
               required
-              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
+              className="rounded-xl border border-stone/30 bg-white px-3 py-2.5"
             />
           </label>
           <label className="grid gap-1.5 text-sm font-semibold">
@@ -247,7 +255,7 @@ export default function CommissionerMatchReview() {
               min={0}
               step={1}
               required
-              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
+              className="rounded-xl border border-stone/30 bg-white px-3 py-2.5"
             />
           </label>
         </div>
@@ -260,7 +268,7 @@ export default function CommissionerMatchReview() {
               min={0}
               step={1}
               required
-              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
+              className="rounded-xl border border-stone/30 bg-white px-3 py-2.5"
             />
           </label>
           <label className="grid gap-1.5 text-sm font-semibold">
@@ -271,7 +279,7 @@ export default function CommissionerMatchReview() {
               min={0}
               step={1}
               required
-              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
+              className="rounded-xl border border-stone/30 bg-white px-3 py-2.5"
             />
           </label>
         </div>
@@ -280,14 +288,14 @@ export default function CommissionerMatchReview() {
           <textarea
             name="reason"
             required
-            className="min-h-[80px] rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
+            className="min-h-[80px] rounded-xl border border-stone/30 bg-white px-3 py-2.5"
           />
         </label>
         <label className="grid gap-1.5 text-sm font-semibold">
           Notes (optional)
           <textarea
             name="notes"
-            className="min-h-[80px] rounded-xl border border-white/60 bg-white/70 px-3 py-2.5"
+            className="min-h-[80px] rounded-xl border border-stone/30 bg-white px-3 py-2.5"
           />
         </label>
         <button className="tap-btn rounded-xl bg-moss px-4 py-3 font-semibold text-white">
