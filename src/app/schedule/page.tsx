@@ -94,9 +94,9 @@ export default function SchedulePage() {
       <h2 className="section-title">Weekly schedule</h2>
 
       <div className="sticky-filters mt-3">
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 md:flex md:gap-3">
           <select
-            className="flex-1 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base font-semibold"
+            className="col-span-2 min-w-0 w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm font-semibold md:col-span-1 md:text-base"
             value={seasonId}
             onChange={(event) => setSeasonId(event.target.value)}
           >
@@ -108,7 +108,7 @@ export default function SchedulePage() {
             ))}
           </select>
           <select
-            className="w-28 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base font-semibold"
+            className="w-24 rounded-xl border border-white/60 bg-white/70 px-2 py-2.5 text-sm font-semibold md:w-28 md:px-3 md:text-base"
             value={selectedWeek}
             onChange={(event) => setSelectedWeek(Number(event.target.value))}
           >
@@ -121,7 +121,7 @@ export default function SchedulePage() {
           </select>
           <button
             onClick={loadSchedule}
-            className="tap flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/70 border border-white/60"
+            className="tap flex h-10 w-10 items-center justify-center rounded-xl border border-white/60 bg-white/70"
             aria-label="Refresh"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-stone">

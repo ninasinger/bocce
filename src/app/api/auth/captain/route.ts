@@ -3,6 +3,29 @@ import { getServiceClient } from "@/lib/supabaseServer";
 import { createSessionCookie, verifyCode } from "@/lib/auth";
 
 export async function POST(request: Request) {
+  const referer = request.headers.get("referer");
+  if (!referer) {
+    return NextResponse.json(
+      { error: "Captain login is only available from the Score Entry page." },
+      { status: 403 }
+    );
+  }
+
+  try {
+    const refererUrl = new URL(referer);
+    if (refererUrl.pathname !== "/captain/login") {
+      return NextResponse.json(
+        { error: "Captain login is only available from the Score Entry page." },
+        { status: 403 }
+      );
+    }
+  } catch {
+    return NextResponse.json(
+      { error: "Captain login is only available from the Score Entry page." },
+      { status: 403 }
+    );
+  }
+
   const { teamCode, teamId } = await request.json();
   if (!teamCode || !teamId) {
     return NextResponse.json({ error: "Missing team selection or code" }, { status: 400 });

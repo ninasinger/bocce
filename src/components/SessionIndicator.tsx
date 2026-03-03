@@ -2,12 +2,19 @@
 
 import { useEffect, useState } from "react";
 import { fetchJson } from "@/lib/clientFetch";
+import { formatTeamName } from "@/lib/display";
 
 type SessionResponse = {
   authenticated?: boolean;
   session?: {
     role?: "captain" | "commissioner";
+    teamId?: string;
+    seasonId?: string;
   };
+};
+
+type TeamsResponse = {
+  teams?: { id: string; name: string }[];
 };
 
 export function SessionIndicator() {
@@ -33,7 +40,20 @@ export function SessionIndicator() {
           return;
         }
 
-        setLabel("Signed in: Team Captain");
+        const { teamId, seasonId } = data.session;
+        if (teamId && seasonId) {
+          const teamResult = await fetchJson<TeamsResponse>(`/api/seasons/${seasonId}/teams`);
+          if (active && teamResult.response.ok) {
+            const team = (teamResult.data.teams || []).find((entry) => entry.id === teamId);
+            if (team) {
+              setLabel(`Team Captain: ${formatTeamName(team.name)}`);
+              setVariant("captain");
+              return;
+            }
+          }
+        }
+
+        setLabel("Team Captain");
         setVariant("captain");
       } catch {
         if (!active) return;
