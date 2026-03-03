@@ -97,9 +97,9 @@ export default function StandingsPage() {
       </p>
 
       <div className="sticky-filters mt-3">
-        <div className="flex items-center gap-3">
+        <div className="grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-2 md:flex md:gap-3">
           <select
-            className="flex-1 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base font-semibold"
+            className="min-w-0 w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm font-semibold md:text-base"
             value={seasonId}
             onChange={(event) => setSeasonId(event.target.value)}
           >
@@ -111,7 +111,7 @@ export default function StandingsPage() {
             ))}
           </select>
           <select
-            className="w-28 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base font-semibold"
+            className="w-20 rounded-xl border border-white/60 bg-white/70 px-2 py-2.5 text-sm font-semibold sm:w-24 md:w-28 md:px-3 md:text-base"
             value={selectedWeek}
             onChange={(event) => setSelectedWeek(Number(event.target.value))}
           >

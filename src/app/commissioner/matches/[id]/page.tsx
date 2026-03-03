@@ -192,7 +192,40 @@ export default function CommissionerMatchReview() {
         </div>
       )}
 
-      <h3 className="section-title mt-6 text-base">Official correction</h3>
+      <h3 className="section-title mt-6 text-base">Score history</h3>
+      <p className="mt-1 text-sm text-stone">
+        Immutable event log for submissions and official score changes.
+      </p>
+      {history.length === 0 ? (
+        <p className="mt-3 text-sm text-stone">No history entries yet for this match.</p>
+      ) : (
+        <div className="mt-3 space-y-2">
+          {history.map((item) => (
+            <div key={item.id} className="rounded-xl border border-white/60 bg-white/70 p-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge status="verified" />
+                <span className="text-xs text-stone">
+                  {new Date(item.created_at).toLocaleString()}
+                </span>
+                <span className="text-xs font-semibold uppercase tracking-wide text-stone">
+                  {item.actor_role}
+                </span>
+              </div>
+              <p className="mt-1 text-sm font-semibold">{item.action.replace(/_/g, " ")}</p>
+              <div className="mt-2 grid gap-2 md:grid-cols-2">
+                <pre className="overflow-x-auto rounded-lg bg-white/80 p-2 text-xs text-stone">
+                  before: {JSON.stringify(item.before_values || {}, null, 2)}
+                </pre>
+                <pre className="overflow-x-auto rounded-lg bg-white/80 p-2 text-xs text-stone">
+                  after: {JSON.stringify(item.after_values || {}, null, 2)}
+                </pre>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <h3 className="section-title mt-6 text-base">Commissioner correction</h3>
       <form className="mt-3 grid gap-3" onSubmit={onCorrect}>
         <div className="grid grid-cols-2 gap-3">
           <label className="grid gap-1.5 text-sm font-semibold">
@@ -262,38 +295,6 @@ export default function CommissionerMatchReview() {
         </button>
       </form>
 
-      <h3 className="section-title mt-6 text-base">Score history</h3>
-      <p className="mt-1 text-sm text-stone">
-        Immutable event log for submissions and official score changes.
-      </p>
-      {history.length === 0 ? (
-        <p className="mt-3 text-sm text-stone">No history entries yet for this match.</p>
-      ) : (
-        <div className="mt-3 space-y-2">
-          {history.map((item) => (
-            <div key={item.id} className="rounded-xl bg-white/70 p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge status="verified" />
-                <span className="text-xs text-stone">
-                  {new Date(item.created_at).toLocaleString()}
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-stone">
-                  {item.actor_role}
-                </span>
-              </div>
-              <p className="mt-1 text-sm font-semibold">{item.action.replace(/_/g, " ")}</p>
-              <div className="mt-2 grid gap-2 md:grid-cols-2">
-                <pre className="overflow-x-auto rounded-lg bg-white/80 p-2 text-xs text-stone">
-                  before: {JSON.stringify(item.before_values || {}, null, 2)}
-                </pre>
-                <pre className="overflow-x-auto rounded-lg bg-white/80 p-2 text-xs text-stone">
-                  after: {JSON.stringify(item.after_values || {}, null, 2)}
-                </pre>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </main>
   );
 }
