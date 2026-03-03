@@ -20,10 +20,10 @@ export async function GET(
       notes,
       home_team_id,
       away_team_id,
-      game1_home_score,
-      game1_away_score,
-      game2_home_score,
-      game2_away_score,
+      home_games_won,
+      away_games_won,
+      home_total_score,
+      away_total_score,
       home_team:teams!matches_home_team_id_fkey(name),
       away_team:teams!matches_away_team_id_fkey(name)
     `

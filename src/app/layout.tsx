@@ -3,6 +3,7 @@ import { Fraunces, Work_Sans } from "next/font/google";
 import "./globals.css";
 import { OfflineSync } from "@/components/OfflineSync";
 import { BottomNav } from "@/components/BottomNav";
+import { DesktopNav } from "@/components/DesktopNav";
 
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display" });
 const body = Work_Sans({ subsets: ["latin"], variable: "--font-body" });
@@ -47,26 +48,7 @@ export default function RootLayout({
                 Verified results, accurate standings, and simple captain submissions.
               </p>
             </div>
-            <nav className="hidden flex-wrap gap-3 text-sm font-semibold md:flex">
-              <a className="tap rounded-full bg-white/80 px-4 py-2" href="/">
-                Home
-              </a>
-              <a className="tap rounded-full bg-white/80 px-4 py-2" href="/standings">
-                Standings
-              </a>
-              <a className="tap rounded-full bg-white/80 px-4 py-2" href="/schedule">
-                Schedule
-              </a>
-              <a className="tap rounded-full bg-white/80 px-4 py-2" href="/captain/login">
-                Score Entry
-              </a>
-              <a
-                className="tap rounded-full bg-moss/90 px-4 py-2 text-white"
-                href="/commissioner/login"
-              >
-                Commissioner
-              </a>
-            </nav>
+            <DesktopNav />
           </header>
           <OfflineSync />
           {children}

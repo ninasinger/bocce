@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const tabs = [
@@ -81,18 +82,23 @@ export function BottomNav() {
       {tabs.map((tab) => {
         const active = isActive(tab);
         return (
-          <a
+          <Link
             key={tab.href}
             href={tab.href}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold transition-colors ${
+            aria-current={active ? "page" : undefined}
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold transition-all duration-200 ${
               active ? "text-moss" : "text-stone"
             }`}
           >
-            <span className={`rounded-lg p-1 transition-colors ${active ? "bg-moss/10" : ""}`}>
+            <span
+              className={`rounded-lg p-1 transition-all duration-200 ${
+                active ? "bg-moss/10 shadow-sm" : "hover:bg-white"
+              }`}
+            >
               {tab.icon}
             </span>
             {tab.label}
-          </a>
+          </Link>
         );
       })}
     </nav>

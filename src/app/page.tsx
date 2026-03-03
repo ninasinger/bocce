@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -155,21 +156,29 @@ export default function HomePage() {
             <Skeleton className="h-20 rounded-xl" />
           </div>
         ) : (
-          <div className="mt-4 grid gap-3 grid-cols-3">
-            <div className="rounded-xl bg-field/80 p-3">
+          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm">
               <p className="text-[10px] uppercase tracking-wide text-stone">Matches</p>
               <p className="mt-1 text-2xl font-display">{matches.length}</p>
             </div>
-            <div className="rounded-xl bg-field/80 p-3">
+            <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm">
               <p className="text-[10px] uppercase tracking-wide text-stone">Teams</p>
               <p className="mt-1 text-2xl font-display">{standings.length}</p>
             </div>
-            <div className="rounded-xl bg-field/80 p-3">
+            <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm col-span-2 sm:col-span-1">
               <p className="text-[10px] uppercase tracking-wide text-stone">Verified</p>
               <p className="mt-1 text-2xl font-display">{verifiedCount}</p>
             </div>
           </div>
         )}
+        <div className="mt-4 flex flex-wrap gap-2">
+          <Link href="/schedule" className="tap nav-pill nav-pill-muted text-xs font-semibold">
+            View Week {currentWeek ?? "?"} Schedule
+          </Link>
+          <Link href="/standings" className="tap nav-pill nav-pill-muted text-xs font-semibold">
+            Open Full Standings
+          </Link>
+        </div>
       </section>
 
       {/* Weekly Awards */}

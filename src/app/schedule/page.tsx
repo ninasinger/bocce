@@ -18,10 +18,10 @@ type MatchRow = {
   notes: string | null;
   home_team: TeamRef;
   away_team: TeamRef;
-  game1_home_score: number | null;
-  game1_away_score: number | null;
-  game2_home_score: number | null;
-  game2_away_score: number | null;
+  home_games_won: number | null;
+  away_games_won: number | null;
+  home_total_score: number | null;
+  away_total_score: number | null;
 };
 
 export default function SchedulePage() {
@@ -163,11 +163,11 @@ export default function SchedulePage() {
               <TeamName name={formatMatchTeamName(item.away_team)} />
             </div>
             {(item.status === "verified" || item.status === "corrected") &&
-              item.game1_home_score != null && item.game1_away_score != null ? (
+              item.home_total_score != null && item.away_total_score != null ? (
               <p className="mt-1 text-xs text-stone">
-                Game 1: {item.game1_home_score}-{item.game1_away_score}
-                {item.game2_home_score != null && item.game2_away_score != null
-                  ? ` | Game 2: ${item.game2_home_score}-${item.game2_away_score}`
+                Final: {item.home_total_score}-{item.away_total_score}
+                {item.home_games_won != null && item.away_games_won != null
+                  ? ` | Games: ${item.home_games_won}-${item.away_games_won}`
                   : null}
               </p>
             ) : null}
