@@ -202,12 +202,12 @@ export default function SchedulePage() {
         </div>
         <div className="mt-2 grid grid-cols-1 gap-2 md:flex md:items-center md:gap-3">
           <select
-            className="min-w-0 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm font-semibold md:w-44 md:text-base"
+            className="w-full min-w-0 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm font-semibold md:w-56 md:text-base"
             value={exportScope}
             onChange={(event) => setExportScope(event.target.value as "league" | "team")}
           >
-            <option value="league">Export full league</option>
-            <option value="team">Export one team</option>
+            <option value="league">Export Full League</option>
+            <option value="team">Export Single Team</option>
           </select>
           {exportScope === "team" ? (
             <select

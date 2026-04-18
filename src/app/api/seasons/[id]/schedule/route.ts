@@ -38,5 +38,10 @@ export async function GET(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  return NextResponse.json({ matches: data });
+  const cleanedMatches = (data || []).map((match) => ({
+    ...match,
+    notes: typeof match.notes === "string" ? match.notes.replace(/\s*-\s*EXTRA\b/gi, "") : match.notes
+  }));
+
+  return NextResponse.json({ matches: cleanedMatches });
 }

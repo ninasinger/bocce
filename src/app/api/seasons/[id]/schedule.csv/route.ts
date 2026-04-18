@@ -66,7 +66,7 @@ export async function GET(
     match.away_total_score,
     match.home_match_points,
     match.away_match_points,
-    match.notes
+    typeof match.notes === "string" ? match.notes.replace(/\s*-\s*EXTRA\b/gi, "") : match.notes
   ]);
 
   const csv = toCsv(
