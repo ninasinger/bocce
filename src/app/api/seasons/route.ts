@@ -8,14 +8,26 @@ export async function GET() {
     const client = getServiceClient();
     const { data, error } = await client
       .from("seasons")
-      .select("id, name, year")
-      .order("year", { ascending: false });
+      .select("id, name, year, created_at")
+      .order("created_at", { ascending: false });
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 });
     }
 
-    return NextResponse.json({ seasons: data || [] });
+    const unique = new Map<string, { id: string; name: string; year: number; created_at: string }>();
+    for (const season of data || []) {
+      const key = `${season.name}::${season.year}`;
+      if (!unique.has(key)) {
+        unique.set(key, season);
+      }
+    }
+
+    const seasons = Array.from(unique.values())
+      .sort((a, b) => b.year - a.year || b.created_at.localeCompare(a.created_at))
+      .map(({ id, name, year }) => ({ id, name, year }));
+
+    return NextResponse.json({ seasons });
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to load seasons" },

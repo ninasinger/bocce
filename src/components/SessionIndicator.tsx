@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import { fetchJson } from "@/lib/clientFetch";
 import { formatTeamName } from "@/lib/display";
 
@@ -18,6 +19,7 @@ type TeamsResponse = {
 };
 
 export function SessionIndicator() {
+  const pathname = usePathname();
   const [label, setLabel] = useState("Checking sign-in...");
   const [variant, setVariant] = useState<"neutral" | "captain" | "commissioner">("neutral");
 
@@ -37,6 +39,12 @@ export function SessionIndicator() {
         if (data.session.role === "commissioner") {
           setLabel("Signed in: Commissioner");
           setVariant("commissioner");
+          return;
+        }
+
+        if (!pathname.startsWith("/captain")) {
+          setLabel("Not signed in");
+          setVariant("neutral");
           return;
         }
 
@@ -66,7 +74,7 @@ export function SessionIndicator() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [pathname]);
 
   const className =
     variant === "commissioner"

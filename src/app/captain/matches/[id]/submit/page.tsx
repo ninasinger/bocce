@@ -59,9 +59,26 @@ function ScoreStepper({
         >
           &minus;
         </button>
-        <span className={`w-10 text-center text-3xl font-display tabular-nums ${bumping ? "score-bump" : ""}`}>
-          {value}
-        </span>
+        <div className="flex flex-col items-center gap-1">
+          <span
+            className={`w-10 text-center text-3xl font-display tabular-nums ${bumping ? "score-bump" : ""}`}
+          >
+            {value}
+          </span>
+          <input
+            type="number"
+            inputMode="numeric"
+            min={0}
+            step={1}
+            value={value}
+            onChange={(event) => {
+              const next = Number(event.target.value);
+              handleChange(Number.isFinite(next) ? Math.max(0, next) : 0);
+            }}
+            className="w-16 rounded-lg border border-white/70 bg-white/85 px-2 py-1 text-center text-sm font-semibold"
+            aria-label={`${label} score`}
+          />
+        </div>
         <button
           type="button"
           className="stepper-btn-plus"

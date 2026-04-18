@@ -45,9 +45,6 @@ export default function RootLayout({
               <h1 className="mt-2 text-3xl font-display md:mt-3 md:text-4xl">
                 League Scoring Hub
               </h1>
-              <p className="site-subtitle mt-1 text-sm text-stone md:mt-2">
-                Verified results, accurate standings, and simple captain submissions.
-              </p>
             </div>
             <div className="flex flex-col items-start gap-2 md:items-end">
               <DesktopNav />

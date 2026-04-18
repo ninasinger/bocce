@@ -144,7 +144,7 @@ export default function HomePage() {
             {seasons.length === 0 ? <option value="">No seasons</option> : null}
             {seasons.map((season) => (
               <option key={season.id} value={season.id}>
-                {season.name} ({season.year})
+                {season.name}
               </option>
             ))}
           </select>

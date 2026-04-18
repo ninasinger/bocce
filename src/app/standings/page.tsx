@@ -91,10 +91,7 @@ export default function StandingsPage() {
 
   return (
     <main className="card p-4 md:p-6">
-      <h2 className="section-title">Full standings</h2>
-      <p className="mt-1 text-sm text-stone">
-        Through week {selectedWeek}. Updates after verification.
-      </p>
+      <h2 className="section-title">Standings</h2>
 
       <div className="sticky-filters mt-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 md:flex md:gap-3">
@@ -106,7 +103,7 @@ export default function StandingsPage() {
             {seasons.length === 0 ? <option value="">No seasons found</option> : null}
             {seasons.map((season) => (
               <option key={season.id} value={season.id}>
-                {season.name} ({season.year})
+                {season.name}
               </option>
             ))}
           </select>
