@@ -3,6 +3,10 @@ import { getServiceClient } from "@/lib/supabaseServer";
 import { hashCode, getSession } from "@/lib/auth";
 import { env } from "@/lib/env";
 
+function normalizeSeasonName(name: string, year: number) {
+  return name.replace(new RegExp(`\\s*\\(${year}\\)\\s*$`), "").trim();
+}
+
 export async function GET() {
   try {
     const client = getServiceClient();
@@ -17,9 +21,10 @@ export async function GET() {
 
     const unique = new Map<string, { id: string; name: string; year: number; created_at: string }>();
     for (const season of data || []) {
-      const key = `${season.name}::${season.year}`;
+      const normalizedName = normalizeSeasonName(season.name, season.year);
+      const key = `${normalizedName}::${season.year}`;
       if (!unique.has(key)) {
-        unique.set(key, season);
+        unique.set(key, { ...season, name: normalizedName });
       }
     }
 

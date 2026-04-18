@@ -37,6 +37,12 @@ export async function PATCH(
   }
 
   const outcome = computeOutcome(score);
+  const existingCourt = typeof match.notes === "string" ? match.notes.match(/Court\s*\d+/i)?.[0] || "" : "";
+  const submittedNotes = String(body.notes || "").trim();
+  const finalNotes =
+    existingCourt && submittedNotes
+      ? `${existingCourt} - ${submittedNotes}`
+      : existingCourt || submittedNotes || null;
 
   const { error: correctionError } = await client.from("match_corrections").insert({
     match_id: params.id,
@@ -60,7 +66,7 @@ export async function PATCH(
       away_total_score: outcome.awayTotalScore,
       home_match_points: outcome.homeMatchPoints,
       away_match_points: outcome.awayMatchPoints,
-      notes: body.notes || null
+      notes: finalNotes
     }
   });
   if (correctionError) {
@@ -77,7 +83,7 @@ export async function PATCH(
       away_total_score: outcome.awayTotalScore,
       home_match_points: outcome.homeMatchPoints,
       away_match_points: outcome.awayMatchPoints,
-      notes: body.notes || null,
+      notes: finalNotes,
       updated_by_role: "commissioner",
       updated_by_id: session.seasonId,
       updated_at: new Date().toISOString()

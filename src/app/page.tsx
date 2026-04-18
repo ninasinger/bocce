@@ -271,6 +271,8 @@ export default function HomePage() {
                     Wk {item.week_number} ·{" "}
                     {formatMatchDateTime(item.scheduled_datetime, {
                       weekday: "short",
+                      month: "short",
+                      day: "numeric",
                       hour: "numeric",
                       minute: "2-digit"
                     })}

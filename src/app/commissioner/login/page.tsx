@@ -45,7 +45,7 @@ export default function CommissionerLoginPage() {
 
   return (
     <main className="card p-6">
-      <h2 className="section-title">Commissioner access</h2>
+      <h2 className="section-title">Commissioner Access</h2>
       <p className="mt-2 text-sm text-stone">
         Sign in with your Google account to manage the league.
       </p>

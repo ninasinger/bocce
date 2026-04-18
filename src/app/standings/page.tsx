@@ -157,9 +157,12 @@ export default function StandingsPage() {
               <span className="text-lg font-display">{row.gamesWon} <span className="text-xs text-stone">GW</span></span>
             </div>
             <div className="mt-1.5 flex gap-4 text-xs text-stone">
-              <span>{row.gamesPlayed} played</span>
-              <span>{row.matchPoints} MP</span>
-              <span>{row.totalPoints} TP</span>
+              <span>{row.gamesPlayed} games played</span>
+              <span>{row.gamesWon} games won</span>
+            </div>
+            <div className="mt-1.5 flex gap-4 text-xs text-stone">
+              <span>{row.totalPoints} total scores</span>
+              <span>{row.matchPoints} total points</span>
             </div>
           </div>
         ))}
@@ -181,10 +184,10 @@ export default function StandingsPage() {
               <tr>
                 <th className="p-3">Rank</th>
                 <th className="p-3">Team</th>
-                <th className="p-3">GP</th>
-                <th className="p-3">GW</th>
-                <th className="p-3">MP</th>
-                <th className="p-3">TP</th>
+                <th className="p-3">Games Played</th>
+                <th className="p-3">Games Won</th>
+                <th className="p-3">Total Scores</th>
+                <th className="p-3">Total Points</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/60 bg-white/40">
@@ -200,8 +203,8 @@ export default function StandingsPage() {
                   </td>
                   <td className="p-3">{row.gamesPlayed}</td>
                   <td className="p-3">{row.gamesWon}</td>
-                  <td className="p-3">{row.matchPoints}</td>
                   <td className="p-3">{row.totalPoints}</td>
+                  <td className="p-3">{row.matchPoints}</td>
                 </tr>
               ))}
             </tbody>

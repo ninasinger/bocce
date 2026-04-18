@@ -78,10 +78,6 @@ export default function CaptainLoginPage() {
   return (
     <main className="card p-6">
       <h2 className="section-title">Captain login</h2>
-      <p className="mt-2 text-sm text-stone">
-        Select your season and team, then enter your team code to submit scores.
-      </p>
-      <p className="mt-2 text-xs text-stone">Current default code for all teams: 1234</p>
 
       <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
         <label className="grid gap-2 text-sm font-semibold">

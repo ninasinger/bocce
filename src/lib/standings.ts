@@ -75,7 +75,8 @@ export function computeStandings(teams: Team[], matches: MatchResult[]) {
     return {
       teamId: team.id,
       teamName: team.name,
-      gamesPlayed: teamMatches.length,
+      // Each match contains two games in the current league format.
+      gamesPlayed: teamMatches.length * 2,
       gamesWon: totals.gamesWon,
       matchPoints: totals.matchPoints,
       totalPoints: totals.totalPoints,

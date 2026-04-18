@@ -1,3 +1,4 @@
+-- Sync 2026 schedule/team names from commissioner-provided TXT
 -- Generated from Bocce_Schedule_2026.txt
 -- Team code for every team is 1234
 
