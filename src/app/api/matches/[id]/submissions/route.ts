@@ -1,8 +1,88 @@
 import { NextResponse } from "next/server";
+import { Resend } from "resend";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { requireRoleOrResponse } from "@/lib/api";
 import { computeOutcome, validateMatchScore, type MatchScore } from "@/lib/scoring";
 import { resolveSubmissionStatus } from "@/lib/submissionResolution";
+import { env } from "@/lib/env";
+
+const FALLBACK_SCORE_ALERT_RECIPIENTS = [
+  "caitlin.smith1310@gmail.com",
+  "nina.singer860@gmail.com"
+];
+
+function getScoreAlertRecipients() {
+  const configured = process.env.SCORE_ALERT_RECIPIENTS || "";
+  const parsed = configured
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+  return parsed.length > 0 ? parsed : FALLBACK_SCORE_ALERT_RECIPIENTS;
+}
+
+function formatScoreLine(label: string, score: MatchScore) {
+  return `${label}: G1 ${score.game1.home}-${score.game1.away}, G2 ${score.game2.home}-${score.game2.away}`;
+}
+
+async function sendScoreEventEmail({
+  event,
+  seasonName,
+  weekNumber,
+  homeTeamName,
+  awayTeamName,
+  submittedByTeamName,
+  score,
+  status
+}: {
+  event: "submitted" | "approved" | "disputed";
+  seasonName: string;
+  weekNumber: number;
+  homeTeamName: string;
+  awayTeamName: string;
+  submittedByTeamName: string;
+  score: MatchScore;
+  status: string;
+}) {
+  if (!env.resendApiKey) return;
+
+  const recipients = getScoreAlertRecipients();
+  const titleByEvent: Record<typeof event, string> = {
+    submitted: "Score Submitted",
+    approved: "Match Approved",
+    disputed: "Match Disputed"
+  };
+  const summaryByEvent: Record<typeof event, string> = {
+    submitted: "A captain submitted scores for this match.",
+    approved: "Both submissions matched and the match is approved.",
+    disputed: "The two team submissions did not match."
+  };
+
+  const subject = `${titleByEvent[event]} • Week ${weekNumber} • ${homeTeamName} vs ${awayTeamName}`;
+  const html = `
+    <div style="font-family:Arial,sans-serif;max-width:720px;margin:0 auto;color:#1a1b1e">
+      <h2 style="margin:0 0 8px;">${titleByEvent[event]}</h2>
+      <p style="margin:0 0 14px;color:#555;">${summaryByEvent[event]}</p>
+      <table style="border-collapse:collapse;width:100%;max-width:520px">
+        <tbody>
+          <tr><td style="padding:6px 0;font-weight:600;">Season</td><td style="padding:6px 0;">${seasonName}</td></tr>
+          <tr><td style="padding:6px 0;font-weight:600;">Week</td><td style="padding:6px 0;">${weekNumber}</td></tr>
+          <tr><td style="padding:6px 0;font-weight:600;">Match</td><td style="padding:6px 0;">${homeTeamName} vs ${awayTeamName}</td></tr>
+          <tr><td style="padding:6px 0;font-weight:600;">Submitted by</td><td style="padding:6px 0;">${submittedByTeamName}</td></tr>
+          <tr><td style="padding:6px 0;font-weight:600;">Score</td><td style="padding:6px 0;">${formatScoreLine("Submission", score)}</td></tr>
+          <tr><td style="padding:6px 0;font-weight:600;">Status</td><td style="padding:6px 0;">${status}</td></tr>
+        </tbody>
+      </table>
+    </div>
+  `;
+
+  const resend = new Resend(env.resendApiKey);
+  await resend.emails.send({
+    from: "Bocce League <league@resend.dev>",
+    to: recipients,
+    subject,
+    html
+  });
+}
 
 export async function GET(
   _request: Request,
@@ -81,6 +161,35 @@ export async function POST(
   }
 
   const computed = computeOutcome(score);
+
+  const { data: teams } = await client
+    .from("teams")
+    .select("id, name")
+    .in("id", [match.home_team_id, match.away_team_id, session.teamId]);
+  const teamNameById = new Map((teams || []).map((team) => [team.id, team.name]));
+  const homeTeamName = teamNameById.get(match.home_team_id) || "Home Team";
+  const awayTeamName = teamNameById.get(match.away_team_id) || "Away Team";
+  const submittedByTeamName = teamNameById.get(session.teamId) || "Team Captain";
+
+  const { data: season } = await client
+    .from("seasons")
+    .select("name")
+    .eq("id", match.season_id)
+    .maybeSingle();
+  const seasonName = season?.name || "Bocce League";
+
+  void sendScoreEventEmail({
+    event: "submitted",
+    seasonName,
+    weekNumber: match.week_number,
+    homeTeamName,
+    awayTeamName,
+    submittedByTeamName,
+    score,
+    status: "pending other score"
+  }).catch((error) => {
+    console.error("Score submitted email failed", error);
+  });
 
   const { error: insertError } = await client.from("match_submissions").insert({
     match_id: matchId,
@@ -162,6 +271,19 @@ export async function POST(
       return NextResponse.json({ error: auditError.message }, { status: 500 });
     }
 
+    void sendScoreEventEmail({
+      event: "disputed",
+      seasonName,
+      weekNumber: match.week_number,
+      homeTeamName,
+      awayTeamName,
+      submittedByTeamName,
+      score,
+      status: "disputed"
+    }).catch((error) => {
+      console.error("Score disputed email failed", error);
+    });
+
     return NextResponse.json({ status: "disputed" });
   }
 
@@ -211,6 +333,19 @@ export async function POST(
   if (auditError) {
     return NextResponse.json({ error: auditError.message }, { status: 500 });
   }
+
+  void sendScoreEventEmail({
+    event: "approved",
+    seasonName,
+    weekNumber: match.week_number,
+    homeTeamName,
+    awayTeamName,
+    submittedByTeamName,
+    score,
+    status: "approved"
+  }).catch((error) => {
+    console.error("Score approved email failed", error);
+  });
 
   return NextResponse.json({ status: "verified" });
 }
