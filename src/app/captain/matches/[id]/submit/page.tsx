@@ -38,8 +38,8 @@ function ScoreInput({
   label: string;
 }) {
   return (
-    <label className="grid justify-items-center gap-1.5">
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-stone">
+    <label className="grid justify-items-center gap-2">
+      <span className="text-center text-[11px] font-semibold tracking-wide text-stone">
         {label}
       </span>
       <input
@@ -56,7 +56,7 @@ function ScoreInput({
           const next = Number(raw);
           onChange(Number.isFinite(next) ? Math.max(0, Math.floor(next)) : 0);
         }}
-        className="w-24 rounded-xl border border-white/70 bg-white px-2 py-2 text-center text-3xl font-display tabular-nums sm:w-28 sm:text-4xl"
+        className="w-24 rounded-xl border-2 border-moss/20 bg-moss/10 px-2 py-2 text-center text-3xl font-display tabular-nums shadow-inner sm:w-28 sm:text-4xl"
         aria-label={`${label} score`}
       />
     </label>
@@ -452,8 +452,8 @@ export default function SubmitScorePage() {
           Game 1
         </p>
         <div className="grid grid-cols-2 gap-4">
-          <ScoreInput value={g1h} onChange={setG1h} label={homeShort} />
-          <ScoreInput value={g1a} onChange={setG1a} label={awayShort} />
+          <ScoreInput value={g1h} onChange={setG1h} label={homeFmt} />
+          <ScoreInput value={g1a} onChange={setG1a} label={awayFmt} />
         </div>
       </div>
 
@@ -463,8 +463,8 @@ export default function SubmitScorePage() {
           Game 2
         </p>
         <div className="grid grid-cols-2 gap-4">
-          <ScoreInput value={g2h} onChange={setG2h} label={homeShort} />
-          <ScoreInput value={g2a} onChange={setG2a} label={awayShort} />
+          <ScoreInput value={g2h} onChange={setG2h} label={homeFmt} />
+          <ScoreInput value={g2a} onChange={setG2a} label={awayFmt} />
         </div>
       </div>
 
