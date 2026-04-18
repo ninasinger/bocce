@@ -4,6 +4,8 @@ export const env = {
   supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY || "",
   appSecret: process.env.APP_SECRET || "",
   resendApiKey: process.env.RESEND_API_KEY || "",
+  resendFromEmail: process.env.RESEND_FROM_EMAIL || "Bocce League <league@resend.dev>",
+  scoreAlertRecipients: process.env.SCORE_ALERT_RECIPIENTS || "",
   driveFolderId: process.env.GDRIVE_FOLDER_ID || "",
   googleServiceAccountEmail: process.env.GDRIVE_CLIENT_EMAIL || "",
   googleServiceAccountKey: process.env.GDRIVE_PRIVATE_KEY || "",

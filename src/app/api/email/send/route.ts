@@ -55,7 +55,7 @@ export async function POST(request: Request) {
 
   const resend = new Resend(env.resendApiKey);
   await resend.emails.send({
-    from: "Bocce League <league@resend.dev>",
+    from: env.resendFromEmail,
     to: season.commissioner_email,
     subject: email.subject,
     html: email.html

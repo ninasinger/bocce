@@ -12,7 +12,7 @@ const FALLBACK_SCORE_ALERT_RECIPIENTS = [
 ];
 
 function getScoreAlertRecipients() {
-  const configured = process.env.SCORE_ALERT_RECIPIENTS || "";
+  const configured = env.scoreAlertRecipients;
   const parsed = configured
     .split(",")
     .map((email) => email.trim())
@@ -77,7 +77,7 @@ async function sendScoreEventEmail({
 
   const resend = new Resend(env.resendApiKey);
   await resend.emails.send({
-    from: "Bocce League <league@resend.dev>",
+    from: env.resendFromEmail,
     to: recipients,
     subject,
     html
