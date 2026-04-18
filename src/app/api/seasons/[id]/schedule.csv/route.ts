@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { toCsv } from "@/lib/csv";
+import { formatMatchTeamName } from "@/lib/matchFormat";
 
 export async function GET(
   request: Request,
@@ -57,8 +58,8 @@ export async function GET(
     match.week_number,
     match.scheduled_datetime,
     match.status,
-    match.home_team?.name || "",
-    match.away_team?.name || "",
+    formatMatchTeamName(match.home_team, ""),
+    formatMatchTeamName(match.away_team, ""),
     match.home_games_won,
     match.away_games_won,
     match.home_total_score,
