@@ -28,7 +28,7 @@ function shortName(name: string) {
 type Step = "loading" | "already_submitted" | "entry" | "confirm" | "success";
 type SubmitResult = "pending_verification" | "verified" | "disputed" | "queued";
 
-function ScoreStepper({
+function ScoreInput({
   value,
   onChange,
   label,
@@ -37,58 +37,29 @@ function ScoreStepper({
   onChange: (v: number) => void;
   label: string;
 }) {
-  const [bumping, setBumping] = useState(false);
-
-  function handleChange(next: number) {
-    onChange(next);
-    setBumping(true);
-    setTimeout(() => setBumping(false), 150);
-  }
-
   return (
-    <div className="flex flex-col items-center gap-1.5">
+    <label className="grid justify-items-center gap-1.5">
       <span className="text-[10px] font-semibold uppercase tracking-wide text-stone">
         {label}
       </span>
-      <div className="flex items-center gap-2">
-        <button
-          type="button"
-          className="stepper-btn-minus"
-          onClick={() => handleChange(Math.max(0, value - 1))}
-          aria-label={`Decrease ${label}`}
-        >
-          &minus;
-        </button>
-        <div className="flex flex-col items-center gap-1">
-          <span
-            className={`w-10 text-center text-3xl font-display tabular-nums ${bumping ? "score-bump" : ""}`}
-          >
-            {value}
-          </span>
-          <input
-            type="number"
-            inputMode="numeric"
-            min={0}
-            step={1}
-            value={value}
-            onChange={(event) => {
-              const next = Number(event.target.value);
-              handleChange(Number.isFinite(next) ? Math.max(0, next) : 0);
-            }}
-            className="w-16 rounded-lg border border-white/70 bg-white/85 px-2 py-1 text-center text-sm font-semibold"
-            aria-label={`${label} score`}
-          />
-        </div>
-        <button
-          type="button"
-          className="stepper-btn-plus"
-          onClick={() => handleChange(value + 1)}
-          aria-label={`Increase ${label}`}
-        >
-          +
-        </button>
-      </div>
-    </div>
+      <input
+        type="tel"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        value={value}
+        onChange={(event) => {
+          const raw = event.target.value.replace(/\D/g, "");
+          if (raw === "") {
+            onChange(0);
+            return;
+          }
+          const next = Number(raw);
+          onChange(Number.isFinite(next) ? Math.max(0, Math.floor(next)) : 0);
+        }}
+        className="w-24 rounded-xl border border-white/70 bg-white px-2 py-2 text-center text-3xl font-display tabular-nums sm:w-28 sm:text-4xl"
+        aria-label={`${label} score`}
+      />
+    </label>
   );
 }
 
@@ -480,9 +451,9 @@ export default function SubmitScorePage() {
         <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
           Game 1
         </p>
-        <div className="flex items-start justify-evenly">
-          <ScoreStepper value={g1h} onChange={setG1h} label={homeShort} />
-          <ScoreStepper value={g1a} onChange={setG1a} label={awayShort} />
+        <div className="grid grid-cols-2 gap-4">
+          <ScoreInput value={g1h} onChange={setG1h} label={homeShort} />
+          <ScoreInput value={g1a} onChange={setG1a} label={awayShort} />
         </div>
       </div>
 
@@ -491,9 +462,9 @@ export default function SubmitScorePage() {
         <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
           Game 2
         </p>
-        <div className="flex items-start justify-evenly">
-          <ScoreStepper value={g2h} onChange={setG2h} label={homeShort} />
-          <ScoreStepper value={g2a} onChange={setG2a} label={awayShort} />
+        <div className="grid grid-cols-2 gap-4">
+          <ScoreInput value={g2h} onChange={setG2h} label={homeShort} />
+          <ScoreInput value={g2a} onChange={setG2a} label={awayShort} />
         </div>
       </div>
 

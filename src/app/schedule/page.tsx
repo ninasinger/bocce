@@ -226,9 +226,23 @@ export default function SchedulePage() {
           <button
             onClick={exportScheduleCsv}
             disabled={exportScope === "team" && !exportTeamId}
-            className="tap rounded-xl border border-white/60 bg-white/80 px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+            className="tap inline-flex items-center justify-center gap-2 rounded-xl bg-moss px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
-            Export schedule CSV
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth={2}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-4 w-4"
+              aria-hidden="true"
+            >
+              <path d="M12 3v12" />
+              <path d="m7 10 5 5 5-5" />
+              <path d="M5 21h14" />
+            </svg>
+            Export Schedule CSV
           </button>
         </div>
       </div>
