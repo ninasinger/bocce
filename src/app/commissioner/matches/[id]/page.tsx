@@ -46,6 +46,7 @@ export default function CommissionerMatchReview() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [authorized, setAuthorized] = useState(false);
+  const previousScore = submissions.length > 0 ? submissions[submissions.length - 1] : null;
 
   useEffect(() => {
     async function checkSession() {
@@ -235,51 +236,78 @@ export default function CommissionerMatchReview() {
         Enter the official final scores for this match.
       </p>
       <form className="mt-3 grid gap-3 rounded-2xl border-2 border-moss/30 bg-field/30 p-3 md:p-4" onSubmit={onCorrect}>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
+        <div className="rounded-xl border border-moss/20 bg-moss/10 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-stone">Previous score</p>
+          {previousScore ? (
+            <div className="mt-2 space-y-1 text-sm">
+              <p>
+                Game 1: {previousScore.game1_home_score} - {previousScore.game1_away_score}
+              </p>
+              <p>
+                Game 2: {previousScore.game2_home_score} - {previousScore.game2_away_score}
+              </p>
+            </div>
+          ) : (
+            <p className="mt-2 text-sm text-stone">No previous score submitted yet.</p>
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <label className="grid min-w-0 gap-1.5 text-xs font-semibold sm:text-sm">
             G1 &middot; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"}
             <input
               name="game1_home_score"
               type="number"
               min={0}
+              max={99}
               step={1}
+              inputMode="numeric"
               required
-              className="w-full min-w-0 rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+              defaultValue={previousScore?.game1_home_score}
+              className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
-          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
+          <label className="grid min-w-0 gap-1.5 text-xs font-semibold sm:text-sm">
             G1 &middot; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"}
             <input
               name="game1_away_score"
               type="number"
               min={0}
+              max={99}
               step={1}
+              inputMode="numeric"
               required
-              className="w-full min-w-0 rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+              defaultValue={previousScore?.game1_away_score}
+              className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
         </div>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
+        <div className="grid grid-cols-2 gap-3">
+          <label className="grid min-w-0 gap-1.5 text-xs font-semibold sm:text-sm">
             G2 &middot; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"}
             <input
               name="game2_home_score"
               type="number"
               min={0}
+              max={99}
               step={1}
+              inputMode="numeric"
               required
-              className="w-full min-w-0 rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+              defaultValue={previousScore?.game2_home_score}
+              className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
-          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
+          <label className="grid min-w-0 gap-1.5 text-xs font-semibold sm:text-sm">
             G2 &middot; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"}
             <input
               name="game2_away_score"
               type="number"
               min={0}
+              max={99}
               step={1}
+              inputMode="numeric"
               required
-              className="w-full min-w-0 rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+              defaultValue={previousScore?.game2_away_score}
+              className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
         </div>
