@@ -46,7 +46,9 @@ function ScoreInput({
         type="tel"
         inputMode="numeric"
         pattern="[0-9]*"
-        value={value}
+        value={value === 0 ? "" : String(value)}
+        placeholder="0"
+        onFocus={(event) => event.target.select()}
         onChange={(event) => {
           const raw = event.target.value.replace(/\D/g, "");
           if (raw === "") {
@@ -56,7 +58,7 @@ function ScoreInput({
           const next = Number(raw);
           onChange(Number.isFinite(next) ? Math.max(0, Math.floor(next)) : 0);
         }}
-        className="w-24 rounded-xl border-2 border-moss/20 bg-moss/10 px-2 py-2 text-center text-3xl font-display tabular-nums shadow-inner sm:w-28 sm:text-4xl"
+        className="w-24 rounded-xl border-2 border-moss/20 bg-moss/10 px-2 py-2 text-center text-3xl font-display tabular-nums shadow-inner placeholder:text-moss/30 sm:w-28 sm:text-4xl"
         aria-label={`${label} score`}
       />
     </label>
@@ -379,15 +381,17 @@ export default function SubmitScorePage() {
   if (step === "confirm") {
     return (
       <main className="card p-4">
-        <h2 className="section-title text-center">Confirm scores</h2>
-        <p className="mt-1 text-center text-sm text-stone">
-          Double-check before submitting.
-        </p>
+        <h2 className="section-title text-center">Are these your final scores?</h2>
 
         <div className="mt-3 flex items-center justify-center gap-2 text-sm">
           <TeamName name={homeFmt} />
           <span className="text-stone">vs</span>
           <TeamName name={awayFmt} />
+        </div>
+
+        <div className="mt-3 rounded-xl bg-amber-50 p-3 text-center text-sm text-amber-800">
+          Review your scores below. Tap &ldquo;Submit scores&rdquo; to record them &mdash;
+          this cannot be undone from your phone.
         </div>
 
         <div className="mt-4">
@@ -408,19 +412,19 @@ export default function SubmitScorePage() {
           <p className="mt-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
         ) : null}
 
-        <div className="mt-4 flex flex-col gap-3">
+        <div className="mt-4 flex flex-col items-center gap-2">
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="tap-btn rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white disabled:opacity-60"
+            className="tap-btn w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white disabled:opacity-60"
           >
             {submitting ? "Submitting..." : "Submit scores"}
           </button>
           <button
             onClick={() => setStep("entry")}
-            className="tap-btn rounded-xl bg-white/80 px-5 py-3 font-semibold text-ink"
+            className="tap px-4 py-3 text-sm font-semibold text-stone"
           >
-            Go back & edit
+            ← Go back & edit
           </button>
         </div>
       </main>
