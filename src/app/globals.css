@@ -116,6 +116,6 @@ input, select, textarea {
     @apply hidden;
   }
   .site-header .site-badge {
-    @apply text-[10px] px-2 py-0.5;
+    @apply text-xs px-2 py-0.5;
   }
 }

@@ -191,7 +191,7 @@ export default function SchedulePage() {
           </select>
           <button
             onClick={loadSchedule}
-            className="tap flex h-10 w-10 items-center justify-center rounded-xl border border-white/60 bg-white/70"
+            className="tap flex h-11 w-11 items-center justify-center rounded-xl border border-white/60 bg-white/70"
             aria-label="Refresh"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-stone">
@@ -248,7 +248,7 @@ export default function SchedulePage() {
       </div>
 
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
-      <p className="mt-3 text-xs text-stone">
+      <p className="mt-3 text-sm text-stone">
         Pending other score means one team submitted scores and we are waiting on the other team.
       </p>
 
@@ -276,7 +276,7 @@ export default function SchedulePage() {
                     <div key={item.id} className="tap rounded-xl bg-white/70 p-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <StatusBadge status={item.status} />
-                        <span className="text-xs text-stone">
+                        <span className="text-sm text-stone">
                           {formatMatchDateTime(item.scheduled_datetime, {
                             weekday: "short",
                             month: "short",
@@ -293,7 +293,7 @@ export default function SchedulePage() {
                       </div>
                       {(item.status === "verified" || item.status === "corrected") &&
                         item.home_total_score != null && item.away_total_score != null ? (
-                        <p className="mt-1 text-xs text-stone">
+                        <p className="mt-1 text-sm text-stone">
                           Final: {item.home_total_score}-{item.away_total_score}
                           {item.home_games_won != null && item.away_games_won != null
                             ? ` | Games: ${item.home_games_won}-${item.away_games_won}`
@@ -301,10 +301,10 @@ export default function SchedulePage() {
                         </p>
                       ) : null}
                       {(item.status === "verified" || item.status === "corrected") && winnerText(item) ? (
-                        <p className="mt-1 text-xs font-semibold text-moss">{winnerText(item)}</p>
+                        <p className="mt-1 text-sm font-semibold text-moss">{winnerText(item)}</p>
                       ) : null}
-                      {courtText(item) ? <p className="mt-1 text-xs text-stone">{courtText(item)}</p> : null}
-                      {item.notes && !courtText(item) ? <p className="mt-1 text-xs text-stone">{item.notes}</p> : null}
+                      {courtText(item) ? <p className="mt-1 text-sm text-stone">{courtText(item)}</p> : null}
+                      {item.notes && !courtText(item) ? <p className="mt-1 text-sm text-stone">{item.notes}</p> : null}
                     </div>
                   ))}
                 </section>

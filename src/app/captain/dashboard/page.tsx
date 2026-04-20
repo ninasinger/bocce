@@ -187,7 +187,7 @@ export default function CaptainDashboardPage() {
             <p className="mt-2 text-sm font-semibold">
               vs <TeamName name={getOpponent(nextMatch, myTeam)} />
             </p>
-            <p className="mt-1 text-xs text-stone">
+            <p className="mt-1 text-sm text-stone">
               {formatMatchDateTime(nextMatch.scheduled_datetime, {
                 weekday: "short",
                 month: "short",
@@ -239,7 +239,7 @@ export default function CaptainDashboardPage() {
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${
+                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold uppercase tracking-wide ${
                             won
                               ? "bg-emerald-100 text-emerald-800"
                               : tied
@@ -259,8 +259,8 @@ export default function CaptainDashboardPage() {
                       <p className="text-lg font-display">
                         {myScore ?? "-"}-{theirScore ?? "-"}
                       </p>
-                      <p className="text-xs text-stone">
-                        {myGW ?? 0}-{theirGW ?? 0} GW
+                      <p className="text-sm text-stone">
+                        {myGW ?? 0}-{theirGW ?? 0} Games Won
                       </p>
                     </div>
                   </div>
