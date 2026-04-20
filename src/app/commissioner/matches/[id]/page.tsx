@@ -235,8 +235,8 @@ export default function CommissionerMatchReview() {
         Enter the official final scores for this match.
       </p>
       <form className="mt-3 grid gap-3 rounded-2xl border-2 border-moss/30 bg-field/30 p-3 md:p-4" onSubmit={onCorrect}>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="grid gap-1.5 text-sm font-semibold">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
             G1 &middot; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"}
             <input
               name="game1_home_score"
@@ -244,10 +244,10 @@ export default function CommissionerMatchReview() {
               min={0}
               step={1}
               required
-              className="rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+              className="w-full min-w-0 rounded-xl border border-stone/30 bg-white px-3 py-2.5"
             />
           </label>
-          <label className="grid gap-1.5 text-sm font-semibold">
+          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
             G1 &middot; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"}
             <input
               name="game1_away_score"
@@ -255,12 +255,12 @@ export default function CommissionerMatchReview() {
               min={0}
               step={1}
               required
-              className="rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+              className="w-full min-w-0 rounded-xl border border-stone/30 bg-white px-3 py-2.5"
             />
           </label>
         </div>
-        <div className="grid grid-cols-2 gap-3">
-          <label className="grid gap-1.5 text-sm font-semibold">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
             G2 &middot; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"}
             <input
               name="game2_home_score"
@@ -268,10 +268,10 @@ export default function CommissionerMatchReview() {
               min={0}
               step={1}
               required
-              className="rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+              className="w-full min-w-0 rounded-xl border border-stone/30 bg-white px-3 py-2.5"
             />
           </label>
-          <label className="grid gap-1.5 text-sm font-semibold">
+          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
             G2 &middot; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"}
             <input
               name="game2_away_score"
@@ -279,7 +279,7 @@ export default function CommissionerMatchReview() {
               min={0}
               step={1}
               required
-              className="rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+              className="w-full min-w-0 rounded-xl border border-stone/30 bg-white px-3 py-2.5"
             />
           </label>
         </div>
