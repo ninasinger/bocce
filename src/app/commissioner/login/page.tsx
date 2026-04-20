@@ -73,7 +73,7 @@ export default function CommissionerLoginPage() {
         <button
           onClick={signInWithGoogle}
           disabled={!seasonId}
-          className="flex items-center justify-center gap-3 rounded-xl bg-white/80 px-4 py-3 font-semibold shadow-sm transition-all hover:bg-white active:scale-[0.98] disabled:opacity-50"
+          className="flex items-center justify-center gap-3 rounded-xl border border-moss/30 bg-moss/10 px-4 py-3.5 font-semibold text-ink shadow-sm ring-1 ring-moss/20 transition-all hover:bg-moss/15 active:scale-[0.98] disabled:opacity-50"
         >
           <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">
             <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/>
