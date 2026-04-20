@@ -10,7 +10,7 @@ const config: Config = {
         field: "#f4efe9",
         moss: "#2f5d50",
         sun: "#f3c85c",
-        stone: "#8b857b"
+        stone: "#625e55"
       },
       fontFamily: {
         display: ["\"Fraunces\"", "serif"],

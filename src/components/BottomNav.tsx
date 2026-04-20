@@ -44,7 +44,7 @@ const tabs = [
     ),
   },
   {
-    label: "Scores",
+    label: "Submit",
     href: "/captain/login",
     matchPaths: ["/captain"],
     icon: (
@@ -55,7 +55,7 @@ const tabs = [
     ),
   },
   {
-    label: "Admin",
+    label: "Commish",
     href: "/commissioner/login",
     matchPaths: ["/commissioner"],
     icon: (
@@ -86,7 +86,7 @@ export function BottomNav() {
             key={tab.href}
             href={tab.href}
             aria-current={active ? "page" : undefined}
-            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-[10px] font-semibold transition-all duration-200 ${
+            className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-semibold transition-all duration-200 ${
               active ? "text-moss" : "text-stone"
             }`}
           >

@@ -39,7 +39,7 @@ function ScoreInput({
 }) {
   return (
     <label className="grid justify-items-center gap-2">
-      <span className="text-center text-[11px] font-semibold tracking-wide text-stone">
+      <span className="text-center text-sm font-semibold tracking-wide text-stone">
         {label}
       </span>
       <input
@@ -94,39 +94,39 @@ function ScoreRecap({
   return (
     <div className="space-y-3">
       <div className="rounded-xl bg-white/70 p-3">
-        <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
+        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-stone">
           Game 1
         </p>
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
-            <p className="text-xs font-semibold text-stone">{homeLabel}</p>
+            <p className="text-sm font-semibold text-stone">{homeLabel}</p>
             <p className="text-3xl font-display">{g1h}</p>
           </div>
           <span className="text-lg text-stone">&ndash;</span>
           <div className="text-center">
-            <p className="text-xs font-semibold text-stone">{awayLabel}</p>
+            <p className="text-sm font-semibold text-stone">{awayLabel}</p>
             <p className="text-3xl font-display">{g1a}</p>
           </div>
         </div>
       </div>
       <div className="rounded-xl bg-white/70 p-3">
-        <p className="mb-2 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
+        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-stone">
           Game 2
         </p>
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
-            <p className="text-xs font-semibold text-stone">{homeLabel}</p>
+            <p className="text-sm font-semibold text-stone">{homeLabel}</p>
             <p className="text-3xl font-display">{g2h}</p>
           </div>
           <span className="text-lg text-stone">&ndash;</span>
           <div className="text-center">
-            <p className="text-xs font-semibold text-stone">{awayLabel}</p>
+            <p className="text-sm font-semibold text-stone">{awayLabel}</p>
             <p className="text-3xl font-display">{g2a}</p>
           </div>
         </div>
       </div>
       <div className="rounded-xl bg-moss/10 p-3 text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">
+        <p className="text-xs font-semibold uppercase tracking-wide text-stone">
           Match points
         </p>
         <p className="mt-1 text-xl font-display">
@@ -399,7 +399,7 @@ export default function SubmitScorePage() {
 
         {notes ? (
           <div className="mt-3 rounded-xl bg-white/70 p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">Notes</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-stone">Notes</p>
             <p className="mt-1 text-sm">{notes}</p>
           </div>
         ) : null}
@@ -438,7 +438,7 @@ export default function SubmitScorePage() {
       </div>
 
       {/* How it works hint */}
-      <div className="mt-3 rounded-xl bg-sky-50 p-2.5 text-center text-xs text-sky-800">
+      <div className="mt-3 rounded-xl bg-sky-50 p-2.5 text-center text-sm text-sky-800">
         Both teams submit scores separately. If they match, the result is verified automatically.
       </div>
 
@@ -448,7 +448,7 @@ export default function SubmitScorePage() {
 
       {/* Game 1 */}
       <div className="mt-4 rounded-xl bg-white/70 p-3">
-        <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
+        <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-stone">
           Game 1
         </p>
         <div className="grid grid-cols-2 gap-4">
@@ -459,7 +459,7 @@ export default function SubmitScorePage() {
 
       {/* Game 2 */}
       <div className="mt-3 rounded-xl bg-white/70 p-3">
-        <p className="mb-3 text-center text-[10px] font-semibold uppercase tracking-wide text-stone">
+        <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-stone">
           Game 2
         </p>
         <div className="grid grid-cols-2 gap-4">
@@ -470,13 +470,13 @@ export default function SubmitScorePage() {
 
       {/* Live match points preview */}
       <div className="mt-3 rounded-xl bg-moss/10 p-3 text-center">
-        <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">
+        <p className="text-xs font-semibold uppercase tracking-wide text-stone">
           Match points
         </p>
         <p className="mt-1 text-xl font-display">
           {live.homePts} &ndash; {live.awayPts}
         </p>
-        <p className="text-xs text-stone">
+        <p className="text-sm text-stone">
           Total: {live.homeTotal} &ndash; {live.awayTotal}
         </p>
       </div>

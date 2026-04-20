@@ -158,24 +158,24 @@ export default function HomePage() {
         ) : (
           <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
             <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm">
-              <p className="text-[10px] uppercase tracking-wide text-stone">Matches</p>
+              <p className="text-xs uppercase tracking-wide text-stone">Matches</p>
               <p className="mt-1 text-2xl font-display">{matches.length}</p>
             </div>
             <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm">
-              <p className="text-[10px] uppercase tracking-wide text-stone">Teams</p>
+              <p className="text-xs uppercase tracking-wide text-stone">Teams</p>
               <p className="mt-1 text-2xl font-display">{standings.length}</p>
             </div>
             <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm col-span-2 sm:col-span-1">
-              <p className="text-[10px] uppercase tracking-wide text-stone">Verified</p>
+              <p className="text-xs uppercase tracking-wide text-stone">Verified</p>
               <p className="mt-1 text-2xl font-display">{verifiedCount}</p>
             </div>
           </div>
         )}
         <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/schedule" className="tap nav-pill nav-pill-muted text-xs font-semibold">
+          <Link href="/schedule" className="tap nav-pill nav-pill-muted text-sm font-semibold">
             View Week {currentWeek ?? "?"} Schedule
           </Link>
-          <Link href="/standings" className="tap nav-pill nav-pill-muted text-xs font-semibold">
+          <Link href="/standings" className="tap nav-pill nav-pill-muted text-sm font-semibold">
             Open Full Standings
           </Link>
         </div>
@@ -210,11 +210,11 @@ export default function HomePage() {
                     {award.emoji}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-[10px] font-semibold uppercase tracking-wide text-stone">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-stone">
                       {award.title}
                     </p>
                     <p className="mt-0.5 font-display text-base leading-tight">{award.team}</p>
-                    <p className="mt-0.5 text-xs text-stone">{award.detail}</p>
+                    <p className="mt-0.5 text-sm text-stone">{award.detail}</p>
                   </div>
                 </div>
               </div>
@@ -245,7 +245,7 @@ export default function HomePage() {
                   </span>
                   <TeamName name={formatMatchTeamName({ name: row.teamName })} />
                 </span>
-                <span className="font-semibold">{row.gamesWon} <span className="text-xs text-stone">GW</span></span>
+                <span className="font-semibold">{row.gamesWon} <span className="text-sm text-stone">Games Won</span></span>
               </div>
             ))}
           </div>
@@ -267,7 +267,7 @@ export default function HomePage() {
               <div key={item.id} className="rounded-lg bg-white/70 p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={item.status} />
-                  <span className="text-xs text-stone">
+                  <span className="text-sm text-stone">
                     Wk {item.week_number} ·{" "}
                     {formatMatchDateTime(item.scheduled_datetime, {
                       weekday: "short",

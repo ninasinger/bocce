@@ -14,7 +14,7 @@ export function TeamName({
   return (
     <span className="inline-flex items-center gap-2">
       <span
-        className={`inline-flex h-6 w-6 items-center justify-center rounded-full text-[10px] font-bold ${style.color}`}
+        className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold ${style.color}`}
         aria-hidden="true"
       >
         {style.initials}

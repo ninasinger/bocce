@@ -78,7 +78,7 @@ export default function CaptainMatchesPage() {
           </select>
           <button
             onClick={loadMatches}
-            className="tap flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white/70 border border-white/60"
+            className="tap flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/70 border border-white/60"
             aria-label="Refresh"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-stone">
@@ -101,7 +101,7 @@ export default function CaptainMatchesPage() {
           <div key={match.id} className="rounded-xl bg-white/70 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={match.status} />
-              <span className="text-xs text-stone">
+              <span className="text-sm text-stone">
                 {formatMatchDateTime(match.scheduled_datetime, {
                   weekday: "short",
                   month: "short",

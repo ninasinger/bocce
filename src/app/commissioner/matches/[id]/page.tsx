@@ -210,7 +210,7 @@ export default function CommissionerMatchReview() {
             <div key={item.id} className="rounded-xl border border-white/60 bg-white/70 p-3">
               <div className="flex flex-wrap items-center gap-2">
                 <StatusBadge status="verified" />
-                <span className="text-xs text-stone">
+                <span className="text-sm text-stone">
                   {new Date(item.created_at).toLocaleString()}
                 </span>
                 <span className="text-xs font-semibold uppercase tracking-wide text-stone">
@@ -252,8 +252,8 @@ export default function CommissionerMatchReview() {
           )}
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <label className="grid min-w-0 gap-1.5 text-xs font-semibold sm:text-sm">
-            G1 &middot; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"}
+          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
+            Game 1 &mdash; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"} team
             <input
               name="game1_home_score"
               type="number"
@@ -266,8 +266,8 @@ export default function CommissionerMatchReview() {
               className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
-          <label className="grid min-w-0 gap-1.5 text-xs font-semibold sm:text-sm">
-            G1 &middot; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"}
+          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
+            Game 1 &mdash; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"} team
             <input
               name="game1_away_score"
               type="number"
@@ -282,8 +282,8 @@ export default function CommissionerMatchReview() {
           </label>
         </div>
         <div className="grid grid-cols-2 gap-3">
-          <label className="grid min-w-0 gap-1.5 text-xs font-semibold sm:text-sm">
-            G2 &middot; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"}
+          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
+            Game 2 &mdash; {match ? formatMatchTeamName(match.home_team, "Home") : "Home"} team
             <input
               name="game2_home_score"
               type="number"
@@ -296,8 +296,8 @@ export default function CommissionerMatchReview() {
               className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
-          <label className="grid min-w-0 gap-1.5 text-xs font-semibold sm:text-sm">
-            G2 &middot; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"}
+          <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
+            Game 2 &mdash; {match ? formatMatchTeamName(match.away_team, "Away") : "Away"} team
             <input
               name="game2_away_score"
               type="number"

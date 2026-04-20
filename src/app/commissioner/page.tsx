@@ -226,7 +226,7 @@ export default function CommissionerDashboard() {
         </div>
 
         {message ? <p className="mt-3 text-sm text-moss">{message}</p> : null}
-        <p className="mt-2 text-xs text-stone">
+        <p className="mt-2 text-sm text-stone">
           Drive: {driveConnected ? `Connected (${driveEmail || "Google"})` : "Not connected"}
         </p>
         {emailPreview ? (
@@ -254,7 +254,7 @@ export default function CommissionerDashboard() {
             {nextActionMatch ? (
               <a
                 href={`/commissioner/matches/${nextActionMatch.id}`}
-                className="tap-btn mt-2 inline-flex rounded-lg bg-moss px-3 py-2 text-xs font-semibold text-white"
+                className="tap-btn mt-2 inline-flex rounded-lg bg-moss px-3 py-2 text-sm font-semibold text-white"
               >
                 Review next match
               </a>
@@ -287,7 +287,7 @@ export default function CommissionerDashboard() {
                 </div>
                 <a
                   href={`/commissioner/matches/${match.id}`}
-                  className="tap-btn flex-shrink-0 rounded-lg bg-moss px-3 py-2 text-xs font-semibold text-white"
+                  className="tap-btn flex-shrink-0 rounded-lg bg-moss px-3 py-2 text-sm font-semibold text-white"
                 >
                   Review
                 </a>
@@ -317,7 +317,7 @@ export default function CommissionerDashboard() {
                   </div>
                   <a
                     href={`/commissioner/matches/${match.id}`}
-                    className="tap-btn flex-shrink-0 rounded-lg bg-moss px-3 py-2 text-xs font-semibold text-white"
+                    className="tap-btn flex-shrink-0 rounded-lg bg-moss px-3 py-2 text-sm font-semibold text-white"
                   >
                     Review
                   </a>

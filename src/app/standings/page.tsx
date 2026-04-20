@@ -121,7 +121,7 @@ export default function StandingsPage() {
           </select>
           <button
             onClick={loadStandings}
-            className="tap flex h-10 w-10 items-center justify-center rounded-xl border border-white/60 bg-white/70"
+            className="tap flex h-11 w-11 items-center justify-center rounded-xl border border-white/60 bg-white/70"
             aria-label="Refresh"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-stone">
@@ -154,13 +154,13 @@ export default function StandingsPage() {
                 <RankMovement rank={row.rank} prevRank={row.prevRank} />
                 <TeamName name={row.teamName} />
               </span>
-              <span className="text-lg font-display">{row.gamesWon} <span className="text-xs text-stone">GW</span></span>
+              <span className="text-lg font-display">{row.gamesWon} <span className="text-sm text-stone">Games Won</span></span>
             </div>
-            <div className="mt-1.5 flex gap-4 text-xs text-stone">
+            <div className="mt-1.5 flex gap-4 text-sm text-stone">
               <span>{row.gamesPlayed} games played</span>
               <span>{row.gamesWon} games won</span>
             </div>
-            <div className="mt-1.5 flex gap-4 text-xs text-stone">
+            <div className="mt-1.5 flex gap-4 text-sm text-stone">
               <span>{row.totalPoints} total scores</span>
               <span>{row.matchPoints} total points</span>
             </div>
