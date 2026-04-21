@@ -174,6 +174,12 @@ export default function SubmitScorePage() {
               game2_home_score: number;
               game2_away_score: number;
             };
+            prefill_submission?: {
+              game1_home_score: number;
+              game1_away_score: number;
+              game2_home_score: number;
+              game2_away_score: number;
+            };
           }>(`/api/matches/${matchId}/submission-status`)
         ]);
         if (!matchResult.response.ok) {
@@ -197,6 +203,14 @@ export default function SubmitScorePage() {
           });
           setStep("already_submitted");
           return;
+        }
+
+        if (statusResult.response.ok && statusResult.data.prefill_submission) {
+          const s = statusResult.data.prefill_submission;
+          setG1h(s.game1_home_score);
+          setG1a(s.game1_away_score);
+          setG2h(s.game2_home_score);
+          setG2a(s.game2_away_score);
         }
 
         setStep("entry");

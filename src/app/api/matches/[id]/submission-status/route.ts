@@ -24,9 +24,19 @@ export async function GET(
     .eq("status", "active")
     .maybeSingle();
 
+  const { data: latestSubmission } = await client
+    .from("match_submissions")
+    .select("id, game1_home_score, game1_away_score, game2_home_score, game2_away_score, notes")
+    .eq("match_id", params.id)
+    .eq("status", "active")
+    .order("submitted_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
   return NextResponse.json({
     status: match?.status ?? "unknown",
     submitted: Boolean(submission),
-    submission: submission || null
+    submission: submission || null,
+    prefill_submission: latestSubmission || null
   });
 }
