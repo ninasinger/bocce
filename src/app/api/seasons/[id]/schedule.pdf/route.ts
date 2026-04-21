@@ -25,26 +25,15 @@ const COLORS = {
   moss: "#2f5d50",
   mossLight: "#c9dcd2",
   stone: "#625e55",
-  field: "#f4efe9",
-  fieldLight: "#fbf8f3",
   clay: "#d9a26f",
   border: "#e5ded3",
   white: "#ffffff",
-  winner: "#2f5d50",
-  danger: "#b84545"
+  winner: "#2f5d50"
 } as const;
 
-const STATUS_STYLES: Record<string, { label: string; bg: string; fg: string }> = {
-  scheduled: { label: "Scheduled", bg: "#e6e2db", fg: "#3d3a34" },
-  awaiting_submission: { label: "Awaiting scores", bg: "#f6e3c5", fg: "#7a5623" },
-  pending_verification: { label: "Pending other score", bg: "#fce9a8", fg: "#6d5612" },
-  verified: { label: "Verified", bg: "#d7e7df", fg: "#214a3f" },
-  disputed: { label: "Disputed", bg: "#f5d3d3", fg: "#7d2a2a" },
-  corrected: { label: "Corrected", bg: "#d5e4ef", fg: "#274a63" }
-};
-
-const BANNER_HEIGHT = 88;
-const PAGE_MARGIN_X = 48;
+const BANNER_HEIGHT = 58;
+const PAGE_MARGIN_X = 42;
+const BOTTOM_RESERVED = 32;
 
 function formatTime(iso: string | null) {
   if (!iso) return "TBD";
@@ -91,13 +80,13 @@ function safeFilenameSegment(raw: string) {
 function drawBanner(doc: PDFKit.PDFDocument, seasonName: string, subtitle: string) {
   doc.save();
   doc.rect(0, 0, doc.page.width, BANNER_HEIGHT).fill(COLORS.moss);
-  doc.rect(0, BANNER_HEIGHT, doc.page.width, 4).fill(COLORS.clay);
+  doc.rect(0, BANNER_HEIGHT, doc.page.width, 3).fill(COLORS.clay);
 
   doc
     .fillColor(COLORS.white)
     .font("Helvetica-Bold")
-    .fontSize(22)
-    .text(seasonName, PAGE_MARGIN_X, 22, {
+    .fontSize(16)
+    .text(seasonName, PAGE_MARGIN_X, 14, {
       width: doc.page.width - PAGE_MARGIN_X * 2,
       lineBreak: false,
       ellipsis: true
@@ -106,8 +95,8 @@ function drawBanner(doc: PDFKit.PDFDocument, seasonName: string, subtitle: strin
   doc
     .fillColor(COLORS.mossLight)
     .font("Helvetica")
-    .fontSize(12)
-    .text(subtitle, PAGE_MARGIN_X, 52, {
+    .fontSize(10)
+    .text(subtitle, PAGE_MARGIN_X, 36, {
       width: doc.page.width - PAGE_MARGIN_X * 2,
       lineBreak: false,
       ellipsis: true
@@ -117,15 +106,9 @@ function drawBanner(doc: PDFKit.PDFDocument, seasonName: string, subtitle: strin
 }
 
 function drawFooter(doc: PDFKit.PDFDocument, pageIndex: number, generatedLabel: string) {
-  const y = doc.page.height - 28;
+  const y = doc.page.height - 20;
   doc.save();
-  doc
-    .strokeColor(COLORS.border)
-    .lineWidth(0.5)
-    .moveTo(PAGE_MARGIN_X, y - 10)
-    .lineTo(doc.page.width - PAGE_MARGIN_X, y - 10)
-    .stroke();
-  doc.fillColor(COLORS.stone).font("Helvetica").fontSize(8);
+  doc.fillColor(COLORS.stone).font("Helvetica").fontSize(7.5);
   doc.text(generatedLabel, PAGE_MARGIN_X, y, {
     width: doc.page.width - PAGE_MARGIN_X * 2,
     lineBreak: false
@@ -138,30 +121,8 @@ function drawFooter(doc: PDFKit.PDFDocument, pageIndex: number, generatedLabel: 
   doc.restore();
 }
 
-function drawPill(
-  doc: PDFKit.PDFDocument,
-  text: string,
-  x: number,
-  y: number,
-  bg: string,
-  fg: string
-) {
-  doc.save();
-  doc.font("Helvetica-Bold").fontSize(8);
-  const paddingX = 7;
-  const paddingY = 3;
-  const textWidth = doc.widthOfString(text);
-  const textHeight = doc.currentLineHeight();
-  const w = textWidth + paddingX * 2;
-  const h = textHeight + paddingY * 2;
-  doc.roundedRect(x, y, w, h, h / 2).fill(bg);
-  doc.fillColor(fg).text(text, x + paddingX, y + paddingY, { lineBreak: false });
-  doc.restore();
-  return { w, h };
-}
-
 function ensureSpace(doc: PDFKit.PDFDocument, needed: number) {
-  const bottomLimit = doc.page.height - 56;
+  const bottomLimit = doc.page.height - BOTTOM_RESERVED;
   if (doc.y + needed > bottomLimit) {
     doc.addPage();
   }
@@ -174,7 +135,6 @@ function buildPdf(
 ): Promise<Buffer> {
   const subtitle = teamName ? `Team schedule — ${teamName}` : "Full league schedule";
   const generatedLabel = `Generated ${new Date().toLocaleString("en-US", {
-    weekday: "short",
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -186,8 +146,8 @@ function buildPdf(
     size: "LETTER",
     bufferPages: true,
     margins: {
-      top: BANNER_HEIGHT + 24,
-      bottom: 48,
+      top: BANNER_HEIGHT + 14,
+      bottom: BOTTOM_RESERVED,
       left: PAGE_MARGIN_X,
       right: PAGE_MARGIN_X
     }
@@ -202,22 +162,15 @@ function buildPdf(
   doc.on("pageAdded", () => {
     drawBanner(doc, seasonName, subtitle);
     doc.x = PAGE_MARGIN_X;
-    doc.y = BANNER_HEIGHT + 24;
+    doc.y = BANNER_HEIGHT + 14;
   });
 
   drawBanner(doc, seasonName, subtitle);
   doc.x = PAGE_MARGIN_X;
-  doc.y = BANNER_HEIGHT + 24;
-
-  doc
-    .fillColor(COLORS.stone)
-    .font("Helvetica")
-    .fontSize(9)
-    .text(generatedLabel, PAGE_MARGIN_X, doc.y, { lineBreak: false });
-  doc.moveDown(1.2);
+  doc.y = BANNER_HEIGHT + 14;
 
   if (matches.length === 0) {
-    doc.font("Helvetica").fontSize(12).fillColor(COLORS.stone).text("No matches scheduled.");
+    doc.font("Helvetica").fontSize(10).fillColor(COLORS.stone).text("No matches scheduled.");
   } else {
     const byWeek = new Map<number, MatchRow[]>();
     for (const match of matches) {
@@ -226,25 +179,26 @@ function buildPdf(
       byWeek.set(match.week_number, list);
     }
     const weeks = Array.from(byWeek.keys()).sort((a, b) => a - b);
+    const contentW = doc.page.width - PAGE_MARGIN_X * 2;
 
     for (const week of weeks) {
-      ensureSpace(doc, 80);
+      ensureSpace(doc, 36);
 
       doc
         .fillColor(COLORS.ink)
         .font("Helvetica-Bold")
-        .fontSize(16)
+        .fontSize(11)
         .text(`Week ${week}`, PAGE_MARGIN_X, doc.y, { lineBreak: false });
 
-      const underlineY = doc.y + 22;
+      const underlineY = doc.y + 14;
       doc
         .strokeColor(COLORS.clay)
-        .lineWidth(2)
+        .lineWidth(1.5)
         .moveTo(PAGE_MARGIN_X, underlineY)
-        .lineTo(PAGE_MARGIN_X + 46, underlineY)
+        .lineTo(PAGE_MARGIN_X + 32, underlineY)
         .stroke();
 
-      doc.y = underlineY + 10;
+      doc.y = underlineY + 5;
 
       const dayGroups: Record<"Tuesday" | "Thursday" | "Other", MatchRow[]> = {
         Tuesday: [],
@@ -261,28 +215,23 @@ function buildPdf(
         const list = dayGroups[day];
         if (list.length === 0) continue;
 
-        ensureSpace(doc, 40);
+        ensureSpace(doc, 20);
 
         doc
           .fillColor(COLORS.stone)
           .font("Helvetica-Bold")
-          .fontSize(9)
+          .fontSize(7.5)
           .text(day.toUpperCase(), PAGE_MARGIN_X, doc.y, {
-            characterSpacing: 1.2,
+            characterSpacing: 1,
             lineBreak: false
           });
-        doc.y += 16;
+        doc.y += 10;
 
         for (const match of list) {
           const home = formatMatchTeamName(match.home_team);
           const away = formatMatchTeamName(match.away_team);
           const when = formatTime(match.scheduled_datetime);
           const court = courtFromNotes(match.notes);
-          const statusStyle = STATUS_STYLES[match.status] || {
-            label: match.status,
-            bg: "#eeeae3",
-            fg: COLORS.stone
-          };
           const hasFinal =
             (match.status === "verified" || match.status === "corrected") &&
             match.home_total_score != null &&
@@ -290,116 +239,93 @@ function buildPdf(
           const extraNote = stripExtraTag(match.notes);
           const hasNote = Boolean(extraNote && !court);
 
-          let cardHeight = 52;
-          if (hasFinal) cardHeight += 30;
-          if (hasNote) cardHeight += 14;
+          const rowHeight = 11 + (hasFinal ? 10 : 0) + (hasNote ? 10 : 0) + 3;
+          ensureSpace(doc, rowHeight + 1);
 
-          ensureSpace(doc, cardHeight + 8);
+          const rowY = doc.y;
 
-          const cardX = PAGE_MARGIN_X;
-          const cardY = doc.y;
-          const cardW = doc.page.width - PAGE_MARGIN_X * 2;
-
-          doc
-            .roundedRect(cardX, cardY, cardW, cardHeight, 8)
-            .fillAndStroke(COLORS.fieldLight, COLORS.border);
-
-          // Left accent bar
+          // Left accent tick
           doc.save();
-          doc.rect(cardX, cardY, 4, cardHeight).fill(COLORS.moss);
+          doc.rect(PAGE_MARGIN_X, rowY + 1, 2, 9).fill(COLORS.moss);
           doc.restore();
 
-          const contentX = cardX + 16;
-          const contentW = cardW - 32;
+          const textX = PAGE_MARGIN_X + 8;
 
-          doc
-            .fillColor(COLORS.ink)
-            .font("Helvetica-Bold")
-            .fontSize(12)
-            .text(`${home}  vs  ${away}`, contentX, cardY + 12, {
-              width: contentW - 130,
-              lineBreak: false,
-              ellipsis: true
-            });
-
-          const metaParts = [when];
-          if (court) metaParts.push(court);
+          // Time column (fixed width)
+          const timeW = 120;
           doc
             .fillColor(COLORS.stone)
             .font("Helvetica")
             .fontSize(9)
-            .text(metaParts.join("   •   "), contentX, cardY + 30, {
-              width: contentW - 130,
+            .text(court ? `${when}  ·  ${court}` : when, textX, rowY, {
+              width: timeW,
               lineBreak: false,
               ellipsis: true
             });
 
-          // Status pill, top-right
-          doc.font("Helvetica-Bold").fontSize(8);
-          const pillText = statusStyle.label;
-          const pillTextWidth = doc.widthOfString(pillText);
-          const pillW = pillTextWidth + 14;
-          const pillX = cardX + cardW - 14 - pillW;
-          drawPill(doc, pillText, pillX, cardY + 12, statusStyle.bg, statusStyle.fg);
+          // Teams (remainder)
+          const teamsX = textX + timeW + 6;
+          const teamsW = contentW - (teamsX - PAGE_MARGIN_X);
+          doc
+            .fillColor(COLORS.ink)
+            .font("Helvetica-Bold")
+            .fontSize(9.5)
+            .text(`${home}  vs  ${away}`, teamsX, rowY, {
+              width: teamsW,
+              lineBreak: false,
+              ellipsis: true
+            });
 
-          let bottomY = cardY + 48;
+          let extraY = rowY + 12;
 
           if (hasFinal) {
-            const scoreLine =
-              match.home_games_won != null && match.away_games_won != null
-                ? `Final  ${match.home_total_score}–${match.away_total_score}    Games  ${match.home_games_won}–${match.away_games_won}`
-                : `Final  ${match.home_total_score}–${match.away_total_score}`;
+            const scoreParts = [
+              `Final ${match.home_total_score}–${match.away_total_score}`
+            ];
+            if (match.home_games_won != null && match.away_games_won != null) {
+              scoreParts.push(`Games ${match.home_games_won}–${match.away_games_won}`);
+            }
             let winner = "";
-            if ((match.home_total_score ?? 0) > (match.away_total_score ?? 0))
-              winner = `Winner · ${home}`;
-            else if ((match.away_total_score ?? 0) > (match.home_total_score ?? 0))
-              winner = `Winner · ${away}`;
-            else winner = "Result · Tie";
+            if ((match.home_total_score ?? 0) > (match.away_total_score ?? 0)) winner = home;
+            else if ((match.away_total_score ?? 0) > (match.home_total_score ?? 0)) winner = away;
+            if (winner) scoreParts.push(`Winner ${winner}`);
+            else scoreParts.push("Tie");
 
-            doc
-              .fillColor(COLORS.ink)
-              .font("Helvetica-Bold")
-              .fontSize(10)
-              .text(scoreLine, contentX, bottomY, {
-                width: contentW,
-                lineBreak: false,
-                ellipsis: true
-              });
             doc
               .fillColor(COLORS.winner)
               .font("Helvetica-Bold")
-              .fontSize(9)
-              .text(winner, contentX, bottomY + 14, {
-                width: contentW,
+              .fontSize(8)
+              .text(scoreParts.join("   ·   "), teamsX, extraY, {
+                width: teamsW,
                 lineBreak: false,
                 ellipsis: true
               });
-            bottomY += 30;
+            extraY += 10;
           }
 
           if (hasNote) {
             doc
               .fillColor(COLORS.stone)
               .font("Helvetica-Oblique")
-              .fontSize(9)
-              .text(extraNote, contentX, bottomY, {
-                width: contentW,
+              .fontSize(8)
+              .text(extraNote, teamsX, extraY, {
+                width: teamsW,
                 lineBreak: false,
                 ellipsis: true
               });
+            extraY += 10;
           }
 
-          doc.y = cardY + cardHeight + 8;
+          doc.y = rowY + rowHeight;
         }
 
-        doc.y += 4;
+        doc.y += 2;
       }
 
-      doc.y += 10;
+      doc.y += 4;
     }
   }
 
-  // Draw footer on every buffered page
   const range = doc.bufferedPageRange();
   for (let i = range.start; i < range.start + range.count; i += 1) {
     doc.switchToPage(i);
