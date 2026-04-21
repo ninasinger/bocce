@@ -13,6 +13,7 @@ export default function CaptainLoginPage() {
   const [seasonId, setSeasonId] = useState("");
   const [teamId, setTeamId] = useState("");
   const [teamCode, setTeamCode] = useState("");
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -60,7 +61,7 @@ export default function CaptainLoginPage() {
       const res = await fetch("/api/auth/captain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamId, teamCode })
+        body: JSON.stringify({ teamId, teamCode, rememberMe })
       });
 
       if (!res.ok) {
@@ -80,21 +81,22 @@ export default function CaptainLoginPage() {
       <h2 className="section-title">Captain login</h2>
 
       <form className="mt-6 grid gap-4" onSubmit={onSubmit}>
-        <label className="grid gap-2 text-sm font-semibold">
-          Season
-          <select
-            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
-            value={seasonId}
-            onChange={(event) => setSeasonId(event.target.value)}
-          >
-            {seasons.length === 0 ? <option value="">No seasons found</option> : null}
-            {seasons.map((season) => (
-              <option key={season.id} value={season.id}>
-                {season.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        {seasons.length > 1 ? (
+          <label className="grid gap-2 text-sm font-semibold">
+            Season
+            <select
+              className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+              value={seasonId}
+              onChange={(event) => setSeasonId(event.target.value)}
+            >
+              {seasons.map((season) => (
+                <option key={season.id} value={season.id}>
+                  {season.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
 
         <label className="grid gap-2 text-sm font-semibold">
           Team
@@ -122,6 +124,19 @@ export default function CaptainLoginPage() {
           />
         </label>
 
+        <label className="flex items-start gap-3 text-sm">
+          <input
+            type="checkbox"
+            checked={rememberMe}
+            onChange={(event) => setRememberMe(event.target.checked)}
+            className="mt-0.5 h-5 w-5 rounded border-white/60 accent-moss"
+          />
+          <span>
+            <span className="font-semibold">Trust this device for 90 days</span>
+            <span className="mt-0.5 block text-stone">Stay signed in so you can submit scores faster.</span>
+          </span>
+        </label>
+
         {error ? <p className="text-sm text-red-700">{error}</p> : null}
 
         <button
@@ -130,6 +145,10 @@ export default function CaptainLoginPage() {
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
+
+        <p className="text-sm text-stone text-center">
+          Forgot your team code? Ask your commissioner.
+        </p>
       </form>
     </main>
   );

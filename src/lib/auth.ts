@@ -9,10 +9,12 @@ export type SessionPayload = {
   role: SessionRole;
   teamId?: string;
   seasonId?: string;
+  rememberMe?: boolean;
 };
 
 const COOKIE_NAME = "bocce_session";
-const SESSION_MAX_AGE_SECONDS = 30 * 24 * 60 * 60;
+const DEFAULT_SESSION_DAYS = 30;
+const EXTENDED_SESSION_DAYS = 90;
 
 function getSecret() {
   if (!env.appSecret) {
@@ -21,16 +23,21 @@ function getSecret() {
   return new TextEncoder().encode(env.appSecret);
 }
 
-async function createSessionToken(payload: SessionPayload) {
+function daysToSeconds(days: number) {
+  return days * 24 * 60 * 60;
+}
+
+async function createSessionToken(payload: SessionPayload, maxAgeSeconds: number) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
-    .setExpirationTime(`${SESSION_MAX_AGE_SECONDS}s`)
+    .setExpirationTime(`${maxAgeSeconds}s`)
     .sign(getSecret());
 }
 
 export async function createSessionCookie(payload: SessionPayload) {
-  const token = await createSessionToken(payload);
+  const maxAge = daysToSeconds(payload.rememberMe ? EXTENDED_SESSION_DAYS : DEFAULT_SESSION_DAYS);
+  const token = await createSessionToken(payload, maxAge);
 
   cookies().set({
     name: COOKIE_NAME,
@@ -39,12 +46,13 @@ export async function createSessionCookie(payload: SessionPayload) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: SESSION_MAX_AGE_SECONDS
+    maxAge
   });
 }
 
 export async function refreshSessionCookie(payload: SessionPayload) {
-  const token = await createSessionToken(payload);
+  const maxAge = daysToSeconds(payload.rememberMe ? EXTENDED_SESSION_DAYS : DEFAULT_SESSION_DAYS);
+  const token = await createSessionToken(payload, maxAge);
 
   cookies().set({
     name: COOKIE_NAME,
@@ -53,7 +61,7 @@ export async function refreshSessionCookie(payload: SessionPayload) {
     sameSite: "lax",
     secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: SESSION_MAX_AGE_SECONDS
+    maxAge
   });
 }
 

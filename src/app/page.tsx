@@ -6,7 +6,7 @@ import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
 import { Skeleton, SkeletonCard, SkeletonStandingRow, SkeletonAwardCard } from "@/components/Skeleton";
 import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
-import { formatMatchDateTime, formatMatchTeamName } from "@/lib/matchFormat";
+import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
@@ -23,8 +23,8 @@ type MatchRow = {
   week_number: number;
   scheduled_datetime: string | null;
   status: string;
-  home_team: { name: string } | { name: string }[] | null;
-  away_team: { name: string } | { name: string }[] | null;
+  home_team: TeamRef;
+  away_team: TeamRef;
 };
 type Award = {
   id: string;
@@ -52,6 +52,29 @@ export default function HomePage() {
   const [currentWeek, setCurrentWeek] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [captainNextMatch, setCaptainNextMatch] = useState<MatchRow | null>(null);
+
+  useEffect(() => {
+    async function loadCaptainNext() {
+      const sessionRes = await fetchJson<{ authenticated?: boolean; session?: { role?: string } }>(
+        "/api/auth/session"
+      );
+      if (!sessionRes.response.ok || sessionRes.data.session?.role !== "captain") {
+        setCaptainNextMatch(null);
+        return;
+      }
+      const { response, data } = await fetchJson<{ matches?: MatchRow[] }>("/api/my/matches");
+      if (!response.ok) {
+        setCaptainNextMatch(null);
+        return;
+      }
+      const list = data.matches || [];
+      const next = list.find((match) => match.status === "awaiting_submission") || null;
+      setCaptainNextMatch(next);
+    }
+
+    loadCaptainNext();
+  }, []);
 
   useEffect(() => {
     async function loadSeasons() {
@@ -130,6 +153,38 @@ export default function HomePage() {
 
   return (
     <main className="space-y-6">
+      {captainNextMatch ? (
+        <section className="card fade-in border-2 border-moss/30 bg-moss/5 p-4 md:p-6">
+          <p className="text-xs font-semibold uppercase tracking-wide text-moss">Your next match</p>
+          <div className="mt-2 flex flex-wrap items-center gap-2">
+            <StatusBadge status={captainNextMatch.status} />
+            <span className="text-sm text-stone">
+              Week {captainNextMatch.week_number}
+              {captainNextMatch.scheduled_datetime
+                ? ` · ${formatMatchDateTime(captainNextMatch.scheduled_datetime, {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                    hour: "numeric",
+                    minute: "2-digit"
+                  })}`
+                : ""}
+            </span>
+          </div>
+          <div className="mt-2 flex flex-wrap items-center gap-2 text-lg font-display">
+            <TeamName name={formatMatchTeamName(captainNextMatch.home_team)} />
+            <span className="text-stone">vs</span>
+            <TeamName name={formatMatchTeamName(captainNextMatch.away_team)} />
+          </div>
+          <Link
+            href={`/captain/matches/${captainNextMatch.id}/submit`}
+            className="tap-btn mt-3 inline-flex items-center justify-center rounded-xl bg-moss px-5 py-3 text-base font-semibold text-white shadow-sm"
+          >
+            Submit scores
+          </Link>
+        </section>
+      ) : null}
+
       <section className="card fade-in p-4 md:p-6">
         {error ? (
           <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>

@@ -26,7 +26,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const { teamCode, teamId } = await request.json();
+  const { teamCode, teamId, rememberMe } = await request.json();
   if (!teamCode || !teamId) {
     return NextResponse.json({ error: "Missing team selection or code" }, { status: 400 });
   }
@@ -47,6 +47,11 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid team code" }, { status: 401 });
   }
 
-  await createSessionCookie({ role: "captain", teamId: team.id, seasonId: team.season_id });
+  await createSessionCookie({
+    role: "captain",
+    teamId: team.id,
+    seasonId: team.season_id,
+    rememberMe: Boolean(rememberMe)
+  });
   return NextResponse.json({ ok: true });
 }
