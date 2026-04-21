@@ -32,8 +32,7 @@ function RankMovement({ rank, prevRank }: { rank: number; prevRank: number | nul
 export default function StandingsPage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState("");
-  const [selectedWeek, setSelectedWeek] = useState<number>(1);
-  const [weeks, setWeeks] = useState<number[]>([]);
+  const [standingsWeek, setStandingsWeek] = useState<number>(1);
   const [standings, setStandings] = useState<Standing[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -52,38 +51,38 @@ export default function StandingsPage() {
   useEffect(() => {
     if (!seasonId) {
       setStandings([]);
-      setWeeks([]);
-      setSelectedWeek(1);
+      setStandingsWeek(1);
       setLoading(false);
       return;
     }
 
-    async function loadWeeks() {
+    async function loadStandingsWeek() {
       setLoading(true);
       const scheduleRes = await fetch(`/api/seasons/${seasonId}/schedule`);
       const scheduleJson = await scheduleRes.json();
       const seasonMatches: { week_number: number; status: string }[] =
         scheduleJson.matches || [];
 
-      const weekOptions = Array.from(
-        new Set(seasonMatches.map((match) => match.week_number))
-      ).sort((a, b) => a - b);
       const currentWeek = getCurrentWeek(seasonMatches);
-      setWeeks(weekOptions);
-      setSelectedWeek(currentWeek);
+      const etWeekday = new Intl.DateTimeFormat("en-US", {
+        weekday: "short",
+        timeZone: "America/New_York"
+      }).format(new Date());
+      const isFridayOrLater = etWeekday === "Fri" || etWeekday === "Sat" || etWeekday === "Sun";
+      setStandingsWeek(isFridayOrLater ? currentWeek : Math.max(1, currentWeek - 1));
     }
 
-    loadWeeks();
+    loadStandingsWeek();
   }, [seasonId]);
 
   const loadStandings = useCallback(async () => {
     if (!seasonId) return;
     setLoading(true);
-    const res = await fetch(`/api/seasons/${seasonId}/standings?week=${selectedWeek}`);
+    const res = await fetch(`/api/seasons/${seasonId}/standings?week=${standingsWeek}`);
     const json = await res.json();
     setStandings(json.standings || []);
     setLoading(false);
-  }, [seasonId, selectedWeek]);
+  }, [seasonId, standingsWeek]);
 
   useEffect(() => {
     loadStandings();
@@ -92,6 +91,7 @@ export default function StandingsPage() {
   return (
     <main className="card p-4 md:p-6">
       <h2 className="section-title">Standings</h2>
+      <p className="mt-1 text-sm text-stone">Published on Fridays. Showing through week {standingsWeek}.</p>
 
       <div className="sticky-filters mt-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 md:flex md:gap-3">
@@ -104,18 +104,6 @@ export default function StandingsPage() {
             {seasons.map((season) => (
               <option key={season.id} value={season.id}>
                 {season.name}
-              </option>
-            ))}
-          </select>
-          <select
-            className="w-24 rounded-xl border border-white/60 bg-white/70 px-2 py-2.5 text-sm font-semibold md:w-28 md:px-3 md:text-base"
-            value={selectedWeek}
-            onChange={(event) => setSelectedWeek(Number(event.target.value))}
-          >
-            {weeks.length === 0 ? <option value={1}>Wk 1</option> : null}
-            {weeks.map((week) => (
-              <option key={week} value={week}>
-                Wk {week}
               </option>
             ))}
           </select>
