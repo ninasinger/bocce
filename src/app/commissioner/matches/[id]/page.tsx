@@ -34,6 +34,65 @@ type ScoreHistoryItem = {
   after_values: Record<string, unknown> | null;
 };
 
+const SCORE_FIELD_LABELS: Array<[string, string]> = [
+  ["game1_home_score", "Game 1 home"],
+  ["game1_away_score", "Game 1 away"],
+  ["game2_home_score", "Game 2 home"],
+  ["game2_away_score", "Game 2 away"],
+  ["home_total_score", "Home total"],
+  ["away_total_score", "Away total"],
+  ["home_games_won", "Home games won"],
+  ["away_games_won", "Away games won"],
+  ["home_match_points", "Home match points"],
+  ["away_match_points", "Away match points"]
+];
+
+const ACTION_LABELS: Record<string, string> = {
+  submission_created: "Score submitted",
+  match_verified: "Match verified",
+  match_disputed: "Match disputed",
+  commissioner_correction: "Commissioner correction"
+};
+
+const ACTION_TO_STATUS: Record<string, string> = {
+  submission_created: "pending_verification",
+  match_verified: "verified",
+  match_disputed: "disputed",
+  commissioner_correction: "corrected"
+};
+
+function formatValue(value: unknown) {
+  if (value == null || value === "") return "—";
+  if (typeof value === "string") return value;
+  if (typeof value === "number" || typeof value === "boolean") return String(value);
+  return JSON.stringify(value);
+}
+
+type DiffRow = { label: string; before: string; after: string };
+
+function computeHistoryDiff(
+  before: Record<string, unknown> | null,
+  after: Record<string, unknown> | null
+): { scoreRows: DiffRow[]; reason: string; notes: string } {
+  const beforeObj = before || {};
+  const afterObj = after || {};
+  const scoreRows: DiffRow[] = [];
+
+  for (const [field, label] of SCORE_FIELD_LABELS) {
+    const b = beforeObj[field];
+    const a = afterObj[field];
+    if (b === a) continue;
+    if (b == null && a == null) continue;
+    scoreRows.push({ label, before: formatValue(b), after: formatValue(a) });
+  }
+
+  const reason =
+    typeof afterObj.reason === "string" && afterObj.reason.trim() ? afterObj.reason : "";
+  const notes = typeof afterObj.notes === "string" && afterObj.notes.trim() ? afterObj.notes : "";
+
+  return { scoreRows, reason, notes };
+}
+
 export default function CommissionerMatchReview() {
   const router = useRouter();
   const params = useParams();
@@ -206,28 +265,54 @@ export default function CommissionerMatchReview() {
         <p className="mt-3 text-sm text-stone">No history entries yet for this match.</p>
       ) : (
         <div className="mt-3 space-y-2">
-          {history.map((item) => (
-            <div key={item.id} className="rounded-xl border border-white/60 bg-white/70 p-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <StatusBadge status="verified" />
-                <span className="text-sm text-stone">
-                  {new Date(item.created_at).toLocaleString()}
-                </span>
-                <span className="text-xs font-semibold uppercase tracking-wide text-stone">
-                  {item.actor_role}
-                </span>
+          {history.map((item) => {
+            const diff = computeHistoryDiff(item.before_values, item.after_values);
+            const badgeStatus = ACTION_TO_STATUS[item.action] || "scheduled";
+            const label = ACTION_LABELS[item.action] || item.action.replace(/_/g, " ");
+            const isFirstEvent = !item.before_values;
+            return (
+              <div key={item.id} className="rounded-xl border border-white/60 bg-white/70 p-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatusBadge status={badgeStatus} />
+                  <span className="text-sm text-stone">
+                    {new Date(item.created_at).toLocaleString()}
+                  </span>
+                  <span className="text-xs font-semibold uppercase tracking-wide text-stone">
+                    {item.actor_role}
+                  </span>
+                </div>
+                <p className="mt-1 text-sm font-semibold">{label}</p>
+                {diff.scoreRows.length > 0 ? (
+                  <ul className="mt-2 space-y-1 text-sm">
+                    {diff.scoreRows.map((row) => (
+                      <li key={row.label} className="flex flex-wrap items-center gap-2">
+                        <span className="font-semibold">{row.label}:</span>
+                        {isFirstEvent ? (
+                          <span className="tabular-nums">{row.after}</span>
+                        ) : (
+                          <>
+                            <span className="tabular-nums text-stone">{row.before}</span>
+                            <span aria-hidden className="text-stone">→</span>
+                            <span className="tabular-nums font-semibold">{row.after}</span>
+                          </>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                ) : null}
+                {diff.reason ? (
+                  <p className="mt-2 text-sm">
+                    <span className="font-semibold">Reason:</span> {diff.reason}
+                  </p>
+                ) : null}
+                {diff.notes ? (
+                  <p className="mt-1 text-sm">
+                    <span className="font-semibold">Notes:</span> {diff.notes}
+                  </p>
+                ) : null}
               </div>
-              <p className="mt-1 text-sm font-semibold">{item.action.replace(/_/g, " ")}</p>
-              <div className="mt-2 grid gap-2 md:grid-cols-2">
-                <pre className="overflow-x-auto rounded-lg bg-white/80 p-2 text-xs text-stone">
-                  before: {JSON.stringify(item.before_values || {}, null, 2)}
-                </pre>
-                <pre className="overflow-x-auto rounded-lg bg-white/80 p-2 text-xs text-stone">
-                  after: {JSON.stringify(item.after_values || {}, null, 2)}
-                </pre>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

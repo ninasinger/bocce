@@ -19,12 +19,17 @@ type MatchRow = {
   away_team: TeamRef;
 };
 
+type QueueView = "needs_review" | "all";
+
+const STALE_THRESHOLD_DAYS = 3;
+
 export default function CommissionerDashboard() {
   const router = useRouter();
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState("");
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
+  const [queueView, setQueueView] = useState<QueueView>("needs_review");
   const [message, setMessage] = useState("");
   const [emailPreview, setEmailPreview] = useState("");
   const [authorized, setAuthorized] = useState(false);
@@ -100,6 +105,32 @@ export default function CommissionerDashboard() {
     ["scheduled", "awaiting_submission", "pending_verification"].includes(m.status)
   );
   const nextActionMatch = disputes[0] || missingSubmissions[0] || null;
+
+  const staleThresholdMs = STALE_THRESHOLD_DAYS * 24 * 60 * 60 * 1000;
+  const needsReviewMatches = useMemo(() => {
+    const now = Date.now();
+    return matches
+      .filter((match) => {
+        if (match.status === "disputed") return true;
+        if (
+          ["awaiting_submission", "pending_verification"].includes(match.status) &&
+          match.scheduled_datetime
+        ) {
+          const scheduledAt = new Date(match.scheduled_datetime).getTime();
+          if (Number.isFinite(scheduledAt) && now - scheduledAt >= staleThresholdMs) {
+            return true;
+          }
+        }
+        return false;
+      })
+      .sort((a, b) => {
+        const aTime = a.scheduled_datetime ? new Date(a.scheduled_datetime).getTime() : 0;
+        const bTime = b.scheduled_datetime ? new Date(b.scheduled_datetime).getTime() : 0;
+        return aTime - bTime;
+      });
+  }, [matches, staleThresholdMs]);
+
+  const visibleQueue = queueView === "needs_review" ? needsReviewMatches : weekMatches;
 
   async function closeWeek() {
     setMessage("");
@@ -266,12 +297,46 @@ export default function CommissionerDashboard() {
       </section>
 
       <section className="card p-4 md:p-6">
-        <h3 className="section-title">Week {selectedWeek} matches</h3>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="section-title">
+            {queueView === "needs_review" ? "Needs review" : `Week ${selectedWeek} matches`}
+          </h3>
+          <div className="inline-flex rounded-xl bg-white/70 p-1 text-sm font-semibold">
+            <button
+              onClick={() => setQueueView("needs_review")}
+              className={`tap rounded-lg px-3 py-1.5 ${
+                queueView === "needs_review" ? "bg-moss text-white" : "text-stone"
+              }`}
+            >
+              Needs review
+              {needsReviewMatches.length > 0 ? (
+                <span className="ml-1.5 tabular-nums">({needsReviewMatches.length})</span>
+              ) : null}
+            </button>
+            <button
+              onClick={() => setQueueView("all")}
+              className={`tap rounded-lg px-3 py-1.5 ${
+                queueView === "all" ? "bg-moss text-white" : "text-stone"
+              }`}
+            >
+              All matches
+            </button>
+          </div>
+        </div>
+        {queueView === "needs_review" ? (
+          <p className="mt-1 text-sm text-stone">
+            Disputed matches and scores missing for {STALE_THRESHOLD_DAYS}+ days, oldest first.
+          </p>
+        ) : null}
         <div className="mt-3 space-y-2">
-          {weekMatches.length === 0 ? (
-            <p className="text-sm text-stone">No matches for week {selectedWeek}.</p>
+          {visibleQueue.length === 0 ? (
+            <p className="text-sm text-stone">
+              {queueView === "needs_review"
+                ? "All clear — no matches need review right now."
+                : `No matches for week ${selectedWeek}.`}
+            </p>
           ) : null}
-          {weekMatches.map((match) => (
+          {visibleQueue.map((match) => (
             <div key={match.id} className="rounded-xl bg-white/70 p-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
