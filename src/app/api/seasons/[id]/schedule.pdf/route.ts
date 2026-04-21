@@ -20,20 +20,38 @@ type MatchRow = {
   away_team: TeamRef;
 };
 
-const STATUS_LABELS: Record<string, string> = {
-  scheduled: "Scheduled",
-  awaiting_submission: "Awaiting scores",
-  pending_verification: "Pending other score",
-  verified: "Verified",
-  disputed: "Disputed",
-  corrected: "Corrected"
+const COLORS = {
+  ink: "#1a1b1e",
+  moss: "#2f5d50",
+  mossLight: "#c9dcd2",
+  stone: "#625e55",
+  field: "#f4efe9",
+  fieldLight: "#fbf8f3",
+  clay: "#d9a26f",
+  border: "#e5ded3",
+  white: "#ffffff",
+  winner: "#2f5d50",
+  danger: "#b84545"
+} as const;
+
+const STATUS_STYLES: Record<string, { label: string; bg: string; fg: string }> = {
+  scheduled: { label: "Scheduled", bg: "#e6e2db", fg: "#3d3a34" },
+  awaiting_submission: { label: "Awaiting scores", bg: "#f6e3c5", fg: "#7a5623" },
+  pending_verification: { label: "Pending other score", bg: "#fce9a8", fg: "#6d5612" },
+  verified: { label: "Verified", bg: "#d7e7df", fg: "#214a3f" },
+  disputed: { label: "Disputed", bg: "#f5d3d3", fg: "#7d2a2a" },
+  corrected: { label: "Corrected", bg: "#d5e4ef", fg: "#274a63" }
 };
+
+const BANNER_HEIGHT = 88;
+const PAGE_MARGIN_X = 48;
 
 function formatTime(iso: string | null) {
   if (!iso) return "TBD";
   const date = new Date(iso);
   if (Number.isNaN(date.getTime())) return "TBD";
   return date.toLocaleString("en-US", {
+    weekday: "short",
     month: "short",
     day: "numeric",
     hour: "numeric",
@@ -61,160 +79,331 @@ function stripExtraTag(notes: string | null) {
   return notes.replace(/\s*-\s*EXTRA\b/gi, "").trim();
 }
 
+function safeFilenameSegment(raw: string) {
+  return raw
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/[^A-Za-z0-9_.-]/g, "")
+    .replace(/_{2,}/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function drawBanner(doc: PDFKit.PDFDocument, seasonName: string, subtitle: string) {
+  doc.save();
+  doc.rect(0, 0, doc.page.width, BANNER_HEIGHT).fill(COLORS.moss);
+  doc.rect(0, BANNER_HEIGHT, doc.page.width, 4).fill(COLORS.clay);
+
+  doc
+    .fillColor(COLORS.white)
+    .font("Helvetica-Bold")
+    .fontSize(22)
+    .text(seasonName, PAGE_MARGIN_X, 22, {
+      width: doc.page.width - PAGE_MARGIN_X * 2,
+      lineBreak: false,
+      ellipsis: true
+    });
+
+  doc
+    .fillColor(COLORS.mossLight)
+    .font("Helvetica")
+    .fontSize(12)
+    .text(subtitle, PAGE_MARGIN_X, 52, {
+      width: doc.page.width - PAGE_MARGIN_X * 2,
+      lineBreak: false,
+      ellipsis: true
+    });
+
+  doc.restore();
+}
+
+function drawFooter(doc: PDFKit.PDFDocument, pageIndex: number, generatedLabel: string) {
+  const y = doc.page.height - 28;
+  doc.save();
+  doc
+    .strokeColor(COLORS.border)
+    .lineWidth(0.5)
+    .moveTo(PAGE_MARGIN_X, y - 10)
+    .lineTo(doc.page.width - PAGE_MARGIN_X, y - 10)
+    .stroke();
+  doc.fillColor(COLORS.stone).font("Helvetica").fontSize(8);
+  doc.text(generatedLabel, PAGE_MARGIN_X, y, {
+    width: doc.page.width - PAGE_MARGIN_X * 2,
+    lineBreak: false
+  });
+  doc.text(`Page ${pageIndex + 1}`, PAGE_MARGIN_X, y, {
+    width: doc.page.width - PAGE_MARGIN_X * 2,
+    align: "right",
+    lineBreak: false
+  });
+  doc.restore();
+}
+
+function drawPill(
+  doc: PDFKit.PDFDocument,
+  text: string,
+  x: number,
+  y: number,
+  bg: string,
+  fg: string
+) {
+  doc.save();
+  doc.font("Helvetica-Bold").fontSize(8);
+  const paddingX = 7;
+  const paddingY = 3;
+  const textWidth = doc.widthOfString(text);
+  const textHeight = doc.currentLineHeight();
+  const w = textWidth + paddingX * 2;
+  const h = textHeight + paddingY * 2;
+  doc.roundedRect(x, y, w, h, h / 2).fill(bg);
+  doc.fillColor(fg).text(text, x + paddingX, y + paddingY, { lineBreak: false });
+  doc.restore();
+  return { w, h };
+}
+
+function ensureSpace(doc: PDFKit.PDFDocument, needed: number) {
+  const bottomLimit = doc.page.height - 56;
+  if (doc.y + needed > bottomLimit) {
+    doc.addPage();
+  }
+}
+
 function buildPdf(
   seasonName: string,
   teamName: string | null,
   matches: MatchRow[]
 ): Promise<Buffer> {
-  const doc = new PDFDocument({ size: "LETTER", margin: 50 });
-  const chunks: Buffer[] = [];
+  const subtitle = teamName ? `Team schedule — ${teamName}` : "Full league schedule";
+  const generatedLabel = `Generated ${new Date().toLocaleString("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit"
+  })}`;
 
+  const doc = new PDFDocument({
+    size: "LETTER",
+    bufferPages: true,
+    margins: {
+      top: BANNER_HEIGHT + 24,
+      bottom: 48,
+      left: PAGE_MARGIN_X,
+      right: PAGE_MARGIN_X
+    }
+  });
+
+  const chunks: Buffer[] = [];
   doc.on("data", (chunk: Buffer) => chunks.push(chunk));
   const endPromise = new Promise<Buffer>((resolve) => {
     doc.on("end", () => resolve(Buffer.concat(chunks)));
   });
 
-  doc.fillColor("#2c2a24").font("Helvetica-Bold").fontSize(20).text(seasonName, { align: "left" });
-  doc
-    .moveDown(0.2)
-    .font("Helvetica")
-    .fontSize(12)
-    .fillColor("#4a4640")
-    .text(teamName ? `Team schedule — ${teamName}` : "Full league schedule");
-  doc
-    .moveDown(0.2)
-    .fontSize(9)
-    .fillColor("#7a7368")
-    .text(
-      `Generated ${new Date().toLocaleString("en-US", {
-        weekday: "short",
-        month: "short",
-        day: "numeric",
-        year: "numeric",
-        hour: "numeric",
-        minute: "2-digit"
-      })}`
-    );
+  doc.on("pageAdded", () => {
+    drawBanner(doc, seasonName, subtitle);
+    doc.x = PAGE_MARGIN_X;
+    doc.y = BANNER_HEIGHT + 24;
+  });
 
-  doc.moveDown(0.8);
+  drawBanner(doc, seasonName, subtitle);
+  doc.x = PAGE_MARGIN_X;
+  doc.y = BANNER_HEIGHT + 24;
+
   doc
-    .strokeColor("#d4cfc4")
-    .lineWidth(1)
-    .moveTo(doc.page.margins.left, doc.y)
-    .lineTo(doc.page.width - doc.page.margins.right, doc.y)
-    .stroke();
-  doc.moveDown(0.6);
+    .fillColor(COLORS.stone)
+    .font("Helvetica")
+    .fontSize(9)
+    .text(generatedLabel, PAGE_MARGIN_X, doc.y, { lineBreak: false });
+  doc.moveDown(1.2);
 
   if (matches.length === 0) {
-    doc.fontSize(12).fillColor("#4a4640").text("No matches scheduled.");
-    doc.end();
-    return endPromise;
-  }
-
-  const byWeek = new Map<number, MatchRow[]>();
-  for (const match of matches) {
-    const list = byWeek.get(match.week_number) || [];
-    list.push(match);
-    byWeek.set(match.week_number, list);
-  }
-  const weeks = Array.from(byWeek.keys()).sort((a, b) => a - b);
-
-  for (const week of weeks) {
-    const weekMatches = byWeek.get(week) || [];
-
-    if (doc.y > doc.page.height - doc.page.margins.bottom - 120) {
-      doc.addPage();
+    doc.font("Helvetica").fontSize(12).fillColor(COLORS.stone).text("No matches scheduled.");
+  } else {
+    const byWeek = new Map<number, MatchRow[]>();
+    for (const match of matches) {
+      const list = byWeek.get(match.week_number) || [];
+      list.push(match);
+      byWeek.set(match.week_number, list);
     }
+    const weeks = Array.from(byWeek.keys()).sort((a, b) => a - b);
 
-    doc
-      .font("Helvetica-Bold")
-      .fontSize(14)
-      .fillColor("#2c2a24")
-      .text(`Week ${week}`, { continued: false });
-    doc.moveDown(0.3);
-
-    const dayGroups: Record<"Tuesday" | "Thursday" | "Other", MatchRow[]> = {
-      Tuesday: [],
-      Thursday: [],
-      Other: []
-    };
-    for (const match of weekMatches) {
-      dayGroups[dayOf(match.scheduled_datetime)].push(match);
-    }
-
-    const dayOrder: Array<"Tuesday" | "Thursday" | "Other"> = ["Tuesday", "Thursday", "Other"];
-    for (const day of dayOrder) {
-      const list = dayGroups[day];
-      if (list.length === 0) continue;
-
-      if (doc.y > doc.page.height - doc.page.margins.bottom - 80) {
-        doc.addPage();
-      }
+    for (const week of weeks) {
+      ensureSpace(doc, 80);
 
       doc
+        .fillColor(COLORS.ink)
         .font("Helvetica-Bold")
-        .fontSize(10)
-        .fillColor("#625e55")
-        .text(day.toUpperCase(), { characterSpacing: 1 });
-      doc.moveDown(0.2);
+        .fontSize(16)
+        .text(`Week ${week}`, PAGE_MARGIN_X, doc.y, { lineBreak: false });
 
-      for (const match of list) {
-        if (doc.y > doc.page.height - doc.page.margins.bottom - 60) {
-          doc.addPage();
-        }
+      const underlineY = doc.y + 22;
+      doc
+        .strokeColor(COLORS.clay)
+        .lineWidth(2)
+        .moveTo(PAGE_MARGIN_X, underlineY)
+        .lineTo(PAGE_MARGIN_X + 46, underlineY)
+        .stroke();
 
-        const home = formatMatchTeamName(match.home_team);
-        const away = formatMatchTeamName(match.away_team);
-        const when = formatTime(match.scheduled_datetime);
-        const court = courtFromNotes(match.notes);
-        const status = STATUS_LABELS[match.status] || match.status;
+      doc.y = underlineY + 10;
 
-        doc
-          .font("Helvetica-Bold")
-          .fontSize(11)
-          .fillColor("#2c2a24")
-          .text(`${home} vs ${away}`, { continued: false });
-
-        const metaParts = [when];
-        if (court) metaParts.push(court);
-        metaParts.push(status);
-
-        doc
-          .font("Helvetica")
-          .fontSize(9)
-          .fillColor("#625e55")
-          .text(metaParts.join("  ·  "));
-
-        if (
-          (match.status === "verified" || match.status === "corrected") &&
-          match.home_total_score != null &&
-          match.away_total_score != null
-        ) {
-          const scoreLine =
-            match.home_games_won != null && match.away_games_won != null
-              ? `Final: ${match.home_total_score}-${match.away_total_score}   Games: ${match.home_games_won}-${match.away_games_won}`
-              : `Final: ${match.home_total_score}-${match.away_total_score}`;
-          let winner = "";
-          if (match.home_total_score > match.away_total_score) winner = `Winner: ${home}`;
-          else if (match.away_total_score > match.home_total_score) winner = `Winner: ${away}`;
-          else winner = "Winner: Tie";
-
-          doc.font("Helvetica").fontSize(9).fillColor("#2c2a24").text(scoreLine);
-          doc.font("Helvetica-Bold").fontSize(9).fillColor("#3f5c3f").text(winner);
-        }
-
-        const extraNote = stripExtraTag(match.notes);
-        if (extraNote && !court) {
-          doc.font("Helvetica-Oblique").fontSize(9).fillColor("#7a7368").text(extraNote);
-        }
-
-        doc.moveDown(0.4);
+      const dayGroups: Record<"Tuesday" | "Thursday" | "Other", MatchRow[]> = {
+        Tuesday: [],
+        Thursday: [],
+        Other: []
+      };
+      const weekMatches = byWeek.get(week) || [];
+      for (const match of weekMatches) {
+        dayGroups[dayOf(match.scheduled_datetime)].push(match);
       }
 
-      doc.moveDown(0.2);
-    }
+      const dayOrder: Array<"Tuesday" | "Thursday" | "Other"> = ["Tuesday", "Thursday", "Other"];
+      for (const day of dayOrder) {
+        const list = dayGroups[day];
+        if (list.length === 0) continue;
 
-    doc.moveDown(0.4);
+        ensureSpace(doc, 40);
+
+        doc
+          .fillColor(COLORS.stone)
+          .font("Helvetica-Bold")
+          .fontSize(9)
+          .text(day.toUpperCase(), PAGE_MARGIN_X, doc.y, {
+            characterSpacing: 1.2,
+            lineBreak: false
+          });
+        doc.y += 16;
+
+        for (const match of list) {
+          const home = formatMatchTeamName(match.home_team);
+          const away = formatMatchTeamName(match.away_team);
+          const when = formatTime(match.scheduled_datetime);
+          const court = courtFromNotes(match.notes);
+          const statusStyle = STATUS_STYLES[match.status] || {
+            label: match.status,
+            bg: "#eeeae3",
+            fg: COLORS.stone
+          };
+          const hasFinal =
+            (match.status === "verified" || match.status === "corrected") &&
+            match.home_total_score != null &&
+            match.away_total_score != null;
+          const extraNote = stripExtraTag(match.notes);
+          const hasNote = Boolean(extraNote && !court);
+
+          let cardHeight = 52;
+          if (hasFinal) cardHeight += 30;
+          if (hasNote) cardHeight += 14;
+
+          ensureSpace(doc, cardHeight + 8);
+
+          const cardX = PAGE_MARGIN_X;
+          const cardY = doc.y;
+          const cardW = doc.page.width - PAGE_MARGIN_X * 2;
+
+          doc
+            .roundedRect(cardX, cardY, cardW, cardHeight, 8)
+            .fillAndStroke(COLORS.fieldLight, COLORS.border);
+
+          // Left accent bar
+          doc.save();
+          doc.rect(cardX, cardY, 4, cardHeight).fill(COLORS.moss);
+          doc.restore();
+
+          const contentX = cardX + 16;
+          const contentW = cardW - 32;
+
+          doc
+            .fillColor(COLORS.ink)
+            .font("Helvetica-Bold")
+            .fontSize(12)
+            .text(`${home}  vs  ${away}`, contentX, cardY + 12, {
+              width: contentW - 130,
+              lineBreak: false,
+              ellipsis: true
+            });
+
+          const metaParts = [when];
+          if (court) metaParts.push(court);
+          doc
+            .fillColor(COLORS.stone)
+            .font("Helvetica")
+            .fontSize(9)
+            .text(metaParts.join("   •   "), contentX, cardY + 30, {
+              width: contentW - 130,
+              lineBreak: false,
+              ellipsis: true
+            });
+
+          // Status pill, top-right
+          doc.font("Helvetica-Bold").fontSize(8);
+          const pillText = statusStyle.label;
+          const pillTextWidth = doc.widthOfString(pillText);
+          const pillW = pillTextWidth + 14;
+          const pillX = cardX + cardW - 14 - pillW;
+          drawPill(doc, pillText, pillX, cardY + 12, statusStyle.bg, statusStyle.fg);
+
+          let bottomY = cardY + 48;
+
+          if (hasFinal) {
+            const scoreLine =
+              match.home_games_won != null && match.away_games_won != null
+                ? `Final  ${match.home_total_score}–${match.away_total_score}    Games  ${match.home_games_won}–${match.away_games_won}`
+                : `Final  ${match.home_total_score}–${match.away_total_score}`;
+            let winner = "";
+            if ((match.home_total_score ?? 0) > (match.away_total_score ?? 0))
+              winner = `Winner · ${home}`;
+            else if ((match.away_total_score ?? 0) > (match.home_total_score ?? 0))
+              winner = `Winner · ${away}`;
+            else winner = "Result · Tie";
+
+            doc
+              .fillColor(COLORS.ink)
+              .font("Helvetica-Bold")
+              .fontSize(10)
+              .text(scoreLine, contentX, bottomY, {
+                width: contentW,
+                lineBreak: false,
+                ellipsis: true
+              });
+            doc
+              .fillColor(COLORS.winner)
+              .font("Helvetica-Bold")
+              .fontSize(9)
+              .text(winner, contentX, bottomY + 14, {
+                width: contentW,
+                lineBreak: false,
+                ellipsis: true
+              });
+            bottomY += 30;
+          }
+
+          if (hasNote) {
+            doc
+              .fillColor(COLORS.stone)
+              .font("Helvetica-Oblique")
+              .fontSize(9)
+              .text(extraNote, contentX, bottomY, {
+                width: contentW,
+                lineBreak: false,
+                ellipsis: true
+              });
+          }
+
+          doc.y = cardY + cardHeight + 8;
+        }
+
+        doc.y += 4;
+      }
+
+      doc.y += 10;
+    }
+  }
+
+  // Draw footer on every buffered page
+  const range = doc.bufferedPageRange();
+  for (let i = range.start; i < range.start + range.count; i += 1) {
+    doc.switchToPage(i);
+    drawFooter(doc, i, generatedLabel);
   }
 
   doc.end();
@@ -276,16 +465,14 @@ export async function GET(request: Request, { params }: { params: { id: string }
 
   const pdf = await buildPdf(season.name, teamName, (matches || []) as MatchRow[]);
 
-  const safeSeasonName = (season.name || "season")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-  const filename = teamId ? `${safeSeasonName}-team-schedule.pdf` : `${safeSeasonName}-schedule.pdf`;
+  const filename = teamName
+    ? `${safeFilenameSegment(teamName) || "team"}_schedule.pdf`
+    : "full_league_schedule.pdf";
 
   return new NextResponse(new Uint8Array(pdf), {
     headers: {
       "Content-Type": "application/pdf",
-      "Content-Disposition": `attachment; filename=${filename}`
+      "Content-Disposition": `attachment; filename="${filename}"`
     }
   });
 }
