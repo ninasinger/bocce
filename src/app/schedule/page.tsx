@@ -146,14 +146,14 @@ export default function SchedulePage() {
     return match ? match[0] : "";
   }
 
-  function exportScheduleCsv() {
+  function exportSchedulePdf() {
     if (!seasonId) return;
     const params = new URLSearchParams();
     if (exportScope === "team" && exportTeamId) {
       params.set("teamId", exportTeamId);
     }
     const query = params.toString();
-    window.location.href = `/api/seasons/${seasonId}/schedule.csv${query ? `?${query}` : ""}`;
+    window.location.href = `/api/seasons/${seasonId}/schedule.pdf${query ? `?${query}` : ""}`;
   }
 
   return (
@@ -224,7 +224,7 @@ export default function SchedulePage() {
             </select>
           ) : null}
           <button
-            onClick={exportScheduleCsv}
+            onClick={exportSchedulePdf}
             disabled={exportScope === "team" && !exportTeamId}
             className="tap inline-flex items-center justify-center gap-2 rounded-xl bg-moss px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
@@ -242,7 +242,7 @@ export default function SchedulePage() {
               <path d="m7 10 5 5 5-5" />
               <path d="M5 21h14" />
             </svg>
-            Export Schedule CSV
+            Export Schedule PDF
           </button>
         </div>
       </div>
