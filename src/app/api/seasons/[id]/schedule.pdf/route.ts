@@ -33,7 +33,7 @@ const COLORS = {
 
 const BANNER_HEIGHT = 58;
 const PAGE_MARGIN_X = 42;
-const BOTTOM_RESERVED = 32;
+const BOTTOM_RESERVED = 18;
 
 function formatTime(iso: string | null) {
   if (!iso) return "TBD";
@@ -105,20 +105,23 @@ function drawBanner(doc: PDFKit.PDFDocument, seasonName: string, subtitle: strin
   doc.restore();
 }
 
-function drawFooter(doc: PDFKit.PDFDocument, pageIndex: number, generatedLabel: string) {
-  const y = doc.page.height - 20;
+function drawFooter(doc: PDFKit.PDFDocument, pageIndex: number, totalPages: number, generatedLabel: string) {
+  const y = doc.page.height - 12;
+  const prevBottom = doc.page.margins.bottom;
+  doc.page.margins.bottom = 0;
   doc.save();
   doc.fillColor(COLORS.stone).font("Helvetica").fontSize(7.5);
   doc.text(generatedLabel, PAGE_MARGIN_X, y, {
     width: doc.page.width - PAGE_MARGIN_X * 2,
     lineBreak: false
   });
-  doc.text(`Page ${pageIndex + 1}`, PAGE_MARGIN_X, y, {
+  doc.text(`Page ${pageIndex + 1} of ${totalPages}`, PAGE_MARGIN_X, y, {
     width: doc.page.width - PAGE_MARGIN_X * 2,
     align: "right",
     lineBreak: false
   });
   doc.restore();
+  doc.page.margins.bottom = prevBottom;
 }
 
 function ensureSpace(doc: PDFKit.PDFDocument, needed: number) {
@@ -182,144 +185,113 @@ function buildPdf(
     const contentW = doc.page.width - PAGE_MARGIN_X * 2;
 
     for (const week of weeks) {
-      ensureSpace(doc, 36);
+      ensureSpace(doc, 28);
 
+      const weekY = doc.y;
       doc
         .fillColor(COLORS.ink)
         .font("Helvetica-Bold")
-        .fontSize(11)
-        .text(`Week ${week}`, PAGE_MARGIN_X, doc.y, { lineBreak: false });
-
-      const underlineY = doc.y + 14;
+        .fontSize(10.5)
+        .text(`Week ${week}`, PAGE_MARGIN_X, weekY, { lineBreak: false, width: contentW });
       doc
         .strokeColor(COLORS.clay)
-        .lineWidth(1.5)
-        .moveTo(PAGE_MARGIN_X, underlineY)
-        .lineTo(PAGE_MARGIN_X + 32, underlineY)
+        .lineWidth(1.2)
+        .moveTo(PAGE_MARGIN_X, weekY + 13)
+        .lineTo(PAGE_MARGIN_X + 28, weekY + 13)
         .stroke();
+      doc.y = weekY + 17;
 
-      doc.y = underlineY + 5;
+      const weekMatches = (byWeek.get(week) || []).slice().sort((a, b) => {
+        const ta = a.scheduled_datetime ? new Date(a.scheduled_datetime).getTime() : 0;
+        const tb = b.scheduled_datetime ? new Date(b.scheduled_datetime).getTime() : 0;
+        return ta - tb;
+      });
 
-      const dayGroups: Record<"Tuesday" | "Thursday" | "Other", MatchRow[]> = {
-        Tuesday: [],
-        Thursday: [],
-        Other: []
-      };
-      const weekMatches = byWeek.get(week) || [];
       for (const match of weekMatches) {
-        dayGroups[dayOf(match.scheduled_datetime)].push(match);
-      }
+        const home = formatMatchTeamName(match.home_team);
+        const away = formatMatchTeamName(match.away_team);
+        const when = formatTime(match.scheduled_datetime);
+        const court = courtFromNotes(match.notes);
+        const hasFinal =
+          (match.status === "verified" || match.status === "corrected") &&
+          match.home_total_score != null &&
+          match.away_total_score != null;
+        const extraNote = stripExtraTag(match.notes);
+        const hasNote = Boolean(extraNote && !court);
 
-      const dayOrder: Array<"Tuesday" | "Thursday" | "Other"> = ["Tuesday", "Thursday", "Other"];
-      for (const day of dayOrder) {
-        const list = dayGroups[day];
-        if (list.length === 0) continue;
+        const rowHeight = 13 + (hasFinal ? 10 : 0) + (hasNote ? 10 : 0);
+        ensureSpace(doc, rowHeight + 2);
 
-        ensureSpace(doc, 20);
+        const rowY = doc.y;
 
+        doc.save();
+        doc.rect(PAGE_MARGIN_X, rowY + 2, 2, 9).fill(COLORS.moss);
+        doc.restore();
+
+        const textX = PAGE_MARGIN_X + 8;
+        const timeW = 165;
+        const timeLabel = court ? `${when}  ·  ${court}` : when;
         doc
           .fillColor(COLORS.stone)
-          .font("Helvetica-Bold")
-          .fontSize(7.5)
-          .text(day.toUpperCase(), PAGE_MARGIN_X, doc.y, {
-            characterSpacing: 1,
-            lineBreak: false
+          .font("Helvetica")
+          .fontSize(9)
+          .text(timeLabel, textX, rowY, {
+            width: timeW,
+            lineBreak: false,
+            ellipsis: true
           });
-        doc.y += 10;
 
-        for (const match of list) {
-          const home = formatMatchTeamName(match.home_team);
-          const away = formatMatchTeamName(match.away_team);
-          const when = formatTime(match.scheduled_datetime);
-          const court = courtFromNotes(match.notes);
-          const hasFinal =
-            (match.status === "verified" || match.status === "corrected") &&
-            match.home_total_score != null &&
-            match.away_total_score != null;
-          const extraNote = stripExtraTag(match.notes);
-          const hasNote = Boolean(extraNote && !court);
+        const teamsX = textX + timeW + 6;
+        const teamsW = contentW - (teamsX - PAGE_MARGIN_X);
+        doc
+          .fillColor(COLORS.ink)
+          .font("Helvetica-Bold")
+          .fontSize(9.5)
+          .text(`${home}  vs  ${away}`, teamsX, rowY, {
+            width: teamsW,
+            lineBreak: false,
+            ellipsis: true
+          });
 
-          const rowHeight = 11 + (hasFinal ? 10 : 0) + (hasNote ? 10 : 0) + 3;
-          ensureSpace(doc, rowHeight + 1);
+        let extraY = rowY + 13;
 
-          const rowY = doc.y;
+        if (hasFinal) {
+          const scoreParts = [`Final ${match.home_total_score}–${match.away_total_score}`];
+          if (match.home_games_won != null && match.away_games_won != null) {
+            scoreParts.push(`Games ${match.home_games_won}–${match.away_games_won}`);
+          }
+          let winner = "";
+          if ((match.home_total_score ?? 0) > (match.away_total_score ?? 0)) winner = home;
+          else if ((match.away_total_score ?? 0) > (match.home_total_score ?? 0)) winner = away;
+          if (winner) scoreParts.push(`Winner ${winner}`);
+          else scoreParts.push("Tie");
 
-          // Left accent tick
-          doc.save();
-          doc.rect(PAGE_MARGIN_X, rowY + 1, 2, 9).fill(COLORS.moss);
-          doc.restore();
-
-          const textX = PAGE_MARGIN_X + 8;
-
-          // Time column (fixed width)
-          const timeW = 120;
           doc
-            .fillColor(COLORS.stone)
-            .font("Helvetica")
-            .fontSize(9)
-            .text(court ? `${when}  ·  ${court}` : when, textX, rowY, {
-              width: timeW,
-              lineBreak: false,
-              ellipsis: true
-            });
-
-          // Teams (remainder)
-          const teamsX = textX + timeW + 6;
-          const teamsW = contentW - (teamsX - PAGE_MARGIN_X);
-          doc
-            .fillColor(COLORS.ink)
+            .fillColor(COLORS.winner)
             .font("Helvetica-Bold")
-            .fontSize(9.5)
-            .text(`${home}  vs  ${away}`, teamsX, rowY, {
+            .fontSize(8)
+            .text(scoreParts.join("   ·   "), teamsX, extraY, {
               width: teamsW,
               lineBreak: false,
               ellipsis: true
             });
-
-          let extraY = rowY + 12;
-
-          if (hasFinal) {
-            const scoreParts = [
-              `Final ${match.home_total_score}–${match.away_total_score}`
-            ];
-            if (match.home_games_won != null && match.away_games_won != null) {
-              scoreParts.push(`Games ${match.home_games_won}–${match.away_games_won}`);
-            }
-            let winner = "";
-            if ((match.home_total_score ?? 0) > (match.away_total_score ?? 0)) winner = home;
-            else if ((match.away_total_score ?? 0) > (match.home_total_score ?? 0)) winner = away;
-            if (winner) scoreParts.push(`Winner ${winner}`);
-            else scoreParts.push("Tie");
-
-            doc
-              .fillColor(COLORS.winner)
-              .font("Helvetica-Bold")
-              .fontSize(8)
-              .text(scoreParts.join("   ·   "), teamsX, extraY, {
-                width: teamsW,
-                lineBreak: false,
-                ellipsis: true
-              });
-            extraY += 10;
-          }
-
-          if (hasNote) {
-            doc
-              .fillColor(COLORS.stone)
-              .font("Helvetica-Oblique")
-              .fontSize(8)
-              .text(extraNote, teamsX, extraY, {
-                width: teamsW,
-                lineBreak: false,
-                ellipsis: true
-              });
-            extraY += 10;
-          }
-
-          doc.y = rowY + rowHeight;
+          extraY += 10;
         }
 
-        doc.y += 2;
+        if (hasNote) {
+          doc
+            .fillColor(COLORS.stone)
+            .font("Helvetica-Oblique")
+            .fontSize(8)
+            .text(extraNote, teamsX, extraY, {
+              width: teamsW,
+              lineBreak: false,
+              ellipsis: true
+            });
+          extraY += 10;
+        }
+
+        doc.y = rowY + rowHeight;
       }
 
       doc.y += 4;
@@ -329,7 +301,7 @@ function buildPdf(
   const range = doc.bufferedPageRange();
   for (let i = range.start; i < range.start + range.count; i += 1) {
     doc.switchToPage(i);
-    drawFooter(doc, i, generatedLabel);
+    drawFooter(doc, i, range.count, generatedLabel);
   }
 
   doc.end();
