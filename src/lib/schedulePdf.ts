@@ -21,16 +21,6 @@ function truncate(value: string, max = 26) {
   return value.length > max ? `${value.slice(0, max - 1)}…` : value;
 }
 
-function normalizeStatus(status: string) {
-  if (status === "verified") return "Approved";
-  if (status === "pending_verification") return "Pending Other";
-  if (status === "corrected") return "Corrected";
-  if (status === "awaiting_submission") return "Awaiting";
-  if (status === "disputed") return "Disputed";
-  if (status === "scheduled") return "Scheduled";
-  return status;
-}
-
 function drawHeader(canvas: PdfCanvas, title: string, subtitle: string) {
   canvas.rect(24, 24, 564, 70, {
     stroke: false,
@@ -55,8 +45,8 @@ function drawTableHeader(canvas: PdfCanvas, y: number, headers: string[], colX: 
 export function buildFullLeagueSchedulePdf(seasonName: string, rows: ScheduleRow[]) {
   const pages: PdfCanvas[] = [];
   const rowsPerPage = 48;
-  const colX = [42, 74, 164, 208, 330, 450];
-  const headers = ["WK", "DATE / TIME", "COURT", "HOME TEAM", "AWAY TEAM", "STATUS"];
+  const colX = [42, 78, 176, 234, 396];
+  const headers = ["WK", "DATE / TIME", "COURT", "HOME TEAM", "AWAY TEAM"];
 
   for (let pageIndex = 0; pageIndex < 3; pageIndex += 1) {
     const start = pageIndex * rowsPerPage;
@@ -68,7 +58,7 @@ export function buildFullLeagueSchedulePdf(seasonName: string, rows: ScheduleRow
     drawHeader(
       canvas,
       "Full League Schedule",
-      `${seasonName} • ${rows.length} matches • Page ${pageIndex + 1}`
+      `${seasonName} - ${rows.length} matches - Page ${pageIndex + 1}`
     );
     drawTableHeader(canvas, 122, headers, colX);
 
@@ -78,15 +68,14 @@ export function buildFullLeagueSchedulePdf(seasonName: string, rows: ScheduleRow
         canvas.rect(36, y - 11, 540, 13, {
           stroke: false,
           fill: true,
-          fillColor: [0.97, 0.97, 0.97]
+          fillColor: [0.965, 0.975, 0.97]
         });
       }
       canvas.text(colX[0], y, String(row.week), { size: 8 });
       canvas.text(colX[1], y, `${row.dateText} ${row.timeText}`, { size: 8 });
       canvas.text(colX[2], y, row.courtText || "-", { size: 8 });
-      canvas.text(colX[3], y, truncate(row.homeTeam, 24), { size: 8 });
-      canvas.text(colX[4], y, truncate(row.awayTeam, 24), { size: 8 });
-      canvas.text(colX[5], y, normalizeStatus(row.status), { size: 8 });
+      canvas.text(colX[3], y, truncate(row.homeTeam, 22), { size: 8, bold: true });
+      canvas.text(colX[4], y, truncate(row.awayTeam, 22), { size: 8, bold: true });
     });
 
     pages.push(canvas);
