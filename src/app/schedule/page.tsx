@@ -156,6 +156,16 @@ export default function SchedulePage() {
     window.location.href = `/api/seasons/${seasonId}/schedule.pdf${query ? `?${query}` : ""}`;
   }
 
+  function exportScheduleCsv() {
+    if (!seasonId) return;
+    const params = new URLSearchParams();
+    if (exportScope === "team" && exportTeamId) {
+      params.set("teamId", exportTeamId);
+    }
+    const query = params.toString();
+    window.location.href = `/api/seasons/${seasonId}/schedule.csv${query ? `?${query}` : ""}`;
+  }
+
   return (
     <main className="card p-4 md:p-6">
       <h2 className="section-title">Weekly schedule</h2>
@@ -243,6 +253,13 @@ export default function SchedulePage() {
               <path d="M5 21h14" />
             </svg>
             Export Schedule PDF
+          </button>
+          <button
+            onClick={exportScheduleCsv}
+            disabled={exportScope === "team" && !exportTeamId}
+            className="tap rounded-xl border border-white/60 bg-white/80 px-4 py-2.5 text-sm font-semibold disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            CSV
           </button>
         </div>
       </div>
