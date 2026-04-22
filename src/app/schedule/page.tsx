@@ -7,7 +7,6 @@ import { SkeletonCard } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
 import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
-import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
 type Team = { id: string; name: string };
@@ -30,7 +29,7 @@ export default function SchedulePage() {
   const [seasonId, setSeasonId] = useState("");
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
-  const [selectedWeek, setSelectedWeek] = useState<number | "all">(1);
+  const [selectedWeek, setSelectedWeek] = useState<number | "all">("all");
   const [exportScope, setExportScope] = useState<"league" | "team">("league");
   const [exportTeamId, setExportTeamId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -54,9 +53,15 @@ export default function SchedulePage() {
         setMatches([]);
         return;
       }
-      const loadedMatches = data.matches || [];
+      const now = Date.now();
+      const loadedMatches = (data.matches || []).filter((match) => {
+        if (!match.scheduled_datetime) return true;
+        const date = new Date(match.scheduled_datetime);
+        if (Number.isNaN(date.getTime())) return true;
+        return date.getTime() >= now;
+      });
       setMatches(loadedMatches);
-      setSelectedWeek(getCurrentWeek(loadedMatches));
+      setSelectedWeek("all");
     } catch {
       setError("Failed to load schedule");
       setMatches([]);
@@ -164,7 +169,7 @@ export default function SchedulePage() {
 
   return (
     <main className="card p-4 md:p-6">
-      <h2 className="section-title">Weekly schedule</h2>
+      <h2 className="section-title">Schedule</h2>
 
       <div className="sticky-filters mt-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 md:flex md:gap-3">
@@ -271,7 +276,7 @@ export default function SchedulePage() {
                 <line x1="8" y1="2" x2="8" y2="6" />
                 <line x1="3" y1="10" x2="21" y2="10" />
               </svg>
-              Export Google Calendar
+              Download Team Calendar (.ics)
             </button>
           ) : null}
         </div>

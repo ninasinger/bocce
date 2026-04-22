@@ -81,7 +81,7 @@ export async function GET(
       const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
       const home = formatMatchTeamName(match.home_team, "Home");
       const away = formatMatchTeamName(match.away_team, "Away");
-      const summary = escapeIcsText(`Week ${match.week_number}: ${home} vs ${away}`);
+      const summary = escapeIcsText(`Bocce Week ${match.week_number}: ${home} vs ${away}`);
       const description = escapeIcsText(
         `Bocce League 2026\nWeek ${match.week_number}\n${home} vs ${away}${match.notes ? `\n${match.notes}` : ""}`
       );
