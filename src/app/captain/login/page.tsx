@@ -117,6 +117,7 @@ export default function CaptainLoginPage() {
         <label className="grid gap-2 text-sm font-semibold">
           Team code
           <input
+            type="password"
             value={teamCode}
             onChange={(event) => setTeamCode(event.target.value)}
             className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"

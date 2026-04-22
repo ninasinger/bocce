@@ -253,7 +253,9 @@ export default function SchedulePage() {
               <path d="m7 10 5 5 5-5" />
               <path d="M5 21h14" />
             </svg>
-            Export Schedule PDF
+            {exportScope === "team"
+              ? "Download Team Calendar (PDF)"
+              : "Download Full League Schedule (PDF)"}
           </button>
           {exportScope === "team" ? (
             <button
