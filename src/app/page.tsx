@@ -150,15 +150,6 @@ export default function HomePage() {
     () => matches.filter((match) => match.status === "verified" || match.status === "corrected").length,
     [matches]
   );
-  const weekTeamCount = useMemo(() => {
-    const unique = new Set<string>();
-    for (const match of matches) {
-      unique.add(formatMatchTeamName(match.home_team));
-      unique.add(formatMatchTeamName(match.away_team));
-    }
-    return unique.size;
-  }, [matches]);
-
   return (
     <main className="space-y-6">
       {captainNextMatch ? (
@@ -213,22 +204,17 @@ export default function HomePage() {
           </select>
         </div>
         {loading ? (
-          <div className="mt-4 grid gap-4 md:grid-cols-3">
-            <Skeleton className="h-20 rounded-xl" />
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
             <Skeleton className="h-20 rounded-xl" />
             <Skeleton className="h-20 rounded-xl" />
           </div>
         ) : (
-          <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <div className="mt-4 grid grid-cols-2 gap-3">
             <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm">
               <p className="text-xs uppercase tracking-wide text-stone">Matches</p>
               <p className="mt-1 text-2xl font-display">{matches.length}</p>
             </div>
             <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm">
-              <p className="text-xs uppercase tracking-wide text-stone">Teams</p>
-              <p className="mt-1 text-2xl font-display">{weekTeamCount}</p>
-            </div>
-            <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm col-span-2 sm:col-span-1">
               <p className="text-xs uppercase tracking-wide text-stone">Finished</p>
               <p className="mt-1 text-2xl font-display">{verifiedCount}</p>
             </div>

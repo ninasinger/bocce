@@ -108,6 +108,28 @@ export async function POST(request: Request) {
   );
 
   const standingsCsv = toRankingCsv(standings);
+  const seasonsCsv = toCsv(
+    [
+      "id",
+      "name",
+      "year",
+      "commissioner_email",
+      "created_at",
+      "updated_at"
+    ],
+    season
+      ? [
+          [
+            season.id,
+            season.name,
+            season.year,
+            season.commissioner_email,
+            season.created_at,
+            season.updated_at
+          ]
+        ]
+      : []
+  );
 
   const { data: integration } = await client
     .from("commissioner_integrations")
@@ -142,6 +164,7 @@ export async function POST(request: Request) {
   }
 
   await uploadTextFile(drive, "season.json", folderId, "application/json", seasonJson);
+  await uploadTextFile(drive, "seasons.csv", folderId, "text/csv", seasonsCsv);
   await uploadTextFile(drive, "matches.csv", folderId, "text/csv", matchesCsv);
   await uploadTextFile(
     drive,
