@@ -150,6 +150,14 @@ export default function HomePage() {
     () => matches.filter((match) => match.status === "verified" || match.status === "corrected").length,
     [matches]
   );
+  const weekTeamCount = useMemo(() => {
+    const unique = new Set<string>();
+    for (const match of matches) {
+      unique.add(formatMatchTeamName(match.home_team));
+      unique.add(formatMatchTeamName(match.away_team));
+    }
+    return unique.size;
+  }, [matches]);
 
   return (
     <main className="space-y-6">
@@ -218,7 +226,7 @@ export default function HomePage() {
             </div>
             <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm">
               <p className="text-xs uppercase tracking-wide text-stone">Teams</p>
-              <p className="mt-1 text-2xl font-display">{standings.length}</p>
+              <p className="mt-1 text-2xl font-display">{weekTeamCount}</p>
             </div>
             <div className="rounded-xl border border-white/70 bg-field/85 p-3 shadow-sm col-span-2 sm:col-span-1">
               <p className="text-xs uppercase tracking-wide text-stone">Verified</p>
