@@ -2,6 +2,7 @@ import { buildPdf, PdfCanvas } from "@/lib/simplePdf";
 
 export type ScheduleRow = {
   week: number;
+  dayText: string;
   dateText: string;
   timeText: string;
   courtText: string;
@@ -12,6 +13,7 @@ export type ScheduleRow = {
 
 type TeamScheduleRow = {
   week: number;
+  dayText: string;
   dateTimeText: string;
   matchupText: string;
   courtText: string;
@@ -84,8 +86,8 @@ function drawTableHeader(canvas: PdfCanvas, y: number, headers: string[], colX: 
 export function buildFullLeagueSchedulePdf(seasonName: string, rows: ScheduleRow[]) {
   const pages: PdfCanvas[] = [];
   const rowsPerPage = 48;
-  const colX = [42, 78, 176, 234, 396];
-  const headers = ["WK", "DATE / TIME", "COURT", "HOME TEAM", "AWAY TEAM"];
+  const colX = [42, 78, 128, 218, 270, 424];
+  const headers = ["WK", "DAY", "DATE / TIME", "COURT", "HOME TEAM", "AWAY TEAM"];
 
   for (let pageIndex = 0; pageIndex < 3; pageIndex += 1) {
     const start = pageIndex * rowsPerPage;
@@ -111,10 +113,11 @@ export function buildFullLeagueSchedulePdf(seasonName: string, rows: ScheduleRow
         });
       }
       canvas.text(colX[0], y, String(row.week), { size: 8, color: THEME.stone });
-      canvas.text(colX[1], y, `${row.dateText} ${row.timeText}`, { size: 8, color: THEME.stone });
-      canvas.text(colX[2], y, row.courtText || "-", { size: 8, color: THEME.stone });
-      canvas.text(colX[3], y, truncate(row.homeTeam, 22), { size: 8, bold: true, color: THEME.ink });
-      canvas.text(colX[4], y, truncate(row.awayTeam, 22), { size: 8, bold: true, color: THEME.ink });
+      canvas.text(colX[1], y, row.dayText || "-", { size: 8, color: THEME.stone });
+      canvas.text(colX[2], y, `${row.dateText} ${row.timeText}`, { size: 8, color: THEME.stone });
+      canvas.text(colX[3], y, row.courtText || "-", { size: 8, color: THEME.stone });
+      canvas.text(colX[4], y, truncate(row.homeTeam, 20), { size: 8, bold: true, color: THEME.ink });
+      canvas.text(colX[5], y, truncate(row.awayTeam, 20), { size: 8, bold: true, color: THEME.ink });
     });
 
     canvas.text(44, 748, "Generated from League Scoring Hub", {
@@ -144,8 +147,8 @@ export function buildTeamSchedulePdf(
     lineWidth: 1
   });
 
-  const colX = [48, 86, 226, 504];
-  drawTableHeader(canvas, 176, ["WK", "DATE / TIME", "MATCHUP", "COURT"], colX);
+  const colX = [48, 86, 136, 232, 504];
+  drawTableHeader(canvas, 176, ["WK", "DAY", "DATE / TIME", "MATCHUP", "COURT"], colX);
 
   rows.slice(0, 24).forEach((row, idx) => {
     const y = 196 + idx * 22;
@@ -156,9 +159,10 @@ export function buildTeamSchedulePdf(
       fillColor: THEME.mutedRow
     });
     canvas.text(colX[0], y, String(row.week), { bold: true, size: 10, color: THEME.moss });
-    canvas.text(colX[1], y, row.dateTimeText, { size: 9, color: THEME.stone });
-    canvas.text(colX[2], y, truncate(row.matchupText, 36), { size: 10, bold: true, color: THEME.ink });
-    canvas.text(colX[3], y, row.courtText || "-", { size: 9, align: "right", color: THEME.stone });
+    canvas.text(colX[1], y, row.dayText || "-", { size: 9, color: THEME.stone });
+    canvas.text(colX[2], y, row.dateTimeText, { size: 9, color: THEME.stone });
+    canvas.text(colX[3], y, truncate(row.matchupText, 30), { size: 10, bold: true, color: THEME.ink });
+    canvas.text(colX[4], y, row.courtText || "-", { size: 9, align: "right", color: THEME.stone });
   });
 
   canvas.text(44, 746, "Generated from League Scoring Hub", {
@@ -175,6 +179,7 @@ export function toTeamScheduleRows(teamName: string, rows: ScheduleRow[]): TeamS
     const opponent = isHome ? row.awayTeam : row.homeTeam;
     return {
       week: row.week,
+      dayText: row.dayText,
       dateTimeText: `${row.dateText} ${row.timeText}`,
       matchupText: `${isHome ? "vs" : "at"} ${opponent}`,
       courtText: row.courtText

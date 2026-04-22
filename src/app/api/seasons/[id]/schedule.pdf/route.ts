@@ -11,10 +11,14 @@ import {
 export const runtime = "nodejs";
 
 function formatDateTime(value: string | null) {
-  if (!value) return { dateText: "TBD", timeText: "" };
+  if (!value) return { dayText: "-", dateText: "TBD", timeText: "" };
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return { dateText: value, timeText: "" };
+  if (Number.isNaN(date.getTime())) return { dayText: "-", dateText: value, timeText: "" };
   return {
+    dayText: date.toLocaleDateString("en-US", {
+      weekday: "short",
+      timeZone: "America/New_York"
+    }),
     dateText: date.toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -81,9 +85,10 @@ export async function GET(
   }
 
   const rows: ScheduleRow[] = (matches || []).map((match) => {
-    const { dateText, timeText } = formatDateTime(match.scheduled_datetime);
+    const { dayText, dateText, timeText } = formatDateTime(match.scheduled_datetime);
     return {
       week: match.week_number,
+      dayText,
       dateText,
       timeText,
       courtText: extractCourt(match.notes),
