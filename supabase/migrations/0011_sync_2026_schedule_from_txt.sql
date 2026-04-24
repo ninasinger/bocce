@@ -20,15 +20,15 @@ begin
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
-  values (v_season_id, 'Bocce Bella''s', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
+  values (v_season_id, 'Bocce Bellas', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
-  values (v_season_id, 'Bocce Mamas', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
+  values (v_season_id, 'Bocce Mammas', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
-  values (v_season_id, 'Bocce Stars', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
+  values (v_season_id, 'Roll Models', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
@@ -60,15 +60,15 @@ begin
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
-  values (v_season_id, 'Limoncello Sorelle', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
+  values (v_season_id, 'Limoncello Sorellas', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
-  values (v_season_id, 'Movin'' Balls', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
+  values (v_season_id, 'Movin Balls', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
-  values (v_season_id, 'New Team', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
+  values (v_season_id, 'Bocce Stars', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
@@ -76,7 +76,7 @@ begin
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
-  values (v_season_id, 'Viva la Bocce', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
+  values (v_season_id, 'Viva La Bocce', '$2a$10$2Y2zqm2VvXu9jJUPSLg5HOU/1AxS32L1s/lhB2O4WlcqytuP6jxs.', null, '[]'::jsonb)
   on conflict (season_id, name) do update set team_code_hash = excluded.team_code_hash;
 
   insert into teams (season_id, name, team_code_hash, captain_name, members)
@@ -100,7 +100,7 @@ begin
     1,
     ((date '2026-05-07' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Let''s Roll'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     'scheduled',
     'Court 2'
   );
@@ -132,8 +132,8 @@ begin
     v_season_id,
     1,
     ((date '2026-05-07' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     'scheduled',
     'Court 5'
   );
@@ -143,8 +143,8 @@ begin
     v_season_id,
     1,
     ((date '2026-05-07' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     'scheduled',
     'Court 6'
   );
@@ -154,7 +154,7 @@ begin
     v_season_id,
     2,
     ((date '2026-05-12' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     (select id from teams where season_id = v_season_id and name = 'Donne Vere'),
     'scheduled',
     'Court 1'
@@ -165,7 +165,7 @@ begin
     v_season_id,
     2,
     ((date '2026-05-12' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     (select id from teams where season_id = v_season_id and name = 'Cannoli Hope'),
     'scheduled',
     'Court 2'
@@ -176,8 +176,8 @@ begin
     v_season_id,
     2,
     ((date '2026-05-12' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     'scheduled',
     'Court 3'
   );
@@ -188,7 +188,7 @@ begin
     2,
     ((date '2026-05-12' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'La Bocce Vita'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     'scheduled',
     'Court 4'
   );
@@ -221,7 +221,7 @@ begin
     2,
     ((date '2026-05-14' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Donne Dolci'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     'scheduled',
     'Court 1'
   );
@@ -254,7 +254,7 @@ begin
     2,
     ((date '2026-05-14' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Quattro Amici'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     'scheduled',
     'Court 4'
   );
@@ -264,8 +264,8 @@ begin
     v_season_id,
     2,
     ((date '2026-05-14' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     'scheduled',
     'Court 5'
   );
@@ -286,7 +286,7 @@ begin
     v_season_id,
     3,
     ((date '2026-05-21' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     (select id from teams where season_id = v_season_id and name = 'Cannoli Hope'),
     'scheduled',
     'Court 1'
@@ -297,7 +297,7 @@ begin
     v_season_id,
     3,
     ((date '2026-05-21' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     (select id from teams where season_id = v_season_id and name = 'Dolls With Balls'),
     'scheduled',
     'Court 2'
@@ -308,8 +308,8 @@ begin
     v_season_id,
     3,
     ((date '2026-05-21' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     'scheduled',
     'Court 3'
   );
@@ -319,8 +319,8 @@ begin
     v_season_id,
     3,
     ((date '2026-05-21' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     'scheduled',
     'Court 4'
   );
@@ -342,7 +342,7 @@ begin
     3,
     ((date '2026-05-21' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Wonder Women'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     'scheduled',
     'Court 6'
   );
@@ -353,7 +353,7 @@ begin
     4,
     ((date '2026-05-26' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     'scheduled',
     'Court 1'
   );
@@ -375,7 +375,7 @@ begin
     4,
     ((date '2026-05-26' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'La Bocce Vita'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     'scheduled',
     'Court 3'
   );
@@ -386,7 +386,7 @@ begin
     4,
     ((date '2026-05-26' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Donne Dolci'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     'scheduled',
     'Court 4'
   );
@@ -396,7 +396,7 @@ begin
     v_season_id,
     4,
     ((date '2026-05-26' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Babes'),
     'scheduled',
     'Court 5'
@@ -419,7 +419,7 @@ begin
     4,
     ((date '2026-05-28' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     'scheduled',
     'Court 1'
   );
@@ -440,7 +440,7 @@ begin
     v_season_id,
     4,
     ((date '2026-05-28' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     (select id from teams where season_id = v_season_id and name = 'Quattro Amici'),
     'scheduled',
     'Court 3'
@@ -451,7 +451,7 @@ begin
     v_season_id,
     4,
     ((date '2026-05-28' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     (select id from teams where season_id = v_season_id and name = 'Let''s Roll'),
     'scheduled',
     'Court 4'
@@ -463,7 +463,7 @@ begin
     4,
     ((date '2026-05-28' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Cannoli Hope'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     'scheduled',
     'Court 5'
   );
@@ -474,53 +474,9 @@ begin
     4,
     ((date '2026-05-28' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Babes'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     'scheduled',
     'Court 6'
-  );
-
-  insert into matches (season_id, week_number, scheduled_datetime, home_team_id, away_team_id, status, notes)
-  values (
-    v_season_id,
-    5,
-    ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
-    'scheduled',
-    'Court 1'
-  );
-
-  insert into matches (season_id, week_number, scheduled_datetime, home_team_id, away_team_id, status, notes)
-  values (
-    v_season_id,
-    5,
-    ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
-    (select id from teams where season_id = v_season_id and name = 'Quattro Amici'),
-    'scheduled',
-    'Court 2'
-  );
-
-  insert into matches (season_id, week_number, scheduled_datetime, home_team_id, away_team_id, status, notes)
-  values (
-    v_season_id,
-    5,
-    ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
-    (select id from teams where season_id = v_season_id and name = 'Let''s Roll'),
-    'scheduled',
-    'Court 3'
-  );
-
-  insert into matches (season_id, week_number, scheduled_datetime, home_team_id, away_team_id, status, notes)
-  values (
-    v_season_id,
-    5,
-    ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
-    'scheduled',
-    'Court 4'
   );
 
   insert into matches (season_id, week_number, scheduled_datetime, home_team_id, away_team_id, status, notes)
@@ -529,6 +485,50 @@ begin
     5,
     ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
+    'scheduled',
+    'Court 1'
+  );
+
+  insert into matches (season_id, week_number, scheduled_datetime, home_team_id, away_team_id, status, notes)
+  values (
+    v_season_id,
+    5,
+    ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
+    (select id from teams where season_id = v_season_id and name = 'Quattro Amici'),
+    'scheduled',
+    'Court 2'
+  );
+
+  insert into matches (season_id, week_number, scheduled_datetime, home_team_id, away_team_id, status, notes)
+  values (
+    v_season_id,
+    5,
+    ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Let''s Roll'),
+    'scheduled',
+    'Court 3'
+  );
+
+  insert into matches (season_id, week_number, scheduled_datetime, home_team_id, away_team_id, status, notes)
+  values (
+    v_season_id,
+    5,
+    ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
+    (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
+    'scheduled',
+    'Court 4'
+  );
+
+  insert into matches (season_id, week_number, scheduled_datetime, home_team_id, away_team_id, status, notes)
+  values (
+    v_season_id,
+    5,
+    ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     (select id from teams where season_id = v_season_id and name = 'La Bocce Vita'),
     'scheduled',
     'Court 5'
@@ -539,7 +539,7 @@ begin
     v_season_id,
     5,
     ((date '2026-06-04' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     (select id from teams where season_id = v_season_id and name = 'Donne Vere'),
     'scheduled',
     'Court 6'
@@ -551,7 +551,7 @@ begin
     6,
     ((date '2026-06-09' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Wonder Women'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     'scheduled',
     'Court 1'
   );
@@ -584,7 +584,7 @@ begin
     6,
     ((date '2026-06-09' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Dolls With Balls'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     'scheduled',
     'Court 4'
   );
@@ -605,7 +605,7 @@ begin
     v_season_id,
     6,
     ((date '2026-06-09' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     (select id from teams where season_id = v_season_id and name = 'Quattro Amici'),
     'scheduled',
     'Court 6'
@@ -617,7 +617,7 @@ begin
     6,
     ((date '2026-06-11' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'La Bocce Vita'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     'scheduled',
     'Court 1'
   );
@@ -627,8 +627,8 @@ begin
     v_season_id,
     6,
     ((date '2026-06-11' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     'scheduled',
     'Court 2'
   );
@@ -639,7 +639,7 @@ begin
     6,
     ((date '2026-06-11' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Quattro Amici'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     'scheduled',
     'Court 3'
   );
@@ -671,8 +671,8 @@ begin
     v_season_id,
     6,
     ((date '2026-06-11' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     'scheduled',
     'Court 6'
   );
@@ -682,8 +682,8 @@ begin
     v_season_id,
     7,
     ((date '2026-06-18' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     'scheduled',
     'Court 1'
   );
@@ -705,7 +705,7 @@ begin
     7,
     ((date '2026-06-18' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Dolls With Balls'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     'scheduled',
     'Court 3'
   );
@@ -727,7 +727,7 @@ begin
     7,
     ((date '2026-06-18' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     'scheduled',
     'Court 5'
   );
@@ -748,7 +748,7 @@ begin
     v_season_id,
     8,
     ((date '2026-06-23' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Babes'),
     'scheduled',
     'Court 1'
@@ -760,7 +760,7 @@ begin
     8,
     ((date '2026-06-23' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'La Bocce Vita'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     'scheduled',
     'Court 2'
   );
@@ -793,7 +793,7 @@ begin
     8,
     ((date '2026-06-23' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Donne Vere'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     'scheduled',
     'Court 5'
   );
@@ -803,7 +803,7 @@ begin
     v_season_id,
     8,
     ((date '2026-06-23' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     (select id from teams where season_id = v_season_id and name = 'Donne Dolci'),
     'scheduled',
     'Court 6'
@@ -826,7 +826,7 @@ begin
     8,
     ((date '2026-06-25' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Donne Vere'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     'scheduled',
     'Court 2'
   );
@@ -837,7 +837,7 @@ begin
     8,
     ((date '2026-06-25' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Let''s Roll'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     'scheduled',
     'Court 3'
   );
@@ -847,8 +847,8 @@ begin
     v_season_id,
     8,
     ((date '2026-06-25' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     'scheduled',
     'Court 4'
   );
@@ -858,7 +858,7 @@ begin
     v_season_id,
     8,
     ((date '2026-06-25' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     (select id from teams where season_id = v_season_id and name = 'Dolls With Balls'),
     'scheduled',
     'Court 5'
@@ -870,7 +870,7 @@ begin
     8,
     ((date '2026-06-25' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     'scheduled',
     'Court 6'
   );
@@ -881,7 +881,7 @@ begin
     9,
     ((date '2026-06-30' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Let''s Roll'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     'scheduled',
     'Court 1'
   );
@@ -891,7 +891,7 @@ begin
     v_season_id,
     9,
     ((date '2026-06-30' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     (select id from teams where season_id = v_season_id and name = 'Wonder Women'),
     'scheduled',
     'Court 2'
@@ -903,7 +903,7 @@ begin
     9,
     ((date '2026-06-30' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Donne Dolci'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     'scheduled',
     'Court 3'
   );
@@ -913,7 +913,7 @@ begin
     v_season_id,
     9,
     ((date '2026-06-30' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     (select id from teams where season_id = v_season_id and name = 'Quattro Amici'),
     'scheduled',
     'Court 4'
@@ -958,7 +958,7 @@ begin
     9,
     ((date '2026-07-02' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Babes'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     'scheduled',
     'Court 2'
   );
@@ -968,8 +968,8 @@ begin
     v_season_id,
     9,
     ((date '2026-07-02' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     'scheduled',
     'Court 3'
   );
@@ -979,8 +979,8 @@ begin
     v_season_id,
     9,
     ((date '2026-07-02' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     'scheduled',
     'Court 4'
   );
@@ -1001,8 +1001,8 @@ begin
     v_season_id,
     9,
     ((date '2026-07-02' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     'scheduled',
     'Court 6'
   );
@@ -1013,7 +1013,7 @@ begin
     10,
     ((date '2026-07-09' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Donne Dolci'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     'scheduled',
     'Court 1'
   );
@@ -1034,7 +1034,7 @@ begin
     v_season_id,
     10,
     ((date '2026-07-09' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     (select id from teams where season_id = v_season_id and name = 'Wonder Women'),
     'scheduled',
     'Court 3'
@@ -1046,7 +1046,7 @@ begin
     10,
     ((date '2026-07-09' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Babes'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     'scheduled',
     'Court 4'
   );
@@ -1057,7 +1057,7 @@ begin
     10,
     ((date '2026-07-09' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Donne Vere'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     'scheduled',
     'Court 5'
   );
@@ -1067,7 +1067,7 @@ begin
     v_season_id,
     10,
     ((date '2026-07-09' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     (select id from teams where season_id = v_season_id and name = 'Dolls With Balls'),
     'scheduled',
     'Court 6'
@@ -1089,7 +1089,7 @@ begin
     v_season_id,
     11,
     ((date '2026-07-23' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     (select id from teams where season_id = v_season_id and name = 'Quattro Amici'),
     'scheduled',
     'Court 2'
@@ -1101,7 +1101,7 @@ begin
     11,
     ((date '2026-07-23' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Cannoli Hope'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     'scheduled',
     'Court 3'
   );
@@ -1112,7 +1112,7 @@ begin
     11,
     ((date '2026-07-23' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     'scheduled',
     'Court 4'
   );
@@ -1122,7 +1122,7 @@ begin
     v_season_id,
     11,
     ((date '2026-07-23' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     (select id from teams where season_id = v_season_id and name = 'Let''s Roll'),
     'scheduled',
     'Court 5'
@@ -1134,7 +1134,7 @@ begin
     11,
     ((date '2026-07-23' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Wonder Women'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     'scheduled',
     'Court 6'
   );
@@ -1155,8 +1155,8 @@ begin
     v_season_id,
     12,
     ((date '2026-07-28' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     'scheduled',
     'Court 2'
   );
@@ -1177,7 +1177,7 @@ begin
     v_season_id,
     12,
     ((date '2026-07-28' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     (select id from teams where season_id = v_season_id and name = 'La Bocce Vita'),
     'scheduled',
     'Court 4'
@@ -1189,7 +1189,7 @@ begin
     12,
     ((date '2026-07-28' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     'scheduled',
     'Court 5'
   );
@@ -1210,8 +1210,8 @@ begin
     v_season_id,
     12,
     ((date '2026-07-30' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     'scheduled',
     'Court 1'
   );
@@ -1243,7 +1243,7 @@ begin
     v_season_id,
     12,
     ((date '2026-07-30' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     (select id from teams where season_id = v_season_id and name = 'Wonder Women'),
     'scheduled',
     'Court 4'
@@ -1265,8 +1265,8 @@ begin
     v_season_id,
     12,
     ((date '2026-07-30' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     'scheduled',
     'Court 6'
   );
@@ -1276,7 +1276,7 @@ begin
     v_season_id,
     13,
     ((date '2026-08-06' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     (select id from teams where season_id = v_season_id and name = 'Dolls With Balls'),
     'scheduled',
     'Court 1'
@@ -1288,7 +1288,7 @@ begin
     13,
     ((date '2026-08-06' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Donne Dolci'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     'scheduled',
     'Court 2'
   );
@@ -1299,7 +1299,7 @@ begin
     13,
     ((date '2026-08-06' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'La Bocce Vita'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     'scheduled',
     'Court 3'
   );
@@ -1309,7 +1309,7 @@ begin
     v_season_id,
     13,
     ((date '2026-08-06' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     (select id from teams where season_id = v_season_id and name = 'Cannoli Hope'),
     'scheduled',
     'Court 4'
@@ -1320,8 +1320,8 @@ begin
     v_season_id,
     13,
     ((date '2026-08-06' + time '18:30') at time zone 'America/New_York'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
     'scheduled',
     'Court 5'
   );
@@ -1343,7 +1343,7 @@ begin
     14,
     ((date '2026-08-11' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Babes'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     'scheduled',
     'Court 1'
   );
@@ -1353,8 +1353,8 @@ begin
     v_season_id,
     14,
     ((date '2026-08-11' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     'scheduled',
     'Court 2'
   );
@@ -1387,7 +1387,7 @@ begin
     14,
     ((date '2026-08-11' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Wonder Women'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     'scheduled',
     'Court 5'
   );
@@ -1397,7 +1397,7 @@ begin
     v_season_id,
     14,
     ((date '2026-08-11' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'New Team'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
     (select id from teams where season_id = v_season_id and name = 'Donne Dolci'),
     'scheduled',
     'Court 6'
@@ -1408,7 +1408,7 @@ begin
     v_season_id,
     14,
     ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     (select id from teams where season_id = v_season_id and name = 'Cannoli Hope'),
     'scheduled',
     'Court 2'
@@ -1430,7 +1430,7 @@ begin
     v_season_id,
     14,
     ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     (select id from teams where season_id = v_season_id and name = 'Dolls With Balls'),
     'scheduled',
     'Court 5'
@@ -1442,7 +1442,7 @@ begin
     14,
     ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Donne Vere'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     'scheduled',
     'Court 6'
   );
@@ -1451,9 +1451,9 @@ begin
   values (
     v_season_id,
     15,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
+    ((date '2026-08-20' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Cannoli Hope'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
     'scheduled',
     'Court 1'
   );
@@ -1462,9 +1462,9 @@ begin
   values (
     v_season_id,
     15,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Mamas'),
+    ((date '2026-08-20' + time '18:30') at time zone 'America/New_York'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Mammas'),
     'scheduled',
     'Court 2'
   );
@@ -1473,9 +1473,9 @@ begin
   values (
     v_season_id,
     15,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
+    ((date '2026-08-20' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Babes'),
-    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorelle'),
+    (select id from teams where season_id = v_season_id and name = 'Limoncello Sorellas'),
     'scheduled',
     'Court 3'
   );
@@ -1484,7 +1484,7 @@ begin
   values (
     v_season_id,
     15,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
+    ((date '2026-08-20' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Wonder Women'),
     (select id from teams where season_id = v_season_id and name = 'Dolls With Balls'),
     'scheduled',
@@ -1495,8 +1495,8 @@ begin
   values (
     v_season_id,
     15,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Movin'' Balls'),
+    ((date '2026-08-20' + time '18:30') at time zone 'America/New_York'),
+    (select id from teams where season_id = v_season_id and name = 'Movin Balls'),
     (select id from teams where season_id = v_season_id and name = 'Donne Vere'),
     'scheduled',
     'Court 5'
@@ -1506,7 +1506,7 @@ begin
   values (
     v_season_id,
     15,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
+    ((date '2026-08-20' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
     (select id from teams where season_id = v_season_id and name = 'La Bocce Vita'),
     'scheduled',
@@ -1517,7 +1517,7 @@ begin
   values (
     v_season_id,
     16,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
+    ((date '2026-08-25' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'D''Bocceri'),
     (select id from teams where season_id = v_season_id and name = 'Donne Vere'),
     'scheduled',
@@ -1528,7 +1528,7 @@ begin
   values (
     v_season_id,
     16,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
+    ((date '2026-08-25' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Bocce Babes'),
     (select id from teams where season_id = v_season_id and name = 'La Bocce Vita'),
     'scheduled',
@@ -1539,7 +1539,7 @@ begin
   values (
     v_season_id,
     16,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
+    ((date '2026-08-25' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Wonder Women'),
     (select id from teams where season_id = v_season_id and name = 'Cannoli Hope'),
     'scheduled',
@@ -1550,9 +1550,9 @@ begin
   values (
     v_season_id,
     16,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Stars'),
-    (select id from teams where season_id = v_season_id and name = 'Bocce Bella''s'),
+    ((date '2026-08-25' + time '18:30') at time zone 'America/New_York'),
+    (select id from teams where season_id = v_season_id and name = 'Roll Models'),
+    (select id from teams where season_id = v_season_id and name = 'Bocce Bellas'),
     'scheduled',
     'Court 4'
   );
@@ -1561,8 +1561,8 @@ begin
   values (
     v_season_id,
     16,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
-    (select id from teams where season_id = v_season_id and name = 'Viva la Bocce'),
+    ((date '2026-08-25' + time '18:30') at time zone 'America/New_York'),
+    (select id from teams where season_id = v_season_id and name = 'Viva La Bocce'),
     (select id from teams where season_id = v_season_id and name = 'Let''s Roll'),
     'scheduled',
     'Court 5'
@@ -1572,7 +1572,7 @@ begin
   values (
     v_season_id,
     16,
-    ((date '2026-08-13' + time '18:30') at time zone 'America/New_York'),
+    ((date '2026-08-25' + time '18:30') at time zone 'America/New_York'),
     (select id from teams where season_id = v_season_id and name = 'Quattro Amici'),
     (select id from teams where season_id = v_season_id and name = 'Donne Dolci'),
     'scheduled',
