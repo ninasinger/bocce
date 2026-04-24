@@ -23,6 +23,11 @@ type MatchRow = {
   home_total_score: number | null;
   away_total_score: number | null;
 };
+type SchedulePageResponse = {
+  matches?: MatchRow[];
+  teams?: Team[];
+  error?: string;
+};
 
 export default function SchedulePage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
@@ -38,6 +43,7 @@ export default function SchedulePage() {
   const loadSchedule = useCallback(async () => {
     if (!seasonId) {
       setMatches([]);
+      setTeams([]);
       setLoading(false);
       return;
     }
@@ -45,12 +51,13 @@ export default function SchedulePage() {
     setLoading(true);
     setError("");
     try {
-      const { response, data } = await fetchJson<{ matches?: MatchRow[]; error?: string }>(
-        `/api/seasons/${seasonId}/schedule`
+      const { response, data } = await fetchJson<SchedulePageResponse>(
+        `/api/seasons/${seasonId}/schedule-page`
       );
       if (!response.ok) {
         setError(errorMessageFromData(data, "Failed to load schedule"));
         setMatches([]);
+        setTeams([]);
         return;
       }
       const now = Date.now();
@@ -61,10 +68,16 @@ export default function SchedulePage() {
         return date.getTime() >= now;
       });
       setMatches(loadedMatches);
+      setTeams(data.teams || []);
+      const availableTeams = data.teams || [];
+      setExportTeamId((current) =>
+        current && availableTeams.some((team) => team.id === current) ? current : ""
+      );
       setSelectedWeek("all");
     } catch {
       setError("Failed to load schedule");
       setMatches([]);
+      setTeams([]);
     } finally {
       setLoading(false);
     }
@@ -88,21 +101,6 @@ export default function SchedulePage() {
   useEffect(() => {
     loadSchedule();
   }, [loadSchedule]);
-
-  useEffect(() => {
-    async function loadTeams() {
-      if (!seasonId) {
-        setTeams([]);
-        setExportTeamId("");
-        return;
-      }
-      const { data } = await fetchJson<{ teams?: Team[] }>(`/api/seasons/${seasonId}/teams`);
-      const list = data.teams || [];
-      setTeams(list);
-      setExportTeamId((current) => (current && list.some((team) => team.id === current) ? current : ""));
-    }
-    loadTeams();
-  }, [seasonId]);
 
   const weeks = useMemo(
     () => Array.from(new Set(matches.map((match) => match.week_number))).sort((a, b) => a - b),

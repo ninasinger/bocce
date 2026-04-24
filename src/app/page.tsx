@@ -33,6 +33,15 @@ type Award = {
   team: string;
   detail: string;
 };
+type SummaryResponse = {
+  standings?: Standing[];
+  matches?: MatchRow[];
+  awards?: Award[];
+  awardsWeek?: number | null;
+  currentWeek?: number | null;
+  standingsWeek?: number;
+  error?: string;
+};
 
 const AWARD_COLORS: Record<string, string> = {
   blowout: "bg-red-50",
@@ -56,13 +65,6 @@ export default function HomePage() {
 
   useEffect(() => {
     async function loadCaptainNext() {
-      const sessionRes = await fetchJson<{ authenticated?: boolean; session?: { role?: string } }>(
-        "/api/auth/session"
-      );
-      if (!sessionRes.response.ok || sessionRes.data.session?.role !== "captain") {
-        setCaptainNextMatch(null);
-        return;
-      }
       const { response, data } = await fetchJson<{ matches?: MatchRow[] }>("/api/my/matches");
       if (!response.ok) {
         setCaptainNextMatch(null);
@@ -107,33 +109,20 @@ export default function HomePage() {
     async function loadData() {
       setLoading(true);
       try {
-        const [standingsResult, scheduleResult, awardsResult] = await Promise.all([
-          fetchJson<{ standings?: Standing[]; error?: string }>(`/api/seasons/${seasonId}/standings`),
-          fetchJson<{ matches?: MatchRow[]; error?: string }>(`/api/seasons/${seasonId}/schedule`),
-          fetchJson<{ awards?: Award[]; week?: number | null; error?: string }>(
-            `/api/seasons/${seasonId}/awards`
-          )
-        ]);
+        const { response, data } = await fetchJson<SummaryResponse>(`/api/seasons/${seasonId}/summary`);
 
-        if (!standingsResult.response.ok || !scheduleResult.response.ok) {
-          setError(
-            errorMessageFromData(standingsResult.data, "") ||
-              errorMessageFromData(scheduleResult.data, "") ||
-              "Could not load home data"
-          );
+        if (!response.ok) {
+          setError(errorMessageFromData(data, "Could not load home data"));
           setStandings([]);
           setMatches([]);
           return;
         }
 
-        setStandings((standingsResult.data.standings || []).slice(0, 6));
-        const allMatches: MatchRow[] = scheduleResult.data.matches || [];
-        const week = getCurrentWeek(allMatches);
-        setCurrentWeek(week);
-        const weekMatches = allMatches.filter((m) => m.week_number === week);
-        setMatches(weekMatches);
-        setAwards(awardsResult.data.awards || []);
-        setAwardsWeek(awardsResult.data.week || null);
+        setStandings(data.standings || []);
+        setCurrentWeek(data.currentWeek || null);
+        setMatches(data.matches || []);
+        setAwards(data.awards || []);
+        setAwardsWeek(data.awardsWeek || null);
       } catch {
         setError("Could not load home data");
         setStandings([]);

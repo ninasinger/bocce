@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from "react";
 import { TeamName } from "@/components/TeamName";
 import { SkeletonStandingRow } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
-import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
 type Standing = {
@@ -48,41 +47,20 @@ export default function StandingsPage() {
     loadSeasons();
   }, []);
 
-  useEffect(() => {
+  const loadStandings = useCallback(async () => {
     if (!seasonId) {
       setStandings([]);
       setStandingsWeek(1);
       setLoading(false);
       return;
     }
-
-    async function loadStandingsWeek() {
-      setLoading(true);
-      const scheduleRes = await fetch(`/api/seasons/${seasonId}/schedule`);
-      const scheduleJson = await scheduleRes.json();
-      const seasonMatches: { week_number: number; status: string }[] =
-        scheduleJson.matches || [];
-
-      const currentWeek = getCurrentWeek(seasonMatches);
-      const etWeekday = new Intl.DateTimeFormat("en-US", {
-        weekday: "short",
-        timeZone: "America/New_York"
-      }).format(new Date());
-      const isFridayOrLater = etWeekday === "Fri" || etWeekday === "Sat" || etWeekday === "Sun";
-      setStandingsWeek(isFridayOrLater ? currentWeek : Math.max(1, currentWeek - 1));
-    }
-
-    loadStandingsWeek();
-  }, [seasonId]);
-
-  const loadStandings = useCallback(async () => {
-    if (!seasonId) return;
     setLoading(true);
-    const res = await fetch(`/api/seasons/${seasonId}/standings?week=${standingsWeek}`);
+    const res = await fetch(`/api/seasons/${seasonId}/standings`);
     const json = await res.json();
     setStandings(json.standings || []);
+    setStandingsWeek(json.week || 1);
     setLoading(false);
-  }, [seasonId, standingsWeek]);
+  }, [seasonId]);
 
   useEffect(() => {
     loadStandings();

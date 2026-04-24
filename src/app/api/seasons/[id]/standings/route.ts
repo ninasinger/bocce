@@ -1,6 +1,16 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { computeStandings } from "@/lib/standings";
+import { getCurrentWeek } from "@/lib/week";
+
+function getPublishedStandingsWeek(currentWeek: number) {
+  const etWeekday = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    timeZone: "America/New_York"
+  }).format(new Date());
+  const isFridayOrLater = etWeekday === "Fri" || etWeekday === "Sat" || etWeekday === "Sun";
+  return isFridayOrLater ? currentWeek : Math.max(1, currentWeek - 1);
+}
 
 export async function GET(
   request: Request,
@@ -9,7 +19,7 @@ export async function GET(
   const client = getServiceClient();
   const { searchParams } = new URL(request.url);
   const week = searchParams.get("week");
-  const weekNumber = week ? Number(week) : null;
+  const requestedWeek = week ? Number(week) : null;
   const { data: teams, error: teamError } = await client
     .from("teams")
     .select("id, name")
@@ -29,8 +39,13 @@ export async function GET(
   }
 
   const allMatches = matches || [];
+  const currentWeek = getCurrentWeek(allMatches);
+  const weekNumber =
+    requestedWeek && !Number.isNaN(requestedWeek)
+      ? requestedWeek
+      : getPublishedStandingsWeek(currentWeek);
   const scopedMatches =
-    weekNumber && !Number.isNaN(weekNumber)
+    weekNumber
       ? allMatches.filter((match) => match.week_number <= weekNumber)
       : allMatches;
 
@@ -59,5 +74,5 @@ export async function GET(
     prevRank: prevRankMap && prevRankMap[s.teamName] != null ? prevRankMap[s.teamName] : null,
   }));
 
-  return NextResponse.json({ standings: standingsWithMovement });
+  return NextResponse.json({ standings: standingsWithMovement, week: weekNumber, currentWeek });
 }
