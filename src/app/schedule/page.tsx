@@ -114,23 +114,32 @@ export default function SchedulePage() {
     [matches, selectedWeek]
   );
   const groupedMatches = useMemo(() => {
-    const groups: Record<string, MatchRow[]> = {
-      Tuesday: [],
-      Thursday: [],
-      Other: []
-    };
+    const groups: Array<{ label: string; matches: MatchRow[] }> = [];
+    const groupMap = new Map<string, MatchRow[]>();
+
     for (const match of visibleMatches) {
-      if (!match.scheduled_datetime) {
-        groups.Other.push(match);
-        continue;
+      let label = "Other";
+      if (match.scheduled_datetime) {
+        const date = new Date(match.scheduled_datetime);
+        if (!Number.isNaN(date.getTime())) {
+          label = date.toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            timeZone: "America/New_York"
+          });
+        }
       }
-      const day = new Date(match.scheduled_datetime).toLocaleDateString("en-US", { weekday: "long" });
-      if (day === "Tuesday" || day === "Thursday") {
-        groups[day].push(match);
-      } else {
-        groups.Other.push(match);
+
+      if (!groupMap.has(label)) {
+        const bucket: MatchRow[] = [];
+        groupMap.set(label, bucket);
+        groups.push({ label, matches: bucket });
       }
+
+      groupMap.get(label)?.push(match);
     }
+
     return groups;
   }, [visibleMatches]);
 
@@ -301,13 +310,13 @@ export default function SchedulePage() {
           />
         ) : (
           <>
-            {(["Tuesday", "Thursday", "Other"] as const).map((day) => (
-              groupedMatches[day].length > 0 ? (
-                <section key={day} className="space-y-2">
+            {groupedMatches.map((group) => (
+              group.matches.length > 0 ? (
+                <section key={group.label} className="space-y-2">
                   <h3 className="text-sm font-semibold uppercase tracking-wide text-stone">
-                    {day}
+                    {group.label}
                   </h3>
-                  {groupedMatches[day].map((item) => (
+                  {group.matches.map((item) => (
                     <div key={item.id} className="tap rounded-xl bg-white/70 p-3">
                       <div className="flex flex-wrap items-center gap-2">
                         <StatusBadge status={item.status} />
