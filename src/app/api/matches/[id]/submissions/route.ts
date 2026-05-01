@@ -6,18 +6,27 @@ import { computeOutcome, validateMatchScore, type MatchScore } from "@/lib/scori
 import { resolveSubmissionStatus } from "@/lib/submissionResolution";
 import { env } from "@/lib/env";
 
-const FALLBACK_SCORE_ALERT_RECIPIENTS = [
-  "caitlin.smith1310@gmail.com",
-  "nina.singer860@gmail.com"
+const FALLBACK_TEST_RECIPIENTS = [
+  "nina.singer860@gmail.com",
+  "caitlin.smith1310@gmail.com"
 ];
 
-function getScoreAlertRecipients() {
-  const configured = env.scoreAlertRecipients;
-  const parsed = configured
+function parseEmailList(value: string) {
+  return value
     .split(",")
     .map((email) => email.trim())
     .filter(Boolean);
-  return parsed.length > 0 ? parsed : FALLBACK_SCORE_ALERT_RECIPIENTS;
+}
+
+function getTestRecipients() {
+  const parsed = parseEmailList(env.emailTestRecipients);
+  return parsed.length > 0 ? parsed : FALLBACK_TEST_RECIPIENTS;
+}
+
+function getLiveRecipients(captainEmails: Array<string | null | undefined>) {
+  const captains = captainEmails.filter((email): email is string => Boolean(email && email.trim()));
+  const extras = parseEmailList(env.scoreAlertRecipients);
+  return Array.from(new Set([...captains, ...extras]));
 }
 
 function formatScoreLine(label: string, score: MatchScore) {
@@ -31,6 +40,9 @@ async function sendScoreEventEmail({
   homeTeamName,
   awayTeamName,
   submittedByTeamName,
+  submitterCaptainEmail,
+  homeCaptainEmail,
+  awayCaptainEmail,
   score,
   status
 }: {
@@ -40,12 +52,26 @@ async function sendScoreEventEmail({
   homeTeamName: string;
   awayTeamName: string;
   submittedByTeamName: string;
+  submitterCaptainEmail?: string | null;
+  homeCaptainEmail?: string | null;
+  awayCaptainEmail?: string | null;
   score: MatchScore;
   status: string;
 }) {
   if (!env.resendApiKey) return;
 
-  const recipients = getScoreAlertRecipients();
+  // For "submitted", notify the captain whose team entered the score.
+  // For "approved" / "disputed", notify both captains.
+  const liveCaptainEmails =
+    event === "submitted"
+      ? [submitterCaptainEmail]
+      : [homeCaptainEmail, awayCaptainEmail];
+
+  const recipients = env.emailTestMode
+    ? getTestRecipients()
+    : getLiveRecipients(liveCaptainEmails);
+
+  if (recipients.length === 0) return;
   const titleByEvent: Record<typeof event, string> = {
     submitted: "Score Submitted",
     approved: "Match Approved",
@@ -57,10 +83,15 @@ async function sendScoreEventEmail({
     disputed: "The two team submissions did not match."
   };
 
-  const subject = `${titleByEvent[event]} • Week ${weekNumber} • ${homeTeamName} vs ${awayTeamName}`;
+  const subjectPrefix = env.emailTestMode ? "[TEST] " : "";
+  const subject = `${subjectPrefix}${titleByEvent[event]} • Week ${weekNumber} • ${homeTeamName} vs ${awayTeamName}`;
+  const testBanner = env.emailTestMode
+    ? `<p style="margin:0 0 14px;padding:8px 12px;background:#fff7e6;border:1px solid #f0c36d;color:#7a4a00;font-size:13px;">TEST MODE — captains are not receiving this email. Live recipients would be: ${liveCaptainEmails.filter(Boolean).join(", ") || "(no captain email on file)"}.</p>`
+    : "";
   const html = `
     <div style="font-family:Arial,sans-serif;max-width:720px;margin:0 auto;color:#1a1b1e">
       <h2 style="margin:0 0 8px;">${titleByEvent[event]}</h2>
+      ${testBanner}
       <p style="margin:0 0 14px;color:#555;">${summaryByEvent[event]}</p>
       <table style="border-collapse:collapse;width:100%;max-width:520px">
         <tbody>
@@ -164,12 +195,17 @@ export async function POST(
 
   const { data: teams } = await client
     .from("teams")
-    .select("id, name")
+    .select("id, name, captain_email")
     .in("id", [match.home_team_id, match.away_team_id, session.teamId]);
-  const teamNameById = new Map((teams || []).map((team) => [team.id, team.name]));
-  const homeTeamName = teamNameById.get(match.home_team_id) || "Home Team";
-  const awayTeamName = teamNameById.get(match.away_team_id) || "Away Team";
-  const submittedByTeamName = teamNameById.get(session.teamId) || "Team Captain";
+  const teamById = new Map(
+    (teams || []).map((team) => [team.id, team] as const)
+  );
+  const homeTeamName = teamById.get(match.home_team_id)?.name || "Home Team";
+  const awayTeamName = teamById.get(match.away_team_id)?.name || "Away Team";
+  const submittedByTeamName = teamById.get(session.teamId)?.name || "Team Captain";
+  const homeCaptainEmail = teamById.get(match.home_team_id)?.captain_email ?? null;
+  const awayCaptainEmail = teamById.get(match.away_team_id)?.captain_email ?? null;
+  const submitterCaptainEmail = teamById.get(session.teamId)?.captain_email ?? null;
 
   const { data: season } = await client
     .from("seasons")
@@ -185,6 +221,9 @@ export async function POST(
     homeTeamName,
     awayTeamName,
     submittedByTeamName,
+    submitterCaptainEmail,
+    homeCaptainEmail,
+    awayCaptainEmail,
     score,
     status: "pending other score"
   }).catch((error) => {
@@ -278,6 +317,9 @@ export async function POST(
       homeTeamName,
       awayTeamName,
       submittedByTeamName,
+      submitterCaptainEmail,
+      homeCaptainEmail,
+      awayCaptainEmail,
       score,
       status: "disputed"
     }).catch((error) => {
@@ -341,6 +383,9 @@ export async function POST(
     homeTeamName,
     awayTeamName,
     submittedByTeamName,
+    submitterCaptainEmail,
+    homeCaptainEmail,
+    awayCaptainEmail,
     score,
     status: "approved"
   }).catch((error) => {
