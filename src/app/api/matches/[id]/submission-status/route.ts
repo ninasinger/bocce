@@ -24,19 +24,25 @@ export async function GET(
     .eq("status", "active")
     .maybeSingle();
 
-  const { data: latestSubmission } = await client
-    .from("match_submissions")
-    .select("id, game1_home_score, game1_away_score, game2_home_score, game2_away_score, notes")
-    .eq("match_id", params.id)
-    .eq("status", "active")
-    .order("submitted_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // The captain's own submission prefills the form when present; the prefill
+  // query is only needed when this captain has not yet submitted.
+  let prefillSubmission = null;
+  if (!submission) {
+    const { data: latestSubmission } = await client
+      .from("match_submissions")
+      .select("id, game1_home_score, game1_away_score, game2_home_score, game2_away_score, notes")
+      .eq("match_id", params.id)
+      .eq("status", "active")
+      .order("submitted_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    prefillSubmission = latestSubmission || null;
+  }
 
   return NextResponse.json({
     status: match?.status ?? "unknown",
     submitted: Boolean(submission),
     submission: submission || null,
-    prefill_submission: latestSubmission || null
+    prefill_submission: prefillSubmission
   });
 }

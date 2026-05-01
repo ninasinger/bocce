@@ -37,32 +37,23 @@ export default function CommissionerDashboard() {
   const [driveEmail, setDriveEmail] = useState("");
 
   useEffect(() => {
-    async function checkSession() {
-      const { response, data } = await fetchJson<{ session?: { role?: string } }>(
-        "/api/auth/session"
-      );
-      if (!response.ok || data.session?.role !== "commissioner") {
+    async function bootstrap() {
+      const [sessionResult, seasonsResult] = await Promise.all([
+        fetchJson<{ session?: { role?: string } }>("/api/auth/session"),
+        fetchJson<{ seasons?: Season[] }>("/api/seasons")
+      ]);
+      if (!sessionResult.response.ok || sessionResult.data.session?.role !== "commissioner") {
         router.replace("/commissioner/login");
         return;
       }
+      const list: Season[] = seasonsResult.data.seasons || [];
+      setSeasons(list);
+      setSeasonId(list[0]?.id || "");
       setAuthorized(true);
     }
 
-    checkSession();
+    bootstrap();
   }, [router]);
-
-  useEffect(() => {
-    if (!authorized) return;
-
-    async function loadSeasons() {
-      const { data } = await fetchJson<{ seasons?: Season[] }>("/api/seasons");
-      const list: Season[] = data.seasons || [];
-      setSeasons(list);
-      setSeasonId(list[0]?.id || "");
-    }
-
-    loadSeasons();
-  }, [authorized]);
 
   useEffect(() => {
     if (!authorized || !seasonId) {

@@ -2,37 +2,23 @@ import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { hashCode, getSession } from "@/lib/auth";
 import { env } from "@/lib/env";
-
-function normalizeSeasonName(name: string, year: number) {
-  return name.replace(new RegExp(`\\s*\\(${year}\\)\\s*$`), "").trim();
-}
+import { loadSeasonsList } from "@/lib/seasonSummary";
 
 export async function GET() {
   try {
     const client = getServiceClient();
-    const { data, error } = await client
-      .from("seasons")
-      .select("id, name, year, created_at")
-      .order("created_at", { ascending: false });
-
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    const { seasons, error } = await loadSeasonsList(client);
+    if (error || !seasons) {
+      return NextResponse.json({ error: error || "Failed to load seasons" }, { status: 500 });
     }
-
-    const unique = new Map<string, { id: string; name: string; year: number; created_at: string }>();
-    for (const season of data || []) {
-      const normalizedName = normalizeSeasonName(season.name, season.year);
-      const key = `${normalizedName}::${season.year}`;
-      if (!unique.has(key)) {
-        unique.set(key, { ...season, name: normalizedName });
+    return NextResponse.json(
+      { seasons },
+      {
+        headers: {
+          "Cache-Control": "public, max-age=300, stale-while-revalidate=600"
+        }
       }
-    }
-
-    const seasons = Array.from(unique.values())
-      .sort((a, b) => b.year - a.year || b.created_at.localeCompare(a.created_at))
-      .map(({ id, name, year }) => ({ id, name, year }));
-
-    return NextResponse.json({ seasons });
+    );
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Failed to load seasons" },

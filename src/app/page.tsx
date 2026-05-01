@@ -59,33 +59,51 @@ export default function HomePage() {
     loadCaptainNext();
   }, []);
 
+  const [bootstrapped, setBootstrapped] = useState(false);
+
   useEffect(() => {
-    async function loadSeasons() {
+    async function loadBootstrap() {
       try {
-        const { response, data } = await fetchJson<{ seasons?: Season[]; error?: string }>("/api/seasons");
+        const { response, data } = await fetchJson<{
+          seasons?: Season[];
+          defaultSeasonId?: string | null;
+          summary?: SummaryResponse | null;
+          error?: string;
+        }>("/api/home");
+
         if (!response.ok) {
-          setError(errorMessageFromData(data, "Could not load seasons"));
+          setError(errorMessageFromData(data, "Could not load home data"));
           setSeasons([]);
           setSeasonId("");
-          setLoading(false);
           return;
         }
+
         const list: Season[] = data.seasons || [];
         setSeasons(list);
-        setSeasonId(list[0]?.id || "");
+        setSeasonId(data.defaultSeasonId || list[0]?.id || "");
+
+        if (data.summary) {
+          setStandings(data.summary.standings || []);
+          setCurrentWeek(data.summary.currentWeek || null);
+          setMatches(data.summary.matches || []);
+        }
       } catch {
-        setError("Could not load seasons");
+        setError("Could not load home data");
         setSeasons([]);
         setSeasonId("");
+      } finally {
         setLoading(false);
+        setBootstrapped(true);
       }
     }
 
-    loadSeasons();
+    loadBootstrap();
   }, []);
 
   useEffect(() => {
-    if (!seasonId) return;
+    // Skip the initial render — the bootstrap call already loaded the default
+    // season's summary. Only re-fetch when the user changes the season selector.
+    if (!bootstrapped || !seasonId) return;
 
     async function loadData() {
       setLoading(true);
@@ -112,7 +130,7 @@ export default function HomePage() {
     }
 
     loadData();
-  }, [seasonId]);
+  }, [seasonId, bootstrapped]);
 
   const verifiedCount = useMemo(
     () => matches.filter((match) => match.status === "verified" || match.status === "corrected").length,
