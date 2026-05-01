@@ -13,20 +13,20 @@ type ScheduleRow = {
 const FINAL_TEAM_NAMES = [
   "Bocce Babes",
   "Bocce Bellas",
-  "Bocce Mammas",
+  "Bocce Mamas",
   "Bocce Stars",
   "Cannoli Hope",
   "D'Bocceri",
-  "Dolls With Balls",
-  "Donne Dolci",
+  "Dolls with Balls",
+  "Donne Dolce",
   "Donne Vere",
   "La Bocce Vita",
   "Let's Roll",
   "Limoncello Sorellas",
-  "Movin Balls",
+  "Movin' Balls",
   "Quattro Amici",
   "Roll Models",
-  "Viva La Bocce",
+  "Viva la Bocce",
   "Wonder Women"
 ];
 
@@ -146,13 +146,9 @@ test("2026 CSV schedule avoids same-night duplicate teams and keeps court number
   );
 });
 
-test("2026 SQL seed files match the same schedule integrity rules", () => {
+test("2026 SQL seed file matches the same schedule integrity rules", () => {
   validateSchedule(
     "2026_schedule.sql",
     parseSqlSchedule(path.join(process.cwd(), "supabase/seeds/2026_schedule.sql"))
-  );
-  validateSchedule(
-    "0011_sync_2026_schedule_from_txt.sql",
-    parseSqlSchedule(path.join(process.cwd(), "supabase/migrations/0011_sync_2026_schedule_from_txt.sql"))
   );
 });

@@ -11,7 +11,8 @@
   "include": [
     "tests/**/*.ts",
     "src/lib/scoring.ts",
-    "src/lib/submissionResolution.ts"
+    "src/lib/submissionResolution.ts",
+    "src/lib/scheduleIcs.ts"
   ],
   "exclude": ["node_modules", ".next"]
 }

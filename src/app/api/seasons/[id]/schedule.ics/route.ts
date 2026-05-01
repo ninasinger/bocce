@@ -1,23 +1,9 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { formatMatchTeamName } from "@/lib/matchFormat";
+import { buildIcsCalendar, type IcsMatch } from "@/lib/scheduleIcs";
 
 export const runtime = "nodejs";
-
-function escapeIcsText(value: string) {
-  return value
-    .replace(/\\/g, "\\\\")
-    .replace(/\n/g, "\\n")
-    .replace(/,/g, "\\,")
-    .replace(/;/g, "\\;");
-}
-
-function toIcsUtc(date: Date) {
-  return date
-    .toISOString()
-    .replace(/[-:]/g, "")
-    .replace(/\.\d{3}Z$/, "Z");
-}
 
 export async function GET(
   request: Request,
@@ -26,13 +12,6 @@ export async function GET(
   const client = getServiceClient();
   const { searchParams } = new URL(request.url);
   const teamId = searchParams.get("teamId");
-
-  if (!teamId) {
-    return NextResponse.json(
-      { error: "Google Calendar export is only available for a single team." },
-      { status: 400 }
-    );
-  }
 
   const { data: season, error: seasonError } = await client
     .from("seasons")
@@ -43,16 +22,23 @@ export async function GET(
     return NextResponse.json({ error: seasonError?.message || "Season not found" }, { status: 500 });
   }
 
-  const { data: team, error: teamError } = await client
-    .from("teams")
-    .select("name")
-    .eq("id", teamId)
-    .maybeSingle();
-  if (teamError || !team) {
-    return NextResponse.json({ error: teamError?.message || "Team not found" }, { status: 404 });
+  let calendarTitle = season.name;
+  let filename = `${season.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_full_league_schedule.ics`;
+
+  if (teamId) {
+    const { data: team, error: teamError } = await client
+      .from("teams")
+      .select("name")
+      .eq("id", teamId)
+      .maybeSingle();
+    if (teamError || !team) {
+      return NextResponse.json({ error: teamError?.message || "Team not found" }, { status: 404 });
+    }
+    calendarTitle = `${team.name} - ${season.name}`;
+    filename = `${team.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_schedule.ics`;
   }
 
-  const { data: matches, error: matchError } = await client
+  let query = client
     .from("matches")
     .select(
       `
@@ -65,52 +51,35 @@ export async function GET(
     `
     )
     .eq("season_id", params.id)
-    .or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`)
     .not("scheduled_datetime", "is", null)
     .order("scheduled_datetime", { ascending: true });
+
+  if (teamId) {
+    query = query.or(`home_team_id.eq.${teamId},away_team_id.eq.${teamId}`);
+  }
+
+  const { data: matches, error: matchError } = await query;
 
   if (matchError) {
     return NextResponse.json({ error: matchError.message }, { status: 500 });
   }
 
-  const dtStamp = toIcsUtc(new Date());
-  const events = (matches || [])
-    .map((match) => {
-      const start = new Date(match.scheduled_datetime as string);
-      if (Number.isNaN(start.getTime())) return "";
-      const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
-      const home = formatMatchTeamName(match.home_team, "Home");
-      const away = formatMatchTeamName(match.away_team, "Away");
-      const summary = escapeIcsText(`Bocce Week ${match.week_number}: ${home} vs ${away}`);
-      const description = escapeIcsText(
-        `Bocce League 2026\nWeek ${match.week_number}\n${home} vs ${away}${match.notes ? `\n${match.notes}` : ""}`
-      );
+  const icsMatches: IcsMatch[] = (matches || []).map((match) => ({
+    id: match.id,
+    weekNumber: match.week_number,
+    scheduledDatetime: match.scheduled_datetime as string,
+    notes: match.notes,
+    homeTeam: formatMatchTeamName(match.home_team, "Home"),
+    awayTeam: formatMatchTeamName(match.away_team, "Away")
+  }));
 
-      return [
-        "BEGIN:VEVENT",
-        `UID:${match.id}@bellavillabocce.com`,
-        `DTSTAMP:${dtStamp}`,
-        `DTSTART:${toIcsUtc(start)}`,
-        `DTEND:${toIcsUtc(end)}`,
-        `SUMMARY:${summary}`,
-        `DESCRIPTION:${description}`,
-        "END:VEVENT"
-      ].join("\r\n");
-    })
-    .filter(Boolean);
+  const calendar = buildIcsCalendar({
+    calendarTitle,
+    seasonName: season.name,
+    matches: icsMatches,
+    now: new Date()
+  });
 
-  const calendar = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//BellaVilla Bocce//League Schedule//EN",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    `X-WR-CALNAME:${escapeIcsText(`${team.name} - ${season.name}`)}`,
-    ...events,
-    "END:VCALENDAR"
-  ].join("\r\n");
-
-  const filename = `${team.name.toLowerCase().replace(/[^a-z0-9]+/g, "_")}_schedule.ics`;
   return new NextResponse(calendar, {
     headers: {
       "Content-Type": "text/calendar; charset=utf-8",
