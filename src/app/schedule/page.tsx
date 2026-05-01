@@ -29,6 +29,24 @@ type SchedulePageResponse = {
   error?: string;
 };
 
+function readWeekParam(): number | "all" {
+  if (typeof window === "undefined") return "all";
+  const raw = new URLSearchParams(window.location.search).get("week");
+  if (!raw || raw === "all") return "all";
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : "all";
+}
+
+function syncWeekParam(week: number | "all") {
+  if (typeof window === "undefined") return;
+  const params = new URLSearchParams(window.location.search);
+  if (week === "all") params.delete("week");
+  else params.set("week", String(week));
+  const query = params.toString();
+  const url = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+  window.history.replaceState(null, "", url);
+}
+
 export default function SchedulePage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState("");
@@ -73,7 +91,9 @@ export default function SchedulePage() {
       setExportTeamId((current) =>
         current && availableTeams.some((team) => team.id === current) ? current : ""
       );
-      setSelectedWeek("all");
+      const urlWeek = readWeekParam();
+      const availableWeeks = new Set(loadedMatches.map((m) => m.week_number));
+      setSelectedWeek(urlWeek !== "all" && availableWeeks.has(urlWeek) ? urlWeek : "all");
     } catch {
       setError("Failed to load schedule");
       setMatches([]);
@@ -195,9 +215,11 @@ export default function SchedulePage() {
           <select
             className="w-24 rounded-xl border border-white/60 bg-white/70 px-2 py-2.5 text-sm font-semibold md:w-28 md:px-3 md:text-base"
             value={selectedWeek}
-            onChange={(event) =>
-              setSelectedWeek(event.target.value === "all" ? "all" : Number(event.target.value))
-            }
+            onChange={(event) => {
+              const next = event.target.value === "all" ? "all" : Number(event.target.value);
+              setSelectedWeek(next);
+              syncWeekParam(next);
+            }}
           >
             {weeks.length === 0 ? <option value={1}>Wk 1</option> : null}
             {weeks.length > 0 ? <option value="all">All</option> : null}

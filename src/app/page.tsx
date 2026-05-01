@@ -34,6 +34,21 @@ type SummaryResponse = {
   error?: string;
 };
 
+function readInitialSeasonParam() {
+  if (typeof window === "undefined") return "";
+  return new URLSearchParams(window.location.search).get("season") || "";
+}
+
+function syncSeasonParam(seasonId: string) {
+  if (typeof window === "undefined") return;
+  const params = new URLSearchParams(window.location.search);
+  if (seasonId) params.set("season", seasonId);
+  else params.delete("season");
+  const query = params.toString();
+  const url = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+  window.history.replaceState(null, "", url);
+}
+
 export default function HomePage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState("");
@@ -80,9 +95,15 @@ export default function HomePage() {
 
         const list: Season[] = data.seasons || [];
         setSeasons(list);
-        setSeasonId(data.defaultSeasonId || list[0]?.id || "");
+        const initialFromUrl = readInitialSeasonParam();
+        const matchedFromUrl = initialFromUrl && list.some((s) => s.id === initialFromUrl)
+          ? initialFromUrl
+          : "";
+        const resolved = matchedFromUrl || data.defaultSeasonId || list[0]?.id || "";
+        setSeasonId(resolved);
 
-        if (data.summary) {
+        // Only use bootstrap summary if URL didn't pick a different season
+        if (data.summary && (!matchedFromUrl || matchedFromUrl === data.defaultSeasonId)) {
           setStandings(data.summary.standings || []);
           setCurrentWeek(data.summary.currentWeek || null);
           setMatches(data.summary.matches || []);
@@ -104,6 +125,7 @@ export default function HomePage() {
     // Skip the initial render — the bootstrap call already loaded the default
     // season's summary. Only re-fetch when the user changes the season selector.
     if (!bootstrapped || !seasonId) return;
+    syncSeasonParam(seasonId);
 
     async function loadData() {
       setLoading(true);

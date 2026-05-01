@@ -27,6 +27,35 @@ function shortName(name: string) {
 
 type Step = "loading" | "already_submitted" | "entry" | "confirm" | "success";
 type SubmitResult = "pending_verification" | "verified" | "disputed" | "queued";
+type SubmitPhase = "idle" | "submitting" | "retrying";
+
+async function postSubmissionWithRetry(
+  matchId: string,
+  payload: Record<string, unknown>,
+  onPhase: (phase: SubmitPhase) => void
+) {
+  const maxAttempts = 3;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    onPhase(attempt === 1 ? "submitting" : "retrying");
+    const { response, data } = await fetchJson<{ error?: string; status?: SubmitResult; duplicate?: boolean }>(
+      `/api/matches/${matchId}/submissions`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }
+    );
+    if (response.ok || (response.status >= 400 && response.status < 500)) {
+      return { response, data };
+    }
+    if (attempt < maxAttempts) {
+      await new Promise((r) => setTimeout(r, 500 * attempt));
+    } else {
+      return { response, data };
+    }
+  }
+  throw new Error("unreachable");
+}
 
 function ScoreInput({
   value,
@@ -146,6 +175,7 @@ export default function SubmitScorePage() {
   const [result, setResult] = useState<SubmitResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [submitPhase, setSubmitPhase] = useState<SubmitPhase>("idle");
   const [homeTeamName, setHomeTeamName] = useState("Home");
   const [awayTeamName, setAwayTeamName] = useState("Away");
   const [matchStatus, setMatchStatus] = useState("");
@@ -245,19 +275,13 @@ export default function SubmitScorePage() {
     };
 
     try {
-      const { response, data } = await fetchJson<{ error?: string; status?: SubmitResult }>(
-        `/api/matches/${matchId}/submissions`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        }
-      );
+      const { response, data } = await postSubmissionWithRetry(matchId, payload, setSubmitPhase);
 
       if (!response.ok) {
         setError(errorMessageFromData(data, "Submission failed"));
         setStep("entry");
         setSubmitting(false);
+        setSubmitPhase("idle");
         return;
       }
 
@@ -273,6 +297,7 @@ export default function SubmitScorePage() {
       setStep("success");
     }
     setSubmitting(false);
+    setSubmitPhase("idle");
   }
 
   // ── Loading ──
@@ -432,7 +457,11 @@ export default function SubmitScorePage() {
             disabled={submitting}
             className="tap-btn w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white disabled:opacity-60"
           >
-            {submitting ? "Submitting..." : "Submit scores"}
+            {submitting
+              ? submitPhase === "retrying"
+                ? "Retrying..."
+                : "Submitting..."
+              : "Submit scores"}
           </button>
           <button
             onClick={() => setStep("entry")}

@@ -169,18 +169,6 @@ export async function POST(
     return NextResponse.json({ error: "Not your match" }, { status: 403 });
   }
 
-  const existing = await client
-    .from("match_submissions")
-    .select("id")
-    .eq("match_id", matchId)
-    .eq("submitted_by_team_id", session.teamId)
-    .eq("status", "active")
-    .maybeSingle();
-
-  if (existing.data) {
-    return NextResponse.json({ error: "Submission already exists" }, { status: 409 });
-  }
-
   const score = {
     game1: { home: Number(body.game1_home_score), away: Number(body.game1_away_score) },
     game2: { home: Number(body.game2_home_score), away: Number(body.game2_away_score) }
@@ -189,6 +177,32 @@ export async function POST(
   const validation = validateMatchScore(score, 16);
   if (!validation.ok) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
+  }
+
+  // Idempotency: if this team already has an active submission with identical
+  // scores, treat the request as a duplicate and return the current match
+  // status. This makes client retries safe.
+  const existing = await client
+    .from("match_submissions")
+    .select("game1_home_score, game1_away_score, game2_home_score, game2_away_score")
+    .eq("match_id", matchId)
+    .eq("submitted_by_team_id", session.teamId)
+    .eq("status", "active")
+    .maybeSingle();
+
+  if (existing.data) {
+    const sameScores =
+      existing.data.game1_home_score === score.game1.home &&
+      existing.data.game1_away_score === score.game1.away &&
+      existing.data.game2_home_score === score.game2.home &&
+      existing.data.game2_away_score === score.game2.away;
+    if (sameScores) {
+      return NextResponse.json({ status: match.status, duplicate: true });
+    }
+    return NextResponse.json(
+      { error: "Submission already exists with different scores. Contact the commissioner." },
+      { status: 409 }
+    );
   }
 
   const computed = computeOutcome(score);

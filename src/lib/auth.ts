@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { createHash } from "crypto";
 import bcrypt from "bcryptjs";
 import { env } from "./env";
 
@@ -69,12 +70,34 @@ export async function clearSessionCookie() {
   cookies().delete(COOKIE_NAME);
 }
 
+type SessionCacheEntry = { payload: SessionPayload; expiresAt: number };
+const SESSION_CACHE_TTL_MS = 30_000;
+const SESSION_CACHE_MAX = 500;
+const sessionCache = new Map<string, SessionCacheEntry>();
+
+function hashToken(token: string) {
+  return createHash("sha256").update(token).digest("hex");
+}
+
 export async function getSession(): Promise<SessionPayload | null> {
   const token = cookies().get(COOKIE_NAME)?.value;
   if (!token) return null;
+  const key = hashToken(token);
+  const now = Date.now();
+  const cached = sessionCache.get(key);
+  if (cached && cached.expiresAt > now) {
+    return cached.payload;
+  }
+  if (cached) sessionCache.delete(key);
   try {
     const { payload } = await jwtVerify(token, getSecret());
-    return payload as SessionPayload;
+    const session = payload as SessionPayload;
+    if (sessionCache.size >= SESSION_CACHE_MAX) {
+      const oldestKey = sessionCache.keys().next().value;
+      if (oldestKey) sessionCache.delete(oldestKey);
+    }
+    sessionCache.set(key, { payload: session, expiresAt: now + SESSION_CACHE_TTL_MS });
+    return session;
   } catch {
     await clearSessionCookie();
     return null;
