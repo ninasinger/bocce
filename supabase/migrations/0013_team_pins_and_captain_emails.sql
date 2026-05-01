@@ -84,7 +84,7 @@ begin
     captain_name = 'Cathy Colosimo',
     captain_email = 'jabio_dew@yahoo.com',
     team_code_hash = '$2a$10$KqlJFbzALEfTC3yiV9QNjeGza5ijJZKJB/wV4A2b8e66dkmuJeIby'
-  where season_id = v_season_id and name = 'Movin'' Balls';
+  where season_id = v_season_id and name in ('Movin Balls', 'Movin'' Balls');
 
   update teams set
     captain_name = 'Anne Lombardo',
