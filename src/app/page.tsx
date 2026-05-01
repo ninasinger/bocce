@@ -261,6 +261,27 @@ export default function HomePage() {
         </section>
       ) : null}
 
+      <section className="card p-4 md:p-6">
+        <h2 className="section-title">League documents</h2>
+        <p className="mt-1 text-sm text-stone">Download the 2026 roster and official rules.</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <a
+            href="/documents/2026-roster.pdf"
+            download
+            className="tap nav-pill nav-pill-muted text-sm font-semibold"
+          >
+            📋 2026 Roster (PDF)
+          </a>
+          <a
+            href="/documents/2026-rules.pdf"
+            download
+            className="tap nav-pill nav-pill-muted text-sm font-semibold"
+          >
+            📖 2026 Rules (PDF)
+          </a>
+        </div>
+      </section>
+
       <section className="grid gap-6 md:grid-cols-2">
         <div className="card p-4 md:p-6">
           <h2 className="section-title">Standings preview</h2>
