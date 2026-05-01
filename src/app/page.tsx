@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
-import { Skeleton, SkeletonCard, SkeletonStandingRow, SkeletonAwardCard } from "@/components/Skeleton";
+import { Skeleton, SkeletonCard, SkeletonStandingRow } from "@/components/Skeleton";
 import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
 import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 import { getCurrentWeek } from "@/lib/week";
@@ -26,29 +26,12 @@ type MatchRow = {
   home_team: TeamRef;
   away_team: TeamRef;
 };
-type Award = {
-  id: string;
-  emoji: string;
-  title: string;
-  team: string;
-  detail: string;
-};
 type SummaryResponse = {
   standings?: Standing[];
   matches?: MatchRow[];
-  awards?: Award[];
-  awardsWeek?: number | null;
   currentWeek?: number | null;
   standingsWeek?: number;
   error?: string;
-};
-
-const AWARD_COLORS: Record<string, string> = {
-  blowout: "bg-red-50",
-  nailbiter: "bg-amber-50",
-  topscorer: "bg-sky-50",
-  hotstreak: "bg-orange-50",
-  risingstar: "bg-violet-50",
 };
 
 export default function HomePage() {
@@ -56,8 +39,6 @@ export default function HomePage() {
   const [seasonId, setSeasonId] = useState("");
   const [standings, setStandings] = useState<Standing[]>([]);
   const [matches, setMatches] = useState<MatchRow[]>([]);
-  const [awards, setAwards] = useState<Award[]>([]);
-  const [awardsWeek, setAwardsWeek] = useState<number | null>(null);
   const [currentWeek, setCurrentWeek] = useState<number | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -121,8 +102,6 @@ export default function HomePage() {
         setStandings(data.standings || []);
         setCurrentWeek(data.currentWeek || null);
         setMatches(data.matches || []);
-        setAwards(data.awards || []);
-        setAwardsWeek(data.awardsWeek || null);
       } catch {
         setError("Could not load home data");
         setStandings([]);
@@ -173,6 +152,27 @@ export default function HomePage() {
         </section>
       ) : null}
 
+      <section className="card p-4 md:p-6">
+        <h2 className="section-title">League documents</h2>
+        <p className="mt-1 text-sm text-stone">Download the 2026 roster and official rules.</p>
+        <div className="mt-4 flex flex-wrap gap-2">
+          <a
+            href="/documents/2026-roster.pdf"
+            download
+            className="tap nav-pill nav-pill-muted text-sm font-semibold"
+          >
+            📋 2026 Roster (PDF)
+          </a>
+          <a
+            href="/documents/2026-rules.pdf"
+            download
+            className="tap nav-pill nav-pill-muted text-sm font-semibold"
+          >
+            📖 2026 Rules (PDF)
+          </a>
+        </div>
+      </section>
+
       <section className="card fade-in p-4 md:p-6">
         {error ? (
           <p className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
@@ -209,85 +209,11 @@ export default function HomePage() {
             </div>
           </div>
         )}
-        <div className="mt-4 flex flex-wrap gap-2">
-          <Link href="/schedule" className="tap nav-pill nav-pill-muted text-sm font-semibold">
-            View Week {currentWeek ?? "?"} Schedule
-          </Link>
-          <Link href="/standings" className="tap nav-pill nav-pill-muted text-sm font-semibold">
-            Open Full Standings
-          </Link>
-        </div>
-      </section>
-
-      {/* Weekly Awards */}
-      {loading ? (
-        <section className="card fade-in p-4 md:p-6">
-          <Skeleton className="h-6 w-40" />
-          <Skeleton className="mt-2 h-4 w-56" />
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            <SkeletonAwardCard />
-            <SkeletonAwardCard />
-          </div>
-        </section>
-      ) : awards.length > 0 ? (
-        <section className="card fade-in p-4 md:p-6">
-          <h2 className="section-title">
-            Week {awardsWeek} Awards
-          </h2>
-          <p className="mt-1 text-sm text-stone">
-            Highlights from this week&apos;s verified matches.
-          </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
-            {awards.map((award) => (
-              <div
-                key={award.id}
-                className={`award-card ${AWARD_COLORS[award.id] || "bg-white/70"}`}
-              >
-                <div className="flex items-start gap-3">
-                  <span className="text-2xl" role="img" aria-label={award.title}>
-                    {award.emoji}
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-stone">
-                      {award.title}
-                    </p>
-                    <p className="mt-0.5 font-display text-base leading-tight">{award.team}</p>
-                    <p className="mt-0.5 text-sm text-stone">{award.detail}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
-      ) : null}
-
-      <section className="card p-4 md:p-6">
-        <h2 className="section-title">League documents</h2>
-        <p className="mt-1 text-sm text-stone">Download the 2026 roster and official rules.</p>
-        <div className="mt-4 flex flex-wrap gap-2">
-          <a
-            href="/documents/2026-roster.pdf"
-            download
-            className="tap nav-pill nav-pill-muted text-sm font-semibold"
-          >
-            📋 2026 Roster (PDF)
-          </a>
-          <a
-            href="/documents/2026-rules.pdf"
-            download
-            className="tap nav-pill nav-pill-muted text-sm font-semibold"
-          >
-            📖 2026 Rules (PDF)
-          </a>
-        </div>
       </section>
 
       <section className="grid gap-6 md:grid-cols-2">
         <div className="card p-4 md:p-6">
           <h2 className="section-title">Standings preview</h2>
-          <p className="mt-1 text-sm text-stone">
-            Top teams by games won.
-          </p>
           <div className="mt-4 space-y-2 text-sm">
             {loading ? (
               <>
@@ -312,9 +238,9 @@ export default function HomePage() {
 
         <div className="card p-4 md:p-6">
           <h2 className="section-title">Week {currentWeek ?? "..."} matches</h2>
-          <p className="mt-1 text-sm text-stone">
-            {matches.length === 0 && !loading ? "No matches this week." : "Current week\u2019s games."}
-          </p>
+          {matches.length === 0 && !loading ? (
+            <p className="mt-1 text-sm text-stone">No matches this week.</p>
+          ) : null}
           <div className="mt-4 space-y-2 text-sm">
             {loading ? (
               <>
