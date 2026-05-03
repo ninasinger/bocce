@@ -70,7 +70,8 @@ export default function SchedulePage() {
     setError("");
     try {
       const { response, data } = await fetchJson<SchedulePageResponse>(
-        `/api/seasons/${seasonId}/schedule-page`
+        `/api/seasons/${seasonId}/schedule-page`,
+        { cache: "no-store" }
       );
       if (!response.ok) {
         setError(errorMessageFromData(data, "Failed to load schedule"));
@@ -114,6 +115,21 @@ export default function SchedulePage() {
 
   useEffect(() => {
     loadSchedule();
+  }, [loadSchedule]);
+
+  useEffect(() => {
+    function refreshVisibleSchedule() {
+      if (document.visibilityState === "visible") {
+        loadSchedule();
+      }
+    }
+
+    window.addEventListener("focus", loadSchedule);
+    document.addEventListener("visibilitychange", refreshVisibleSchedule);
+    return () => {
+      window.removeEventListener("focus", loadSchedule);
+      document.removeEventListener("visibilitychange", refreshVisibleSchedule);
+    };
   }, [loadSchedule]);
 
   const weeks = useMemo(

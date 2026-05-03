@@ -79,6 +79,18 @@ export async function GET(
   })).map((match) => {
     if (match.status === "verified" || match.status === "corrected") return match;
 
+    if (
+      match.home_games_won != null &&
+      match.away_games_won != null &&
+      match.home_total_score != null &&
+      match.away_total_score != null
+    ) {
+      return {
+        ...match,
+        status: "verified"
+      };
+    }
+
     const matchSubmissions = submissionsByMatch.get(match.id) || [];
     if (matchSubmissions.length === 0) return match;
 
