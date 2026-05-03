@@ -77,7 +77,13 @@ export async function GET(
     ...match,
     notes: typeof match.notes === "string" ? match.notes.replace(/\s*-\s*EXTRA\b/gi, "") : match.notes
   })).map((match) => {
-    if (match.status === "verified" || match.status === "corrected") return match;
+    if (match.status === "verified") return match;
+    if (match.status === "corrected") {
+      return {
+        ...match,
+        status: "verified"
+      };
+    }
 
     if (
       match.home_games_won != null &&

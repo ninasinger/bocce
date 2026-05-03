@@ -105,6 +105,11 @@ export default function CommissionerMatchReview() {
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [authorized, setAuthorized] = useState(false);
+  const [correctionSaved, setCorrectionSaved] = useState(false);
+  const [game1HomeScore, setGame1HomeScore] = useState(0);
+  const [game1AwayScore, setGame1AwayScore] = useState(0);
+  const [game2HomeScore, setGame2HomeScore] = useState(0);
+  const [game2AwayScore, setGame2AwayScore] = useState(0);
   const previousScore = submissions.length > 0 ? submissions[submissions.length - 1] : null;
 
   useEffect(() => {
@@ -146,7 +151,15 @@ export default function CommissionerMatchReview() {
       }
 
       setMatch(matchResult.data.match || null);
-      setSubmissions(submissionsResult.data.submissions || []);
+      const loadedSubmissions = submissionsResult.data.submissions || [];
+      setSubmissions(loadedSubmissions);
+      const latestSubmission = loadedSubmissions[loadedSubmissions.length - 1];
+      if (latestSubmission) {
+        setGame1HomeScore(latestSubmission.game1_home_score);
+        setGame1AwayScore(latestSubmission.game1_away_score);
+        setGame2HomeScore(latestSubmission.game2_home_score);
+        setGame2AwayScore(latestSubmission.game2_away_score);
+      }
       setHistory(historyResult.data.history || []);
       setLoadingSubmissions(false);
     }
@@ -158,13 +171,14 @@ export default function CommissionerMatchReview() {
     event.preventDefault();
     setError("");
     setMessage("");
+    setCorrectionSaved(false);
 
     const form = new FormData(event.currentTarget);
     const payload = {
-      game1_home_score: Number(form.get("game1_home_score")),
-      game1_away_score: Number(form.get("game1_away_score")),
-      game2_home_score: Number(form.get("game2_home_score")),
-      game2_away_score: Number(form.get("game2_away_score")),
+      game1_home_score: game1HomeScore,
+      game1_away_score: game1AwayScore,
+      game2_home_score: game2HomeScore,
+      game2_away_score: game2AwayScore,
       reason: String(form.get("reason") || ""),
       notes: String(form.get("notes") || "")
     };
@@ -181,6 +195,7 @@ export default function CommissionerMatchReview() {
     }
 
     setMessage("Correction saved.");
+    setCorrectionSaved(true);
     const historyResult = await fetchJson<{ history?: ScoreHistoryItem[] }>(
       `/api/matches/${matchId}/history`
     );
@@ -193,6 +208,30 @@ export default function CommissionerMatchReview() {
     return (
       <main className="card p-4 md:p-6">
         <p className="text-sm text-stone">Checking commissioner access...</p>
+      </main>
+    );
+  }
+
+  if (correctionSaved) {
+    return (
+      <main className="card p-4 text-center md:p-6">
+        <div className="mx-auto my-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-100">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={3} strokeLinecap="round" strokeLinejoin="round" className="h-7 w-7 text-emerald-600">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        </div>
+        <h2 className="section-title">Correction saved</h2>
+        <p className="mt-2 text-sm text-stone">
+          The official final scores have been updated for this match.
+        </p>
+        <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-center">
+          <a href="/commissioner" className="tap-btn rounded-xl bg-moss px-5 py-3 text-center font-semibold text-white">
+            Back to dashboard
+          </a>
+          <a href="/schedule" className="tap-btn rounded-xl bg-white/80 px-5 py-3 text-center font-semibold text-ink">
+            View schedule
+          </a>
+        </div>
       </main>
     );
   }
@@ -347,7 +386,8 @@ export default function CommissionerMatchReview() {
               step={1}
               inputMode="numeric"
               required
-              defaultValue={previousScore?.game1_home_score}
+              value={game1HomeScore}
+              onChange={(event) => setGame1HomeScore(Math.max(0, Number(event.target.value) || 0))}
               className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
@@ -361,7 +401,8 @@ export default function CommissionerMatchReview() {
               step={1}
               inputMode="numeric"
               required
-              defaultValue={previousScore?.game1_away_score}
+              value={game1AwayScore}
+              onChange={(event) => setGame1AwayScore(Math.max(0, Number(event.target.value) || 0))}
               className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
@@ -377,7 +418,8 @@ export default function CommissionerMatchReview() {
               step={1}
               inputMode="numeric"
               required
-              defaultValue={previousScore?.game2_home_score}
+              value={game2HomeScore}
+              onChange={(event) => setGame2HomeScore(Math.max(0, Number(event.target.value) || 0))}
               className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
@@ -391,7 +433,8 @@ export default function CommissionerMatchReview() {
               step={1}
               inputMode="numeric"
               required
-              defaultValue={previousScore?.game2_away_score}
+              value={game2AwayScore}
+              onChange={(event) => setGame2AwayScore(Math.max(0, Number(event.target.value) || 0))}
               className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
