@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 
+export const dynamic = "force-dynamic";
+
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
@@ -44,8 +46,15 @@ export async function GET(
     notes: typeof match.notes === "string" ? match.notes.replace(/\s*-\s*EXTRA\b/gi, "") : match.notes
   }));
 
-  return NextResponse.json({
-    matches: cleanedMatches,
-    teams: teams || []
-  });
+  return NextResponse.json(
+    {
+      matches: cleanedMatches,
+      teams: teams || []
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
+  );
 }

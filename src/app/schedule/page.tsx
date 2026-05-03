@@ -78,13 +78,7 @@ export default function SchedulePage() {
         setTeams([]);
         return;
       }
-      const now = Date.now();
-      const loadedMatches = (data.matches || []).filter((match) => {
-        if (!match.scheduled_datetime) return true;
-        const date = new Date(match.scheduled_datetime);
-        if (Number.isNaN(date.getTime())) return true;
-        return date.getTime() >= now;
-      });
+      const loadedMatches = data.matches || [];
       setMatches(loadedMatches);
       setTeams(data.teams || []);
       const availableTeams = data.teams || [];
