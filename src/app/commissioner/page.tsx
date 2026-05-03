@@ -31,7 +31,6 @@ export default function CommissionerDashboard() {
   const [selectedWeek, setSelectedWeek] = useState<number>(1);
   const [queueView, setQueueView] = useState<QueueView>("needs_review");
   const [message, setMessage] = useState("");
-  const [emailPreview, setEmailPreview] = useState("");
   const [authorized, setAuthorized] = useState(false);
   const [driveConnected, setDriveConnected] = useState(false);
   const [driveEmail, setDriveEmail] = useState("");
@@ -133,24 +132,6 @@ export default function CommissionerDashboard() {
     );
   }
 
-  async function previewEmail() {
-    setMessage("");
-    const { response, data } = await fetchJson<{ error?: string; email?: { html?: string } }>(
-      "/api/email/preview",
-      {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ weekNumber: selectedWeek })
-    }
-    );
-    if (!response.ok) {
-      setMessage(errorMessageFromData(data, "Could not preview email"));
-      return;
-    }
-    setEmailPreview(data.email?.html || "");
-    setMessage("Email preview loaded.");
-  }
-
   async function backupToDrive() {
     setMessage("");
     const { response, data } = await fetchJson<{ error?: string }>("/api/backups/drive", {
@@ -228,12 +209,6 @@ export default function CommissionerDashboard() {
             Close week
           </button>
           <button
-            onClick={previewEmail}
-            className="tap-btn rounded-xl bg-white/80 px-4 py-2.5 text-sm font-semibold"
-          >
-            Preview email
-          </button>
-          <button
             onClick={backupToDrive}
             className="tap-btn rounded-xl bg-white/80 px-4 py-2.5 text-sm font-semibold"
           >
@@ -251,12 +226,6 @@ export default function CommissionerDashboard() {
         <p className="mt-2 text-sm text-stone">
           Drive: {driveConnected ? `Connected (${driveEmail || "Google"})` : "Not connected"}
         </p>
-        {emailPreview ? (
-          <details className="mt-4 rounded-xl bg-white/70 p-3 md:p-4">
-            <summary className="cursor-pointer text-sm font-semibold">Email preview</summary>
-            <div className="mt-3 overflow-x-auto text-sm" dangerouslySetInnerHTML={{ __html: emailPreview }} />
-          </details>
-        ) : null}
       </section>
 
       <section className="card p-4 md:p-6">

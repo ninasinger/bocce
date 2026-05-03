@@ -69,7 +69,6 @@ export default function StandingsPage() {
   return (
     <main className="card p-4 md:p-6">
       <h2 className="section-title">Standings</h2>
-      <p className="mt-1 text-sm text-stone">Published on Fridays. Showing through week {standingsWeek}.</p>
 
       <div className="sticky-filters mt-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 md:flex md:gap-3">

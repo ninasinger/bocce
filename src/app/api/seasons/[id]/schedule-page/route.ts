@@ -12,6 +12,24 @@ type ActiveSubmission = {
   game2_away_score: number;
 };
 
+type CorrectionValues = {
+  home_games_won?: unknown;
+  away_games_won?: unknown;
+  home_total_score?: unknown;
+  away_total_score?: unknown;
+  notes?: unknown;
+};
+
+type MatchCorrection = {
+  match_id: string;
+  corrected_at: string;
+  new_values: CorrectionValues | null;
+};
+
+function numberValue(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
@@ -66,6 +84,18 @@ export async function GET(
     return NextResponse.json({ error: submissionError.message }, { status: 500 });
   }
 
+  const { data: corrections, error: correctionError } = matchIds.length
+    ? await client
+        .from("match_corrections")
+        .select("match_id, corrected_at, new_values")
+        .in("match_id", matchIds)
+        .order("corrected_at", { ascending: false })
+    : { data: [], error: null };
+
+  if (correctionError) {
+    return NextResponse.json({ error: correctionError.message }, { status: 500 });
+  }
+
   const submissionsByMatch = new Map<string, ActiveSubmission[]>();
   for (const submission of (submissions || []) as ActiveSubmission[]) {
     const list = submissionsByMatch.get(submission.match_id) || [];
@@ -73,10 +103,33 @@ export async function GET(
     submissionsByMatch.set(submission.match_id, list);
   }
 
+  const latestCorrectionByMatch = new Map<string, MatchCorrection>();
+  for (const correction of (corrections || []) as MatchCorrection[]) {
+    if (!latestCorrectionByMatch.has(correction.match_id)) {
+      latestCorrectionByMatch.set(correction.match_id, correction);
+    }
+  }
+
   const cleanedMatches = (matches || []).map((match) => ({
     ...match,
     notes: typeof match.notes === "string" ? match.notes.replace(/\s*-\s*EXTRA\b/gi, "") : match.notes
   })).map((match) => {
+    const correction = latestCorrectionByMatch.get(match.id);
+    if (correction?.new_values) {
+      const correctedNotes =
+        typeof correction.new_values.notes === "string" ? correction.new_values.notes : match.notes;
+
+      return {
+        ...match,
+        status: "verified",
+        home_games_won: numberValue(correction.new_values.home_games_won) ?? match.home_games_won,
+        away_games_won: numberValue(correction.new_values.away_games_won) ?? match.away_games_won,
+        home_total_score: numberValue(correction.new_values.home_total_score) ?? match.home_total_score,
+        away_total_score: numberValue(correction.new_values.away_total_score) ?? match.away_total_score,
+        notes: correctedNotes
+      };
+    }
+
     if (match.status === "verified") return match;
     if (match.status === "corrected") {
       return {
