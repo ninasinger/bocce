@@ -78,7 +78,7 @@ export function BottomNav() {
   }
 
   return (
-    <nav className="btm-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-white/60 bg-white/95 backdrop-blur-md md:hidden">
+    <nav className="btm-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-white/60 bg-white/95 backdrop-blur-md lg:hidden">
       {tabs.map((tab) => {
         const active = isActive(tab);
         return (

@@ -21,7 +21,7 @@ export function DesktopNav() {
   };
 
   return (
-    <nav className="hidden flex-wrap gap-2 text-sm font-semibold md:flex">
+    <nav className="hidden flex-wrap gap-2 text-sm font-semibold lg:flex">
       {navItems.map((item) => {
         const active = isActive(item);
         return (

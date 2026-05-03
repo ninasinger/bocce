@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { loadSeasonSummary, loadSeasonsList } from "@/lib/seasonSummary";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const client = getServiceClient();
 
@@ -12,7 +14,14 @@ export async function GET() {
 
   const defaultSeasonId = seasons[0]?.id || null;
   if (!defaultSeasonId) {
-    return NextResponse.json({ seasons, defaultSeasonId: null, summary: null });
+    return NextResponse.json(
+      { seasons, defaultSeasonId: null, summary: null },
+      {
+        headers: {
+          "Cache-Control": "no-store"
+        }
+      }
+    );
   }
 
   const { data: summary, error: summaryError } = await loadSeasonSummary(client, defaultSeasonId);
@@ -20,5 +29,12 @@ export async function GET() {
     return NextResponse.json({ error: summaryError || "Failed to load summary" }, { status: 500 });
   }
 
-  return NextResponse.json({ seasons, defaultSeasonId, summary });
+  return NextResponse.json(
+    { seasons, defaultSeasonId, summary },
+    {
+      headers: {
+        "Cache-Control": "no-store"
+      }
+    }
+  );
 }

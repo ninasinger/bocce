@@ -3,23 +3,33 @@ import { computeAwards, type MatchData } from "@/lib/awards";
 import { computeStandings } from "@/lib/standings";
 import { getCurrentWeek } from "@/lib/week";
 
-export function getPublishedStandingsWeek(currentWeek: number) {
-  const etWeekday = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    timeZone: "America/New_York"
-  }).format(new Date());
-  const isFridayOrLater = etWeekday === "Fri" || etWeekday === "Sat" || etWeekday === "Sun";
-  return isFridayOrLater ? currentWeek : Math.max(1, currentWeek - 1);
-}
-
 export type SeasonSummary = {
   currentWeek: number;
-  standingsWeek: number;
   standings: ReturnType<typeof computeStandings>;
   matches: any[];
   awards: ReturnType<typeof computeAwards>;
   awardsWeek: number;
 };
+
+type CorrectionValues = {
+  home_games_won?: unknown;
+  away_games_won?: unknown;
+  home_total_score?: unknown;
+  away_total_score?: unknown;
+  home_match_points?: unknown;
+  away_match_points?: unknown;
+  notes?: unknown;
+};
+
+type MatchCorrection = {
+  match_id: string;
+  corrected_at: string;
+  new_values: CorrectionValues | null;
+};
+
+function numberValue(value: unknown) {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
 
 export async function loadSeasonSummary(
   client: SupabaseClient,
@@ -56,19 +66,72 @@ export async function loadSeasonSummary(
   if (matchError) return { data: null, error: matchError.message };
 
   const allMatches = matches || [];
-  const currentWeek = getCurrentWeek(allMatches);
-  const standingsWeek = getPublishedStandingsWeek(currentWeek);
+  const matchIds = allMatches.map((match) => match.id);
+  const { data: corrections, error: correctionError } = matchIds.length
+    ? await client
+        .from("match_corrections")
+        .select("match_id, corrected_at, new_values")
+        .in("match_id", matchIds)
+        .order("corrected_at", { ascending: false })
+    : { data: [], error: null };
 
-  const standingsMatches = allMatches.filter((match) => match.week_number <= standingsWeek);
-  const standings = computeStandings(teams || [], standingsMatches).slice(0, 6);
-  const weekMatches = allMatches.filter((match) => match.week_number === currentWeek);
+  if (correctionError) return { data: null, error: correctionError.message };
+
+  const latestCorrectionByMatch = new Map<string, MatchCorrection>();
+  for (const correction of (corrections || []) as MatchCorrection[]) {
+    if (!latestCorrectionByMatch.has(correction.match_id)) {
+      latestCorrectionByMatch.set(correction.match_id, correction);
+    }
+  }
+
+  const normalizedRows = allMatches.map((match: any) => {
+    const correction = latestCorrectionByMatch.get(match.id);
+    if (correction?.new_values) {
+      const correctedNotes =
+        typeof correction.new_values.notes === "string" ? correction.new_values.notes : match.notes;
+
+      return {
+        ...match,
+        status: "corrected",
+        home_games_won: numberValue(correction.new_values.home_games_won) ?? match.home_games_won,
+        away_games_won: numberValue(correction.new_values.away_games_won) ?? match.away_games_won,
+        home_total_score: numberValue(correction.new_values.home_total_score) ?? match.home_total_score,
+        away_total_score: numberValue(correction.new_values.away_total_score) ?? match.away_total_score,
+        home_match_points: numberValue(correction.new_values.home_match_points) ?? match.home_match_points,
+        away_match_points: numberValue(correction.new_values.away_match_points) ?? match.away_match_points,
+        notes: correctedNotes
+      };
+    }
+
+    if (
+      match.status === "scheduled" &&
+      match.home_games_won != null &&
+      match.away_games_won != null &&
+      match.home_total_score != null &&
+      match.away_total_score != null &&
+      match.home_match_points != null &&
+      match.away_match_points != null
+    ) {
+      return {
+        ...match,
+        status: "verified"
+      };
+    }
+
+    return match;
+  });
+
+  const currentWeek = getCurrentWeek(normalizedRows);
+
+  const standings = computeStandings(teams || [], normalizedRows).slice(0, 6);
+  const weekMatches = normalizedRows.filter((match) => match.week_number === currentWeek);
 
   const teamMap: Record<string, string> = {};
   for (const team of teams || []) {
     teamMap[team.id] = team.name;
   }
 
-  const normalizedMatches: MatchData[] = allMatches.map((match: any) => ({
+  const normalizedMatches: MatchData[] = normalizedRows.map((match: any) => ({
     id: match.id,
     week_number: match.week_number,
     status: match.status,
@@ -86,7 +149,7 @@ export async function loadSeasonSummary(
   const previousStandings = previousWeek
     ? computeStandings(
         teams || [],
-        allMatches.filter((match) => match.week_number <= previousWeek)
+        normalizedRows.filter((match) => match.week_number <= previousWeek)
       )
     : [];
 
@@ -115,7 +178,6 @@ export async function loadSeasonSummary(
   return {
     data: {
       currentWeek,
-      standingsWeek,
       standings,
       matches: cleanedWeekMatches,
       awards,
