@@ -34,12 +34,12 @@ test("buildIcsEvent produces a VEVENT with all required properties", () => {
   assert.ok(lines.includes("DTSTART:20260507T223000Z"));
   // 2-hour duration
   assert.ok(lines.includes("DTEND:20260508T003000Z"));
-  assert.ok(!lines.some((line) => line.startsWith("SUMMARY:")));
+  assert.ok(lines.includes("SUMMARY:Dolls with Balls vs Quattro Amici"));
   assert.ok(lines.includes("LOCATION:Court 1"));
-  assert.ok(lines.some((line) => line.startsWith("DESCRIPTION:")));
+  assert.ok(!lines.some((line) => line.startsWith("DESCRIPTION:")));
 });
 
-test("buildIcsEvent escapes special characters in location/description", () => {
+test("buildIcsEvent escapes special characters in summary and location", () => {
   const match: IcsMatch = {
     id: "x",
     weekNumber: 1,
@@ -49,9 +49,9 @@ test("buildIcsEvent escapes special characters in location/description", () => {
     awayTeam: "Semi;Team"
   };
   const event = buildIcsEvent(match, "20260101T000000Z", "Bocce League 2026")!;
-  assert.ok(!event.includes("SUMMARY:"));
+  assert.ok(event.includes("SUMMARY:Comma\\, Team vs Semi\\;Team"));
   assert.ok(event.includes("LOCATION:Court 1"));
-  assert.ok(event.includes("Court 1\\, with notes\\; about play"));
+  assert.ok(!event.includes("DESCRIPTION:"));
 });
 
 test("buildIcsEvent returns null for invalid datetime", () => {

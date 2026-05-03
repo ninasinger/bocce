@@ -28,22 +28,20 @@ function extractCourt(notes: string | null) {
   return match ? match[0] : "";
 }
 
-export function buildIcsEvent(match: IcsMatch, dtStamp: string, seasonName: string): string | null {
+export function buildIcsEvent(match: IcsMatch, dtStamp: string, _seasonName: string): string | null {
   const start = new Date(match.scheduledDatetime);
   if (Number.isNaN(start.getTime())) return null;
   const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
+  const summary = escapeIcsText(`${match.homeTeam} vs ${match.awayTeam}`);
   const location = extractCourt(match.notes);
-  const description = escapeIcsText(
-    `${seasonName}\nWeek ${match.weekNumber}\n${match.homeTeam} vs ${match.awayTeam}${match.notes ? `\n${match.notes}` : ""}`
-  );
   const event = [
     "BEGIN:VEVENT",
     `UID:${match.id}@bellavillabocce.com`,
     `DTSTAMP:${dtStamp}`,
     `DTSTART:${toIcsUtc(start)}`,
     `DTEND:${toIcsUtc(end)}`,
+    `SUMMARY:${summary}`,
     location ? `LOCATION:${escapeIcsText(location)}` : null,
-    `DESCRIPTION:${description}`,
     "END:VEVENT"
   ].filter((line): line is string => Boolean(line));
 
