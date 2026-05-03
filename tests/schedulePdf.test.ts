@@ -38,7 +38,7 @@ test("full league schedule PDF uses requested labels and removes generated metad
   assert.ok(!pdf.includes("1 matches"));
 });
 
-test("team schedule PDF uses league title, team subtitle, and plain matchup text", () => {
+test("team schedule PDF uses league title, team subtitle, and opponent-only matchup text", () => {
   const rows = toTeamScheduleRows("Team A", [
     row({
       homeTeam: "Team A",
@@ -53,8 +53,10 @@ test("team schedule PDF uses league title, team subtitle, and plain matchup text
 
   assert.ok(pdf.includes("John Pirelli Womens Bocce League 2026"));
   assert.ok(pdf.includes("(Team A) Tj"));
-  assert.ok(pdf.includes("Team A / Team B"));
-  assert.ok(pdf.includes("Team C / Team A"));
+  assert.ok(pdf.includes("(Team B) Tj"));
+  assert.ok(pdf.includes("(Team C) Tj"));
+  assert.ok(!pdf.includes("Team A / Team B"));
+  assert.ok(!pdf.includes("Team C / Team A"));
   assert.ok(!pdf.includes("2 matches"));
   assert.ok(!pdf.includes("vs Team B"));
   assert.ok(!pdf.includes("at Team C"));

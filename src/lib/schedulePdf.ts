@@ -198,13 +198,14 @@ export function buildTeamSchedulePdf(
   return buildPdf([canvas.toPage()]);
 }
 
-export function toTeamScheduleRows(_teamName: string, rows: ScheduleRow[]): TeamScheduleRow[] {
+export function toTeamScheduleRows(teamName: string, rows: ScheduleRow[]): TeamScheduleRow[] {
   return rows.map((row) => {
+    const opponent = row.homeTeam === teamName ? row.awayTeam : row.homeTeam;
     return {
       week: row.week,
       dayText: row.dayText,
       dateTimeText: `${row.dateText} ${row.timeText}`,
-      matchupText: `${row.homeTeam} / ${row.awayTeam}`,
+      matchupText: opponent,
       courtText: row.courtText
     };
   });
