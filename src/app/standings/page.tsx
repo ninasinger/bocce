@@ -8,7 +8,6 @@ import { EmptyState } from "@/components/EmptyState";
 type Season = { id: string; name: string; year: number };
 type Standing = {
   rank: number;
-  prevRank: number | null;
   teamName: string;
   gamesPlayed: number;
   gamesWon: number;
@@ -16,22 +15,9 @@ type Standing = {
   totalPoints: number;
 };
 
-function RankMovement({ rank, prevRank }: { rank: number; prevRank: number | null }) {
-  if (prevRank == null) return null;
-  const diff = prevRank - rank;
-  if (diff > 0) {
-    return <span className="text-xs font-semibold text-emerald-600">▲{diff}</span>;
-  }
-  if (diff < 0) {
-    return <span className="text-xs font-semibold text-red-500">▼{Math.abs(diff)}</span>;
-  }
-  return <span className="text-xs text-stone">–</span>;
-}
-
 export default function StandingsPage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState("");
-  const [standingsWeek, setStandingsWeek] = useState<number>(1);
   const [standings, setStandings] = useState<Standing[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,15 +36,13 @@ export default function StandingsPage() {
   const loadStandings = useCallback(async () => {
     if (!seasonId) {
       setStandings([]);
-      setStandingsWeek(1);
       setLoading(false);
       return;
     }
     setLoading(true);
-    const res = await fetch(`/api/seasons/${seasonId}/standings`);
+    const res = await fetch(`/api/seasons/${seasonId}/standings`, { cache: "no-store" });
     const json = await res.json();
     setStandings(json.standings || []);
-    setStandingsWeek(json.week || 1);
     setLoading(false);
   }, [seasonId]);
 
@@ -66,9 +50,27 @@ export default function StandingsPage() {
     loadStandings();
   }, [loadStandings]);
 
+  useEffect(() => {
+    function refreshVisibleStandings() {
+      if (document.visibilityState === "visible") {
+        loadStandings();
+      }
+    }
+
+    window.addEventListener("focus", loadStandings);
+    document.addEventListener("visibilitychange", refreshVisibleStandings);
+    return () => {
+      window.removeEventListener("focus", loadStandings);
+      document.removeEventListener("visibilitychange", refreshVisibleStandings);
+    };
+  }, [loadStandings]);
+
   return (
     <main className="card p-4 md:p-6">
       <h2 className="section-title">Standings</h2>
+      <p className="mt-1 text-sm text-stone">
+        Standings update in real time as scores are finalized and may not reflect games that have not been entered yet.
+      </p>
 
       <div className="sticky-filters mt-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 md:flex md:gap-3">
@@ -116,7 +118,6 @@ export default function StandingsPage() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-moss/10 text-sm font-bold text-moss">
                   {row.rank}
                 </span>
-                <RankMovement rank={row.rank} prevRank={row.prevRank} />
                 <TeamName name={row.teamName} />
               </span>
               <span className="text-lg font-display">{row.gamesWon} <span className="text-sm text-stone">Games Won</span></span>
@@ -159,9 +160,7 @@ export default function StandingsPage() {
               {standings.map((row) => (
                 <tr key={row.teamName}>
                   <td className="p-3">
-                    <span className="inline-flex items-center gap-1">
-                      {row.rank} <RankMovement rank={row.rank} prevRank={row.prevRank} />
-                    </span>
+                    {row.rank}
                   </td>
                   <td className="p-3 font-semibold">
                     <TeamName name={row.teamName} />
