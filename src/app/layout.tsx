@@ -22,6 +22,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
   themeColor: "#2f5d50",
   viewportFit: "cover"
 };
@@ -38,7 +40,7 @@ export default function RootLayout({
         <link rel="icon" href="/icon-192.svg" type="image/svg+xml" />
       </head>
       <body className={`${display.variable} ${body.variable}`}>
-        <div className="mx-auto max-w-5xl px-4 pb-28 pt-6 md:pt-8">
+        <div className="app-shell mx-auto max-w-5xl pt-6 md:pt-8">
           <header className="site-header mb-6 flex flex-col gap-3 md:mb-10 md:flex-row md:items-center md:justify-between">
             <div>
               <p className="site-badge badge bg-sun/30 text-ink">Bocce League</p>

@@ -20,7 +20,7 @@ export function DesktopNav() {
   };
 
   return (
-    <nav className="hidden flex-wrap gap-2 text-sm font-semibold lg:flex">
+    <nav className="hidden flex-wrap gap-2 text-sm font-semibold xl:flex">
       {navItems.map((item) => {
         const active = isActive(item);
         return (
