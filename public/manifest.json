@@ -2,7 +2,7 @@
   "name": "Bella Villa Bocce League",
   "short_name": "Bocce",
   "description": "League scoring and standings for bocce play",
-  "start_url": "/",
+  "start_url": "/schedule",
   "display": "standalone",
   "background_color": "#f4efe9",
   "theme_color": "#2f5d50",
