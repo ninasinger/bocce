@@ -308,9 +308,6 @@ export default function SchedulePage() {
       </div>
 
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
-      <p className="mt-3 text-sm text-stone">
-        Pending other score means one team submitted scores and we are waiting on the other team.
-      </p>
 
       <div className="mt-4 space-y-3">
         {loading ? (
