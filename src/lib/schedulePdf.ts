@@ -1,10 +1,11 @@
-import { buildPdf, PdfCanvas } from "@/lib/simplePdf";
+import { buildPdf, PdfCanvas } from "./simplePdf";
 
 export type ScheduleRow = {
   week: number;
   dayText: string;
   dateText: string;
   timeText: string;
+  scheduledDatetime: string | null;
   courtText: string;
   homeTeam: string;
   awayTeam: string;
@@ -35,7 +36,39 @@ const THEME = {
   mutedRow: [0.965, 0.975, 0.97] as [number, number, number]
 };
 
-function drawPageChrome(canvas: PdfCanvas) {
+const LEAGUE_TITLE = "John Pirelli Womens Bocce League 2026";
+
+function courtSortValue(courtText: string) {
+  const match = courtText.match(/\d+/);
+  return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
+}
+
+function daySortValue(dayText: string) {
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const index = days.findIndex((day) => day.toLowerCase() === dayText.toLowerCase());
+  return index === -1 ? Number.MAX_SAFE_INTEGER : index;
+}
+
+function dateSortValue(scheduledDatetime: string | null) {
+  if (!scheduledDatetime) return Number.MAX_SAFE_INTEGER;
+  const value = new Date(scheduledDatetime).getTime();
+  return Number.isFinite(value) ? value : Number.MAX_SAFE_INTEGER;
+}
+
+function sortScheduleRows(rows: ScheduleRow[]) {
+  return [...rows].sort((a, b) => {
+    return (
+      a.week - b.week ||
+      daySortValue(a.dayText) - daySortValue(b.dayText) ||
+      dateSortValue(a.scheduledDatetime) - dateSortValue(b.scheduledDatetime) ||
+      courtSortValue(a.courtText) - courtSortValue(b.courtText) ||
+      a.homeTeam.localeCompare(b.homeTeam) ||
+      a.awayTeam.localeCompare(b.awayTeam)
+    );
+  });
+}
+
+function drawPageChrome(canvas: PdfCanvas, badgeText = "BOCCE LEAGUE") {
   canvas.rect(0, 0, 612, 792, {
     stroke: false,
     fill: true,
@@ -47,16 +80,16 @@ function drawPageChrome(canvas: PdfCanvas) {
     fillColor: THEME.cardBg,
     strokeColor: THEME.cardBorder
   });
-  canvas.rect(36, 36, 100, 20, {
+  canvas.rect(36, 36, 220, 20, {
     stroke: false,
     fill: true,
     fillColor: [0.93, 0.85, 0.64]
   });
-  canvas.text(47, 50, "BOCCE LEAGUE", { size: 9, bold: true, color: THEME.ink });
+  canvas.text(47, 50, badgeText, { size: 9, bold: true, color: THEME.ink });
 }
 
-function drawHeader(canvas: PdfCanvas, title: string, subtitle: string) {
-  drawPageChrome(canvas);
+function drawHeader(canvas: PdfCanvas, title: string, subtitle: string, badgeText?: string) {
+  drawPageChrome(canvas, badgeText);
   canvas.rect(36, 66, 540, 70, {
     stroke: true,
     fill: true,
@@ -83,23 +116,25 @@ function drawTableHeader(canvas: PdfCanvas, y: number, headers: string[], colX: 
   });
 }
 
-export function buildFullLeagueSchedulePdf(seasonName: string, rows: ScheduleRow[]) {
+export function buildFullLeagueSchedulePdf(_seasonName: string, rows: ScheduleRow[]) {
   const pages: PdfCanvas[] = [];
+  const sortedRows = sortScheduleRows(rows);
   const rowsPerPage = 48;
   const colX = [42, 78, 128, 218, 270, 424];
-  const headers = ["WK", "DAY", "DATE / TIME", "COURT", "HOME TEAM", "AWAY TEAM"];
+  const headers = ["WK", "DAY", "DATE / TIME", "COURT", "TEAM 1", "TEAM 2"];
 
   for (let pageIndex = 0; pageIndex < 3; pageIndex += 1) {
     const start = pageIndex * rowsPerPage;
     const end = start + rowsPerPage;
-    const pageRows = rows.slice(start, end);
+    const pageRows = sortedRows.slice(start, end);
     if (pageRows.length === 0) break;
 
     const canvas = new PdfCanvas();
     drawHeader(
       canvas,
       "Full League Schedule",
-      `${seasonName} - ${rows.length} matches - Page ${pageIndex + 1}`
+      `${LEAGUE_TITLE} - Page ${pageIndex + 1}`,
+      LEAGUE_TITLE
     );
     drawTableHeader(canvas, 164, headers, colX);
 
@@ -120,11 +155,6 @@ export function buildFullLeagueSchedulePdf(seasonName: string, rows: ScheduleRow
       canvas.text(colX[5], y, truncate(row.awayTeam, 20), { size: 8, bold: true, color: THEME.ink });
     });
 
-    canvas.text(44, 748, "Generated from League Scoring Hub", {
-      size: 8,
-      color: THEME.stone
-    });
-
     pages.push(canvas);
   }
 
@@ -132,12 +162,12 @@ export function buildFullLeagueSchedulePdf(seasonName: string, rows: ScheduleRow
 }
 
 export function buildTeamSchedulePdf(
-  seasonName: string,
+  _seasonName: string,
   teamName: string,
   rows: TeamScheduleRow[]
 ) {
   const canvas = new PdfCanvas();
-  drawHeader(canvas, `${teamName} Schedule`, `${seasonName} - ${rows.length} matches`);
+  drawHeader(canvas, LEAGUE_TITLE, teamName, LEAGUE_TITLE);
 
   canvas.rect(36, 152, 540, 576, {
     stroke: true,
@@ -165,23 +195,16 @@ export function buildTeamSchedulePdf(
     canvas.text(colX[4], y, row.courtText || "-", { size: 9, align: "right", color: THEME.stone });
   });
 
-  canvas.text(44, 746, "Generated from League Scoring Hub", {
-    size: 8,
-    color: THEME.stone
-  });
-
   return buildPdf([canvas.toPage()]);
 }
 
-export function toTeamScheduleRows(teamName: string, rows: ScheduleRow[]): TeamScheduleRow[] {
+export function toTeamScheduleRows(_teamName: string, rows: ScheduleRow[]): TeamScheduleRow[] {
   return rows.map((row) => {
-    const isHome = row.homeTeam === teamName;
-    const opponent = isHome ? row.awayTeam : row.homeTeam;
     return {
       week: row.week,
       dayText: row.dayText,
       dateTimeText: `${row.dateText} ${row.timeText}`,
-      matchupText: `${isHome ? "vs" : "at"} ${opponent}`,
+      matchupText: `${row.homeTeam} / ${row.awayTeam}`,
       courtText: row.courtText
     };
   });

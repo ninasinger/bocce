@@ -91,9 +91,10 @@ export async function GET(
       dayText,
       dateText,
       timeText,
+      scheduledDatetime: match.scheduled_datetime,
       courtText: extractCourt(match.notes),
-      homeTeam: formatMatchTeamName(match.home_team, "Home"),
-      awayTeam: formatMatchTeamName(match.away_team, "Away"),
+      homeTeam: formatMatchTeamName(match.home_team, "Team 1"),
+      awayTeam: formatMatchTeamName(match.away_team, "Team 2"),
       status: match.status || ""
     };
   });

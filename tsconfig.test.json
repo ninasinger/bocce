@@ -12,7 +12,9 @@
     "tests/**/*.ts",
     "src/lib/scoring.ts",
     "src/lib/submissionResolution.ts",
-    "src/lib/scheduleIcs.ts"
+    "src/lib/scheduleIcs.ts",
+    "src/lib/schedulePdf.ts",
+    "src/lib/simplePdf.ts"
   ],
   "exclude": ["node_modules", ".next"]
 }
