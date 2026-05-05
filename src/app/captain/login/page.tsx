@@ -13,7 +13,6 @@ export default function CaptainLoginPage() {
   const [seasonId, setSeasonId] = useState("");
   const [teamId, setTeamId] = useState("");
   const [teamCode, setTeamCode] = useState("");
-  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -61,7 +60,7 @@ export default function CaptainLoginPage() {
       const res = await fetch("/api/auth/captain", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ teamId, teamCode, rememberMe })
+        body: JSON.stringify({ teamId, teamCode })
       });
 
       if (!res.ok) {
@@ -123,19 +122,6 @@ export default function CaptainLoginPage() {
             className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
             placeholder="Enter code"
           />
-        </label>
-
-        <label className="flex items-start gap-3 text-sm">
-          <input
-            type="checkbox"
-            checked={rememberMe}
-            onChange={(event) => setRememberMe(event.target.checked)}
-            className="mt-0.5 h-5 w-5 rounded border-white/60 accent-moss"
-          />
-          <span>
-            <span className="font-semibold">Trust this device for 90 days</span>
-            <span className="mt-0.5 block text-stone">Stay signed in so you can submit scores faster.</span>
-          </span>
         </label>
 
         {error ? <p className="text-sm text-red-700">{error}</p> : null}

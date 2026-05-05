@@ -4,6 +4,7 @@ const rosterByTeamName: Record<string, string[]> = {
   "bocce babes": ["Janet Zak", "Chris Sloneker", "Pat D'Aloisio", "Terri Baldasare"],
   "bocce bellas": ["Gloria Marano", "Anna Kollmorgen", "Katie Swiger", "Tina Wingate", "Marianne Pohlmann"],
   "bocce mamas": ["Jan Holbrook", "Karla Banks", "Eleanor Presutti", "Kelley Ryan", "Sophia Lauwers"],
+  "bocce mammas": ["Jan Holbrook", "Karla Banks", "Eleanor Presutti", "Kelley Ryan", "Sophia Lauwers"],
   "bocce stars": ["Michelle Sullivan", "Lenette Economos", "Marcella Pope", "Myn Tarlano"],
   "cannoli hope": ["JB Richard", "Joyce Ellison", "Anne Beecroft", "Elaine Long"],
   "d'bocceri": ["Caitlin Davis", "Sharon Smith", "Nina Singer", "Marisa Varney"],
@@ -15,6 +16,7 @@ const rosterByTeamName: Record<string, string[]> = {
     "Angie Reinoehl"
   ],
   "donne dolce": ["Mimi Villani", "Barb Cogliano", "Judy Ganguly", "Yvette Morrella", "Jo Lusk"],
+  "donne dolci": ["Mimi Villani", "Barb Cogliano", "Judy Ganguly", "Yvette Morrella", "Jo Lusk"],
   "donne vera": [
     "Barb Morris",
     "Deborah Barnes",
@@ -57,9 +59,7 @@ const rosterByTeamName: Record<string, string[]> = {
     "Donna Lacon",
     "Venetia Lacon",
     "Michelle Tagliamonte",
-    "Lori Mackintosh",
-    "Michelle Romano",
-    "Emily Schaper"
+    "Lori Mackintosh"
   ]
 };
 
