@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { readFileSync } from "fs";
+import path from "path";
 import { resolveSubmissionStatus } from "@/lib/submissionResolution";
 import { getServiceClient } from "@/lib/supabaseServer";
 
@@ -26,8 +28,73 @@ type MatchCorrection = {
   new_values: CorrectionValues | null;
 };
 
+type TeamRef = { name: string } | { name: string }[] | null;
+
 function numberValue(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function teamName(team: TeamRef) {
+  if (!team) return "";
+  if (Array.isArray(team)) return team[0]?.name || "";
+  return team.name || "";
+}
+
+function normalizeTeamName(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/donne dolci/g, "donne dolce")
+    .replace(/bocce mammas/g, "bocce mamas")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function courtLookupKey(week: number, teamOne: string, teamTwo: string) {
+  const teams = [normalizeTeamName(teamOne), normalizeTeamName(teamTwo)].sort();
+  return `${week}|${teams[0]}|${teams[1]}`;
+}
+
+let officialCourtLookup: Map<string, string> | null = null;
+
+function getOfficialCourtLookup() {
+  if (officialCourtLookup) return officialCourtLookup;
+
+  const lookup = new Map<string, string>();
+  try {
+    const csv = readFileSync(
+      path.join(process.cwd(), "supabase/seeds/Bocce_Schedule_2026.csv"),
+      "utf8"
+    );
+    const lines = csv.trim().split(/\r?\n/).slice(1);
+
+    for (const line of lines) {
+      const [date, day, week, court, teamOne, teamTwo] = line.split(",");
+      void date;
+      void day;
+      if (!week || !court || !teamOne || !teamTwo) continue;
+      if (teamOne.toLowerCase().startsWith("open") || teamTwo.toLowerCase().startsWith("open")) continue;
+      lookup.set(courtLookupKey(Number(week), teamOne, teamTwo), `Court ${court}`);
+    }
+  } catch {
+    // Fall back to notes if the packaged CSV is unavailable.
+  }
+
+  officialCourtLookup = lookup;
+  return lookup;
+}
+
+function officialCourtText(match: { week_number: number; notes: string | null; home_team: TeamRef; away_team: TeamRef }) {
+  const lookup = getOfficialCourtLookup();
+  const officialCourt = lookup.get(courtLookupKey(match.week_number, teamName(match.home_team), teamName(match.away_team)));
+  if (officialCourt) return officialCourt;
+  const noteCourt = match.notes?.match(/Court\s*\d+/i)?.[0] || "";
+  return noteCourt;
+}
+
+function courtSortValue(courtText: string | null | undefined) {
+  const match = courtText?.match(/\d+/);
+  return match ? Number(match[0]) : Number.MAX_SAFE_INTEGER;
 }
 
 export async function GET(
@@ -52,8 +119,8 @@ export async function GET(
         away_games_won,
         home_total_score,
         away_total_score,
-        home_team:teams!matches_home_team_id_fkey(name),
-        away_team:teams!matches_away_team_id_fkey(name)
+        home_team:teams!matches_home_team_id_fkey(id, name),
+        away_team:teams!matches_away_team_id_fkey(id, name)
       `
       )
       .eq("season_id", params.id)
@@ -110,23 +177,22 @@ export async function GET(
     }
   }
 
-  const cleanedMatches = (matches || []).map((match) => ({
-    ...match,
-    notes: typeof match.notes === "string" ? match.notes.replace(/\s*-\s*EXTRA\b/gi, "") : match.notes
-  })).map((match) => {
+  const cleanedMatches = (matches || []).map((match) => {
+    return {
+      ...match,
+      notes: null,
+      court_text: officialCourtText(match)
+    };
+  }).map((match) => {
     const correction = latestCorrectionByMatch.get(match.id);
     if (correction?.new_values) {
-      const correctedNotes =
-        typeof correction.new_values.notes === "string" ? correction.new_values.notes : match.notes;
-
       return {
         ...match,
         status: "verified",
         home_games_won: numberValue(correction.new_values.home_games_won) ?? match.home_games_won,
         away_games_won: numberValue(correction.new_values.away_games_won) ?? match.away_games_won,
         home_total_score: numberValue(correction.new_values.home_total_score) ?? match.home_total_score,
-        away_total_score: numberValue(correction.new_values.away_total_score) ?? match.away_total_score,
-        notes: correctedNotes
+        away_total_score: numberValue(correction.new_values.away_total_score) ?? match.away_total_score
       };
     }
 
@@ -181,6 +247,10 @@ export async function GET(
       home_total_score: resolution.outcome.homeTotalScore,
       away_total_score: resolution.outcome.awayTotalScore
     };
+  }).sort((a, b) => {
+    const aTime = a.scheduled_datetime ? new Date(a.scheduled_datetime).getTime() : Number.MAX_SAFE_INTEGER;
+    const bTime = b.scheduled_datetime ? new Date(b.scheduled_datetime).getTime() : Number.MAX_SAFE_INTEGER;
+    return aTime - bTime || courtSortValue(a.court_text) - courtSortValue(b.court_text);
   });
 
   return NextResponse.json(

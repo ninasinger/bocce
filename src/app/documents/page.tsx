@@ -8,6 +8,11 @@ const documents = [
     title: "2026 Rules",
     description: "Official league rules for the 2026 season.",
     href: "/documents/2026-rules.pdf"
+  },
+  {
+    title: "2026 Themes",
+    description: "Theme nights for the 2026 bocce season.",
+    href: "/documents/2026-bocce-themes.pdf"
   }
 ];
 

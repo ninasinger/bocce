@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -10,14 +11,16 @@ import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/ma
 
 type Season = { id: string; name: string; year: number };
 type Team = { id: string; name: string };
+type ScheduleTeamRef = ({ id?: string; name: string } | { id?: string; name: string }[]) | null;
 type MatchRow = {
   id: string;
   week_number: number;
   scheduled_datetime: string | null;
   status: string;
   notes: string | null;
-  home_team: TeamRef;
-  away_team: TeamRef;
+  court_text?: string | null;
+  home_team: ScheduleTeamRef;
+  away_team: ScheduleTeamRef;
   home_games_won: number | null;
   away_games_won: number | null;
   home_total_score: number | null;
@@ -45,6 +48,12 @@ function syncWeekParam(week: number | "all") {
   const query = params.toString();
   const url = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
   window.history.replaceState(null, "", url);
+}
+
+function teamId(team: ScheduleTeamRef) {
+  if (!team) return "";
+  if (Array.isArray(team)) return team[0]?.id || "";
+  return team.id || "";
 }
 
 export default function SchedulePage() {
@@ -183,9 +192,25 @@ export default function SchedulePage() {
   }
 
   function courtText(item: MatchRow) {
-    if (!item.notes) return "";
-    const match = item.notes.match(/Court\s*\d+/i);
-    return match ? match[0] : "";
+    if (item.court_text) return item.court_text;
+    return "";
+  }
+
+  function teamLink(team: ScheduleTeamRef) {
+    const name = formatMatchTeamName(team as TeamRef);
+    const id = teamId(team);
+    const content = <TeamName name={name} />;
+
+    if (!id) return content;
+
+    return (
+      <Link
+        href={`/teams/${id}`}
+        className="tap -m-1 inline-flex rounded-lg p-1 text-ink underline decoration-moss/40 underline-offset-4"
+      >
+        {content}
+      </Link>
+    );
   }
 
   function exportSchedulePdf() {
@@ -358,11 +383,16 @@ export default function SchedulePage() {
                             minute: "2-digit"
                           })}
                         </span>
+                        {courtText(item) ? (
+                          <span className="rounded-full bg-moss/10 px-2 py-0.5 text-sm font-semibold text-moss">
+                            {courtText(item)}
+                          </span>
+                        ) : null}
                       </div>
                       <div className="mt-2 flex flex-wrap items-center gap-2 font-semibold">
-                        <TeamName name={formatMatchTeamName(item.home_team)} />
+                        {teamLink(item.home_team)}
                         <span className="text-stone font-normal">vs</span>
-                        <TeamName name={formatMatchTeamName(item.away_team)} />
+                        {teamLink(item.away_team)}
                       </div>
                       {(item.status === "verified" || item.status === "corrected") &&
                         item.home_total_score != null && item.away_total_score != null ? (
@@ -376,8 +406,6 @@ export default function SchedulePage() {
                       {(item.status === "verified" || item.status === "corrected") && winnerText(item) ? (
                         <p className="mt-1 text-sm font-semibold text-moss">{winnerText(item)}</p>
                       ) : null}
-                      {courtText(item) ? <p className="mt-1 text-sm text-stone">{courtText(item)}</p> : null}
-                      {item.notes && !courtText(item) ? <p className="mt-1 text-sm text-stone">{item.notes}</p> : null}
                     </div>
                   ))}
                 </section>
