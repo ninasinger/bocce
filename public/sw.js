@@ -1,5 +1,5 @@
 // Bump CACHE_NAME on every deploy so old assets/API responses are evicted.
-const CACHE_NAME = "bocce-v3";
+const CACHE_NAME = "bocce-v4";
 const STATIC_ASSETS = ["/schedule", "/standings", "/documents", "/captain/login"];
 
 self.addEventListener("install", (event) => {
