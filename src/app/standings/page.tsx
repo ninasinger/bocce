@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { TeamName } from "@/components/TeamName";
 import { SkeletonStandingRow } from "@/components/Skeleton";
@@ -7,6 +8,7 @@ import { EmptyState } from "@/components/EmptyState";
 
 type Season = { id: string; name: string; year: number };
 type Standing = {
+  teamId: string;
   rank: number;
   teamName: string;
   gamesPlayed: number;
@@ -14,6 +16,17 @@ type Standing = {
   matchPoints: number;
   totalPoints: number;
 };
+
+function TeamRosterLink({ row }: { row: Standing }) {
+  return (
+    <Link
+      href={`/teams/${row.teamId}`}
+      className="tap -m-1 inline-flex rounded-lg p-1 text-ink underline decoration-moss/40 underline-offset-4"
+    >
+      <TeamName name={row.teamName} />
+    </Link>
+  );
+}
 
 export default function StandingsPage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
@@ -118,7 +131,7 @@ export default function StandingsPage() {
                 <span className="flex h-7 w-7 items-center justify-center rounded-full bg-moss/10 text-sm font-bold text-moss">
                   {row.rank}
                 </span>
-                <TeamName name={row.teamName} />
+                <TeamRosterLink row={row} />
               </span>
               <span className="text-lg font-display">{row.gamesWon} <span className="text-sm text-stone">Games Won</span></span>
             </div>
@@ -163,7 +176,7 @@ export default function StandingsPage() {
                     {row.rank}
                   </td>
                   <td className="p-3 font-semibold">
-                    <TeamName name={row.teamName} />
+                    <TeamRosterLink row={row} />
                   </td>
                   <td className="p-3">{row.gamesPlayed}</td>
                   <td className="p-3">{row.gamesWon}</td>
