@@ -6,7 +6,7 @@ export const env = {
   resendApiKey: process.env.RESEND_API_KEY || "",
   resendFromEmail: process.env.RESEND_FROM_EMAIL || "Bocce League <league@resend.dev>",
   scoreAlertRecipients: process.env.SCORE_ALERT_RECIPIENTS || "",
-  emailTestMode: (process.env.EMAIL_TEST_MODE || "true").toLowerCase() !== "false",
+  emailTestMode: (process.env.EMAIL_TEST_MODE || "false").toLowerCase() === "true",
   emailTestRecipients:
     process.env.EMAIL_TEST_RECIPIENTS ||
     "nina.singer860@gmail.com,caitlin.smith1310@gmail.com",
