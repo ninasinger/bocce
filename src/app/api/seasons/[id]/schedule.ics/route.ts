@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { formatMatchTeamName } from "@/lib/matchFormat";
 import { buildIcsCalendar, type IcsMatch } from "@/lib/scheduleIcs";
+import { courtSortValue, officialCourtText } from "@/lib/officialScheduleCourts";
 
 export const runtime = "nodejs";
 
@@ -68,10 +69,15 @@ export async function GET(
     id: match.id,
     weekNumber: match.week_number,
     scheduledDatetime: match.scheduled_datetime as string,
-    notes: match.notes,
+    notes: null,
+    courtText: officialCourtText(match),
     homeTeam: formatMatchTeamName(match.home_team, "Home"),
     awayTeam: formatMatchTeamName(match.away_team, "Away")
-  }));
+  })).sort((a, b) => {
+    const aTime = new Date(a.scheduledDatetime).getTime();
+    const bTime = new Date(b.scheduledDatetime).getTime();
+    return aTime - bTime || courtSortValue(a.courtText) - courtSortValue(b.courtText);
+  });
 
   const calendar = buildIcsCalendar({
     calendarTitle,

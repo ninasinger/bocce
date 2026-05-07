@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { formatMatchTeamName } from "@/lib/matchFormat";
+import { courtSortValue, officialCourtText } from "@/lib/officialScheduleCourts";
 import {
   buildFullLeagueSchedulePdf,
   buildTeamSchedulePdf,
@@ -30,12 +31,6 @@ function formatDateTime(value: string | null) {
       timeZone: "America/New_York"
     })
   };
-}
-
-function extractCourt(notes: string | null) {
-  if (!notes) return "";
-  const match = notes.match(/Court\s*\d+/i);
-  return match ? match[0] : "";
 }
 
 export async function GET(
@@ -92,11 +87,15 @@ export async function GET(
       dateText,
       timeText,
       scheduledDatetime: match.scheduled_datetime,
-      courtText: extractCourt(match.notes),
+      courtText: officialCourtText(match),
       homeTeam: formatMatchTeamName(match.home_team, "Team 1"),
       awayTeam: formatMatchTeamName(match.away_team, "Team 2"),
       status: match.status || ""
     };
+  }).sort((a, b) => {
+    const aTime = a.scheduledDatetime ? new Date(a.scheduledDatetime).getTime() : Number.MAX_SAFE_INTEGER;
+    const bTime = b.scheduledDatetime ? new Date(b.scheduledDatetime).getTime() : Number.MAX_SAFE_INTEGER;
+    return aTime - bTime || courtSortValue(a.courtText) - courtSortValue(b.courtText);
   });
 
   let pdfBytes: Uint8Array;

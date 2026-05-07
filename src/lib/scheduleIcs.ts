@@ -3,6 +3,7 @@ export type IcsMatch = {
   weekNumber: number;
   scheduledDatetime: string;
   notes: string | null;
+  courtText?: string | null;
   homeTeam: string;
   awayTeam: string;
 };
@@ -33,7 +34,7 @@ export function buildIcsEvent(match: IcsMatch, dtStamp: string, _seasonName: str
   if (Number.isNaN(start.getTime())) return null;
   const end = new Date(start.getTime() + 2 * 60 * 60 * 1000);
   const summary = escapeIcsText(`${match.homeTeam} vs ${match.awayTeam}`);
-  const location = extractCourt(match.notes);
+  const location = match.courtText || extractCourt(match.notes);
   const event = [
     "BEGIN:VEVENT",
     `UID:${match.id}@bellavillabocce.com`,
