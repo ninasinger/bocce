@@ -136,7 +136,7 @@ export default function CaptainDashboardPage() {
                 href="/captain/matches"
                 className="tap-btn rounded-lg bg-moss px-4 py-2 text-sm font-semibold text-white"
               >
-                Submit scores
+                Enter scores
               </a>
             </div>
           </>
@@ -200,7 +200,7 @@ export default function CaptainDashboardPage() {
               href={`/captain/matches/${nextMatch.id}/submit`}
               className="tap-btn mt-2.5 inline-flex rounded-lg bg-moss px-4 py-2 text-sm font-semibold text-white"
             >
-              Submit score
+              Enter scores
             </a>
           </div>
         ) : (

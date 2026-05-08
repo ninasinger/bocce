@@ -24,6 +24,13 @@ export async function GET(
     .eq("status", "active")
     .maybeSingle();
 
+  const { data: draft } = await client
+    .from("match_score_drafts")
+    .select("id, game1_home_score, game1_away_score, game2_home_score, game2_away_score, notes")
+    .eq("match_id", params.id)
+    .eq("team_id", session.teamId)
+    .maybeSingle();
+
   // The captain's own submission prefills the form when present; the prefill
   // query is only needed when this captain has not yet submitted.
   let prefillSubmission = null;
@@ -43,6 +50,7 @@ export async function GET(
     status: match?.status ?? "unknown",
     submitted: Boolean(submission),
     submission: submission || null,
+    draft: draft || null,
     prefill_submission: prefillSubmission
   });
 }

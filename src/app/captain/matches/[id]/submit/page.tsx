@@ -26,8 +26,9 @@ function shortName(name: string) {
 }
 
 type Step = "loading" | "already_submitted" | "entry" | "confirm" | "success";
-type SubmitResult = "pending_verification" | "verified" | "disputed" | "queued";
+type SubmitResult = "pending_verification" | "verified" | "disputed" | "queued" | "draft_saved";
 type SubmitPhase = "idle" | "submitting" | "retrying";
+type ScoreValue = number | null;
 
 async function postSubmissionWithRetry(
   matchId: string,
@@ -62,8 +63,8 @@ function ScoreInput({
   onChange,
   label,
 }: {
-  value: number;
-  onChange: (v: number) => void;
+  value: ScoreValue;
+  onChange: (v: ScoreValue) => void;
   label: string;
 }) {
   return (
@@ -75,13 +76,13 @@ function ScoreInput({
         type="tel"
         inputMode="numeric"
         pattern="[0-9]*"
-        value={value === 0 ? "" : String(value)}
-        placeholder="0"
+        value={value == null ? "" : String(value)}
+        placeholder="-"
         onFocus={(event) => event.target.select()}
         onChange={(event) => {
           const raw = event.target.value.replace(/\D/g, "");
           if (raw === "") {
-            onChange(0);
+            onChange(null);
             return;
           }
           const next = Number(raw);
@@ -95,30 +96,44 @@ function ScoreInput({
 }
 
 function computeLivePoints(scores: {
-  g1h: number;
-  g1a: number;
-  g2h: number;
-  g2a: number;
+  g1h: ScoreValue;
+  g1a: ScoreValue;
+  g2h: ScoreValue;
+  g2a: ScoreValue;
 }) {
   const { g1h, g1a, g2h, g2a } = scores;
   let homePts = 0;
   let awayPts = 0;
-  if (g1h > g1a) homePts += 1;
-  if (g1a > g1h) awayPts += 1;
-  if (g2h > g2a) homePts += 1;
-  if (g2a > g2h) awayPts += 1;
-  const homeTotal = g1h + g2h;
-  const awayTotal = g1a + g2a;
-  if (homeTotal > awayTotal) homePts += 1;
-  if (awayTotal > homeTotal) awayPts += 1;
+  const game1Complete = g1h != null && g1a != null;
+  const game2Complete = g2h != null && g2a != null;
+  if (game1Complete && g1h > g1a) homePts += 1;
+  if (game1Complete && g1a > g1h) awayPts += 1;
+  if (game2Complete && g2h > g2a) homePts += 1;
+  if (game2Complete && g2a > g2h) awayPts += 1;
+  const homeTotal = (g1h ?? 0) + (g2h ?? 0);
+  const awayTotal = (g1a ?? 0) + (g2a ?? 0);
+  if (game1Complete && game2Complete && homeTotal > awayTotal) homePts += 1;
+  if (game1Complete && game2Complete && awayTotal > homeTotal) awayPts += 1;
   return { homePts, awayPts, homeTotal, awayTotal };
+}
+
+function scoreDisplay(value: ScoreValue) {
+  return value == null ? "-" : value;
+}
+
+function gameComplete(home: ScoreValue, away: ScoreValue) {
+  return home != null && away != null;
+}
+
+function gameStarted(home: ScoreValue, away: ScoreValue) {
+  return home != null || away != null;
 }
 
 function ScoreRecap({
   g1h, g1a, g2h, g2a,
   homeLabel, awayLabel,
 }: {
-  g1h: number; g1a: number; g2h: number; g2a: number;
+  g1h: ScoreValue; g1a: ScoreValue; g2h: ScoreValue; g2a: ScoreValue;
   homeLabel: string; awayLabel: string;
 }) {
   const live = computeLivePoints({ g1h, g1a, g2h, g2a });
@@ -131,12 +146,12 @@ function ScoreRecap({
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
             <p className="text-sm font-semibold text-stone">{homeLabel}</p>
-            <p className="text-3xl font-display">{g1h}</p>
+            <p className="text-3xl font-display">{scoreDisplay(g1h)}</p>
           </div>
           <span className="text-lg text-stone">&ndash;</span>
           <div className="text-center">
             <p className="text-sm font-semibold text-stone">{awayLabel}</p>
-            <p className="text-3xl font-display">{g1a}</p>
+            <p className="text-3xl font-display">{scoreDisplay(g1a)}</p>
           </div>
         </div>
       </div>
@@ -147,12 +162,12 @@ function ScoreRecap({
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
             <p className="text-sm font-semibold text-stone">{homeLabel}</p>
-            <p className="text-3xl font-display">{g2h}</p>
+            <p className="text-3xl font-display">{scoreDisplay(g2h)}</p>
           </div>
           <span className="text-lg text-stone">&ndash;</span>
           <div className="text-center">
             <p className="text-sm font-semibold text-stone">{awayLabel}</p>
-            <p className="text-3xl font-display">{g2a}</p>
+            <p className="text-3xl font-display">{scoreDisplay(g2a)}</p>
           </div>
         </div>
       </div>
@@ -180,10 +195,10 @@ export default function SubmitScorePage() {
   const [awayTeamName, setAwayTeamName] = useState("Away");
   const [matchStatus, setMatchStatus] = useState("");
 
-  const [g1h, setG1h] = useState(0);
-  const [g1a, setG1a] = useState(0);
-  const [g2h, setG2h] = useState(0);
-  const [g2a, setG2a] = useState(0);
+  const [g1h, setG1h] = useState<ScoreValue>(null);
+  const [g1a, setG1a] = useState<ScoreValue>(null);
+  const [g2h, setG2h] = useState<ScoreValue>(null);
+  const [g2a, setG2a] = useState<ScoreValue>(null);
   const [notes, setNotes] = useState("");
 
   // Previously submitted scores (if any)
@@ -210,6 +225,13 @@ export default function SubmitScorePage() {
               game2_home_score: number;
               game2_away_score: number;
             };
+            draft?: {
+              game1_home_score: number | null;
+              game1_away_score: number | null;
+              game2_home_score: number | null;
+              game2_away_score: number | null;
+              notes: string | null;
+            };
           }>(`/api/matches/${matchId}/submission-status`)
         ]);
         if (!matchResult.response.ok) {
@@ -235,7 +257,14 @@ export default function SubmitScorePage() {
           return;
         }
 
-        if (statusResult.response.ok && statusResult.data.prefill_submission) {
+        if (statusResult.response.ok && statusResult.data.draft) {
+          const draft = statusResult.data.draft;
+          setG1h(draft.game1_home_score);
+          setG1a(draft.game1_away_score);
+          setG2h(draft.game2_home_score);
+          setG2a(draft.game2_away_score);
+          setNotes(draft.notes || "");
+        } else if (statusResult.response.ok && statusResult.data.prefill_submission) {
           const s = statusResult.data.prefill_submission;
           setG1h(s.game1_home_score);
           setG1a(s.game1_away_score);
@@ -262,8 +291,20 @@ export default function SubmitScorePage() {
   const awayShort = shortName(awayTeamName);
   const homeFmt = formatMatchTeamName({ name: homeTeamName }, "Team");
   const awayFmt = formatMatchTeamName({ name: awayTeamName }, "Team");
+  const game1Complete = gameComplete(g1h, g1a);
+  const game2Complete = gameComplete(g2h, g2a);
+  const game1Started = gameStarted(g1h, g1a);
+  const game2Started = gameStarted(g2h, g2a);
+  const hasPartialGame = (game1Started && !game1Complete) || (game2Started && !game2Complete);
+  const hasAnyCompleteGame = game1Complete || game2Complete;
+  const isCompleteMatch = game1Complete && game2Complete;
 
   async function handleSubmit() {
+    if (!isCompleteMatch || g1h == null || g1a == null || g2h == null || g2a == null) {
+      setError("Enter both games before submitting final scores.");
+      setStep("entry");
+      return;
+    }
     setSubmitting(true);
     setError(null);
     const payload = {
@@ -298,6 +339,44 @@ export default function SubmitScorePage() {
     }
     setSubmitting(false);
     setSubmitPhase("idle");
+  }
+
+  async function handleSaveDraft() {
+    if (hasPartialGame) {
+      setError("Enter both team scores for a game before saving.");
+      return;
+    }
+    if (!hasAnyCompleteGame) {
+      setError("Enter at least one complete game score before saving.");
+      return;
+    }
+
+    setSubmitting(true);
+    setError(null);
+    const payload = {
+      game1_home_score: g1h,
+      game1_away_score: g1a,
+      game2_home_score: g2h,
+      game2_away_score: g2a,
+      notes: notes || undefined,
+    };
+
+    const { response, data } = await fetchJson<{ error?: string }>(
+      `/api/matches/${matchId}/score-draft`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      }
+    );
+
+    setSubmitting(false);
+    if (!response.ok) {
+      setError(errorMessageFromData(data, "Could not save partial score"));
+      return;
+    }
+    setResult("draft_saved");
+    setStep("success");
   }
 
   // ── Loading ──
@@ -369,6 +448,11 @@ export default function SubmitScorePage() {
         desc: "You appear to be offline. Your scores are saved and will be submitted automatically when you reconnect.",
         color: "bg-sky-100 text-sky-600",
       },
+      draft_saved: {
+        title: "Partial score saved",
+        desc: "You can come back later to enter the remaining game and submit final scores.",
+        color: "bg-blue-100 text-blue-600",
+      },
     };
 
     const msg = resultMessages[result || "pending_verification"];
@@ -429,7 +513,7 @@ export default function SubmitScorePage() {
         </div>
 
         <div className="mt-3 rounded-xl bg-amber-50 p-3 text-center text-sm text-amber-800">
-          Review your scores below. Tap &ldquo;Submit scores&rdquo; to record them &mdash;
+          Review your scores below. Tap &ldquo;Submit final scores&rdquo; to record them &mdash;
           this cannot be undone from your phone.
         </div>
 
@@ -461,7 +545,7 @@ export default function SubmitScorePage() {
               ? submitPhase === "retrying"
                 ? "Retrying..."
                 : "Submitting..."
-              : "Submit scores"}
+              : "Submit final scores"}
           </button>
           <button
             onClick={() => setStep("entry")}
@@ -542,20 +626,28 @@ export default function SubmitScorePage() {
         </label>
       </div>
 
-      {/* Continue button */}
-      <button
-        onClick={() => {
-          if (g1h === 0 && g1a === 0 && g2h === 0 && g2a === 0) {
-            setError("Enter at least one score before continuing.");
-            return;
-          }
-          setError(null);
-          setStep("confirm");
-        }}
-        className="tap-btn mt-4 w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white"
-      >
-        Review & submit
-      </button>
+      {/* Actions */}
+      <div className="mt-4 flex flex-col gap-2">
+        {isCompleteMatch ? (
+          <button
+            onClick={() => {
+              setError(null);
+              setStep("confirm");
+            }}
+            className="tap-btn w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white"
+          >
+            Review final scores
+          </button>
+        ) : (
+          <button
+            onClick={handleSaveDraft}
+            disabled={submitting}
+            className="tap-btn w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white disabled:opacity-60"
+          >
+            {submitting ? "Saving..." : "Save partial score"}
+          </button>
+        )}
+      </div>
     </main>
   );
 }

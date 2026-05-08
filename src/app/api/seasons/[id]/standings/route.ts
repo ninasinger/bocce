@@ -23,6 +23,11 @@ function numberValue(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function standingNumber(value: unknown) {
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
 export async function GET(
   request: Request,
   { params }: { params: { id: string } }
@@ -42,7 +47,21 @@ export async function GET(
 
   const { data: matches, error: matchError } = await client
     .from("matches")
-    .select("*")
+    .select(
+      `
+      id,
+      week_number,
+      status,
+      home_team_id,
+      away_team_id,
+      home_games_won,
+      away_games_won,
+      home_match_points,
+      away_match_points,
+      home_total_score,
+      away_total_score
+    `
+    )
     .eq("season_id", params.id);
 
   if (matchError) {
@@ -73,7 +92,7 @@ export async function GET(
   const normalizedMatches = allMatches.map((match) => {
     const correction = latestCorrectionByMatch.get(match.id);
     if (correction?.new_values) {
-      return {
+      const correctedMatch = {
         ...match,
         status: "corrected",
         home_games_won: numberValue(correction.new_values.home_games_won) ?? match.home_games_won,
@@ -82,6 +101,15 @@ export async function GET(
         away_total_score: numberValue(correction.new_values.away_total_score) ?? match.away_total_score,
         home_match_points: numberValue(correction.new_values.home_match_points) ?? match.home_match_points,
         away_match_points: numberValue(correction.new_values.away_match_points) ?? match.away_match_points
+      };
+      return {
+        ...correctedMatch,
+        home_games_won: standingNumber(correctedMatch.home_games_won),
+        away_games_won: standingNumber(correctedMatch.away_games_won),
+        home_total_score: standingNumber(correctedMatch.home_total_score),
+        away_total_score: standingNumber(correctedMatch.away_total_score),
+        home_match_points: standingNumber(correctedMatch.home_match_points),
+        away_match_points: standingNumber(correctedMatch.away_match_points)
       };
     }
 
@@ -96,11 +124,25 @@ export async function GET(
     ) {
       return {
         ...match,
-        status: "verified"
+        status: "verified",
+        home_games_won: standingNumber(match.home_games_won),
+        away_games_won: standingNumber(match.away_games_won),
+        home_total_score: standingNumber(match.home_total_score),
+        away_total_score: standingNumber(match.away_total_score),
+        home_match_points: standingNumber(match.home_match_points),
+        away_match_points: standingNumber(match.away_match_points)
       };
     }
 
-    return match;
+    return {
+      ...match,
+      home_games_won: standingNumber(match.home_games_won),
+      away_games_won: standingNumber(match.away_games_won),
+      home_total_score: standingNumber(match.home_total_score),
+      away_total_score: standingNumber(match.away_total_score),
+      home_match_points: standingNumber(match.home_match_points),
+      away_match_points: standingNumber(match.away_match_points)
+    };
   });
 
   const weekNumber = requestedWeek && !Number.isNaN(requestedWeek) ? requestedWeek : null;

@@ -57,7 +57,7 @@ export default function CaptainMatchesPage() {
     <main className="card p-4 md:p-6">
       <h2 className="section-title">My matches</h2>
       <p className="mt-1 text-sm text-stone">
-        Submit once per match. Contact the commissioner for disputes.
+        Enter scores for this week. You can save one completed game and finish the match later.
       </p>
 
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
@@ -120,7 +120,7 @@ export default function CaptainMatchesPage() {
               href={`/captain/matches/${match.id}/submit`}
               className="tap-btn mt-2.5 inline-flex rounded-lg bg-moss px-4 py-2 text-sm font-semibold text-white"
             >
-              Submit score
+              Enter scores
             </a>
           </div>
         ))}

@@ -31,6 +31,10 @@ function numberValue(value: unknown) {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function isMissingDraftTableError(error: { code?: string; message?: string } | null) {
+  return error?.code === "42P01" || error?.message?.includes("match_score_drafts") === true;
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: { id: string } }
@@ -85,6 +89,17 @@ export async function GET(
     return NextResponse.json({ error: submissionError.message }, { status: 500 });
   }
 
+  const { data: drafts, error: draftError } = matchIds.length
+    ? await client
+        .from("match_score_drafts")
+        .select("match_id")
+        .in("match_id", matchIds)
+    : { data: [], error: null };
+
+  if (draftError && !isMissingDraftTableError(draftError)) {
+    return NextResponse.json({ error: draftError.message }, { status: 500 });
+  }
+
   const { data: corrections, error: correctionError } = matchIds.length
     ? await client
         .from("match_corrections")
@@ -103,6 +118,7 @@ export async function GET(
     list.push(submission);
     submissionsByMatch.set(submission.match_id, list);
   }
+  const draftMatchIds = new Set((drafts || []).map((draft) => draft.match_id));
 
   const latestCorrectionByMatch = new Map<string, MatchCorrection>();
   for (const correction of (corrections || []) as MatchCorrection[]) {
@@ -151,7 +167,11 @@ export async function GET(
     }
 
     const matchSubmissions = submissionsByMatch.get(match.id) || [];
-    if (matchSubmissions.length === 0) return match;
+    if (matchSubmissions.length === 0) {
+      return draftMatchIds.has(match.id) && (match.status === "scheduled" || match.status === "awaiting_submission")
+        ? { ...match, status: "partial_score" }
+        : match;
+    }
 
     const resolution = resolveSubmissionStatus(
       matchSubmissions.map((submission) => ({

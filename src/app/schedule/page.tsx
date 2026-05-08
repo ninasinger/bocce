@@ -56,6 +56,26 @@ function teamId(team: ScheduleTeamRef) {
   return team.id || "";
 }
 
+function easternDateKey(value: Date) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  }).formatToParts(value);
+  const year = parts.find((part) => part.type === "year")?.value;
+  const month = parts.find((part) => part.type === "month")?.value;
+  const day = parts.find((part) => part.type === "day")?.value;
+  return year && month && day ? `${year}-${month}-${day}` : "";
+}
+
+function isPastScheduleDate(scheduledDatetime: string | null) {
+  if (!scheduledDatetime) return false;
+  const date = new Date(scheduledDatetime);
+  if (Number.isNaN(date.getTime())) return false;
+  return easternDateKey(date) < easternDateKey(new Date());
+}
+
 export default function SchedulePage() {
   const [seasons, setSeasons] = useState<Season[]>([]);
   const [seasonId, setSeasonId] = useState("");
@@ -88,7 +108,9 @@ export default function SchedulePage() {
         setTeams([]);
         return;
       }
-      const loadedMatches = data.matches || [];
+      const loadedMatches = (data.matches || []).filter(
+        (match) => !isPastScheduleDate(match.scheduled_datetime)
+      );
       setMatches(loadedMatches);
       setTeams(data.teams || []);
       const availableTeams = data.teams || [];

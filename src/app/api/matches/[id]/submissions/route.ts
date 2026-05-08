@@ -265,6 +265,12 @@ export async function POST(
     return NextResponse.json({ error: insertError.message }, { status: 500 });
   }
 
+  await client
+    .from("match_score_drafts")
+    .delete()
+    .eq("match_id", matchId)
+    .eq("team_id", session.teamId);
+
   const { data: submissions } = await client
     .from("match_submissions")
     .select("*")
