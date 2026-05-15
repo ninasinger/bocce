@@ -42,6 +42,10 @@ export function computeOutcome(score: MatchScore): ComputedOutcome {
 
   if (homeTotalScore > awayTotalScore) homeMatchPoints += 1;
   if (awayTotalScore > homeTotalScore) awayMatchPoints += 1;
+  if (homeGamesWon === 1 && awayGamesWon === 1 && homeTotalScore === awayTotalScore) {
+    homeMatchPoints += 0.5;
+    awayMatchPoints += 0.5;
+  }
 
   return {
     homeGamesWon,

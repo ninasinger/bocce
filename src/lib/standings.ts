@@ -26,6 +26,11 @@ export type StandingRow = {
   rank: number;
 };
 
+function statNumber(value: unknown) {
+  const number = typeof value === "number" ? value : Number(value);
+  return Number.isFinite(number) ? number : 0;
+}
+
 function compareHeadToHead(
   teamA: string,
   teamB: string,
@@ -39,8 +44,8 @@ function compareHeadToHead(
   const record = relevant.reduce(
     (acc, match) => {
       const isAHome = match.home_team_id === teamA;
-      const aGames = isAHome ? match.home_games_won : match.away_games_won;
-      const bGames = isAHome ? match.away_games_won : match.home_games_won;
+      const aGames = statNumber(isAHome ? match.home_games_won : match.away_games_won);
+      const bGames = statNumber(isAHome ? match.away_games_won : match.home_games_won);
       acc.aGames += aGames;
       acc.bGames += bGames;
       return acc;
@@ -64,9 +69,9 @@ export function computeStandings(teams: Team[], matches: MatchResult[]) {
     const totals = teamMatches.reduce(
       (acc, match) => {
         const isHome = match.home_team_id === team.id;
-        acc.gamesWon += isHome ? match.home_games_won : match.away_games_won;
-        acc.matchPoints += isHome ? match.home_match_points : match.away_match_points;
-        acc.totalPoints += isHome ? match.home_total_score : match.away_total_score;
+        acc.gamesWon += statNumber(isHome ? match.home_games_won : match.away_games_won);
+        acc.matchPoints += statNumber(isHome ? match.home_match_points : match.away_match_points);
+        acc.totalPoints += statNumber(isHome ? match.home_total_score : match.away_total_score);
         return acc;
       },
       { gamesWon: 0, matchPoints: 0, totalPoints: 0 }
@@ -86,8 +91,8 @@ export function computeStandings(teams: Team[], matches: MatchResult[]) {
 
   rows.sort((a, b) => {
     if (b.gamesWon !== a.gamesWon) return b.gamesWon - a.gamesWon;
-    if (b.matchPoints !== a.matchPoints) return b.matchPoints - a.matchPoints;
     if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
+    if (b.matchPoints !== a.matchPoints) return b.matchPoints - a.matchPoints;
 
     const head = compareHeadToHead(a.teamId, b.teamId, verified);
     if (head !== 0) return head;
@@ -104,8 +109,8 @@ export function computeStandings(teams: Team[], matches: MatchResult[]) {
     const prev = rows[index - 1];
     const isSameScoreline =
       row.gamesWon === prev.gamesWon &&
-      row.matchPoints === prev.matchPoints &&
-      row.totalPoints === prev.totalPoints;
+      row.totalPoints === prev.totalPoints &&
+      row.matchPoints === prev.matchPoints;
 
     row.rank = isSameScoreline ? prev.rank : index + 1;
   });

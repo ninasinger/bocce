@@ -33,6 +33,23 @@ test("computeOutcome awards game wins and total-point bonus", () => {
   });
 });
 
+test("computeOutcome splits match bonus when games and total points are tied", () => {
+  const score: MatchScore = {
+    game1: { home: 16, away: 12 },
+    game2: { home: 12, away: 16 }
+  };
+  const outcome = computeOutcome(score);
+
+  assert.deepEqual(outcome, {
+    homeGamesWon: 1,
+    awayGamesWon: 1,
+    homeTotalScore: 28,
+    awayTotalScore: 28,
+    homeMatchPoints: 1.5,
+    awayMatchPoints: 1.5
+  });
+});
+
 test("scoresMatch compares both games exactly", () => {
   const a: MatchScore = {
     game1: { home: 10, away: 9 },

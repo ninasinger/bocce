@@ -114,6 +114,10 @@ function computeLivePoints(scores: {
   const awayTotal = (g1a ?? 0) + (g2a ?? 0);
   if (game1Complete && game2Complete && homeTotal > awayTotal) homePts += 1;
   if (game1Complete && game2Complete && awayTotal > homeTotal) awayPts += 1;
+  if (game1Complete && game2Complete && homePts === 1 && awayPts === 1 && homeTotal === awayTotal) {
+    homePts += 0.5;
+    awayPts += 0.5;
+  }
   return { homePts, awayPts, homeTotal, awayTotal };
 }
 
