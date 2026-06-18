@@ -91,8 +91,8 @@ export function computeStandings(teams: Team[], matches: MatchResult[]) {
 
   rows.sort((a, b) => {
     if (b.gamesWon !== a.gamesWon) return b.gamesWon - a.gamesWon;
-    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
     if (b.matchPoints !== a.matchPoints) return b.matchPoints - a.matchPoints;
+    if (b.totalPoints !== a.totalPoints) return b.totalPoints - a.totalPoints;
 
     const head = compareHeadToHead(a.teamId, b.teamId, verified);
     if (head !== 0) return head;
@@ -109,8 +109,8 @@ export function computeStandings(teams: Team[], matches: MatchResult[]) {
     const prev = rows[index - 1];
     const isSameScoreline =
       row.gamesWon === prev.gamesWon &&
-      row.totalPoints === prev.totalPoints &&
-      row.matchPoints === prev.matchPoints;
+      row.matchPoints === prev.matchPoints &&
+      row.totalPoints === prev.totalPoints;
 
     row.rank = isSameScoreline ? prev.rank : index + 1;
   });
