@@ -14,7 +14,8 @@
     "src/lib/submissionResolution.ts",
     "src/lib/scheduleIcs.ts",
     "src/lib/schedulePdf.ts",
-    "src/lib/simplePdf.ts"
+    "src/lib/simplePdf.ts",
+    "src/lib/week.ts"
   ],
   "exclude": ["node_modules", ".next"]
 }
