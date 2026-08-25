@@ -8,6 +8,7 @@ import { SkeletonCard } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
 import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
+import { getCurrentWeek } from "@/lib/week";
 
 type Season = { id: string; name: string; year: number };
 type Team = { id: string; name: string };
@@ -40,6 +41,12 @@ function readWeekParam(): number | "all" {
   return Number.isFinite(n) ? n : "all";
 }
 
+function teamId(team: ScheduleTeamRef) {
+  if (!team) return "";
+  if (Array.isArray(team)) return team[0]?.id || "";
+  return team.id || "";
+}
+
 function syncWeekParam(week: number | "all") {
   if (typeof window === "undefined") return;
   const params = new URLSearchParams(window.location.search);
@@ -48,32 +55,6 @@ function syncWeekParam(week: number | "all") {
   const query = params.toString();
   const url = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
   window.history.replaceState(null, "", url);
-}
-
-function teamId(team: ScheduleTeamRef) {
-  if (!team) return "";
-  if (Array.isArray(team)) return team[0]?.id || "";
-  return team.id || "";
-}
-
-function easternDateKey(value: Date) {
-  const parts = new Intl.DateTimeFormat("en-CA", {
-    timeZone: "America/New_York",
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit"
-  }).formatToParts(value);
-  const year = parts.find((part) => part.type === "year")?.value;
-  const month = parts.find((part) => part.type === "month")?.value;
-  const day = parts.find((part) => part.type === "day")?.value;
-  return year && month && day ? `${year}-${month}-${day}` : "";
-}
-
-function isPastScheduleDate(scheduledDatetime: string | null) {
-  if (!scheduledDatetime) return false;
-  const date = new Date(scheduledDatetime);
-  if (Number.isNaN(date.getTime())) return false;
-  return easternDateKey(date) < easternDateKey(new Date());
 }
 
 export default function SchedulePage() {
@@ -108,9 +89,7 @@ export default function SchedulePage() {
         setTeams([]);
         return;
       }
-      const loadedMatches = (data.matches || []).filter(
-        (match) => !isPastScheduleDate(match.scheduled_datetime)
-      );
+      const loadedMatches = data.matches || [];
       setMatches(loadedMatches);
       setTeams(data.teams || []);
       const availableTeams = data.teams || [];
@@ -119,7 +98,9 @@ export default function SchedulePage() {
       );
       const urlWeek = readWeekParam();
       const availableWeeks = new Set(loadedMatches.map((m) => m.week_number));
-      setSelectedWeek(urlWeek !== "all" && availableWeeks.has(urlWeek) ? urlWeek : "all");
+      setSelectedWeek(
+        urlWeek !== "all" && availableWeeks.has(urlWeek) ? urlWeek : getCurrentWeek(loadedMatches)
+      );
     } catch {
       setError("Failed to load schedule");
       setMatches([]);
