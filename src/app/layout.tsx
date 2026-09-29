@@ -6,6 +6,9 @@ import { BottomNav } from "@/components/BottomNav";
 import { DesktopNav } from "@/components/DesktopNav";
 import { SessionIndicator } from "@/components/SessionIndicator";
 
+// Off-season: every page shows only the banner. Set to false to restore the site.
+const OFF_SEASON = true;
+
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display" });
 const body = Work_Sans({ subsets: ["latin"], variable: "--font-body" });
 
@@ -40,6 +43,17 @@ export default function RootLayout({
         <link rel="icon" href="/icon-192.svg" type="image/svg+xml" />
       </head>
       <body className={`${display.variable} ${body.variable}`}>
+        {OFF_SEASON ? (
+          <main className="flex min-h-screen items-center justify-center px-4">
+            <div className="card px-8 py-12 text-center md:px-16 md:py-16">
+              <p className="badge bg-sun/30 text-ink">Bella Villa Bocce League</p>
+              <h1 className="mt-4 text-4xl font-display md:text-6xl">
+                See you next season!
+              </h1>
+            </div>
+          </main>
+        ) : (
+        <>
         <div className="app-shell mx-auto max-w-5xl pt-6 md:pt-8">
           <header className="site-header mb-6 flex flex-col gap-3 md:mb-10 md:flex-row md:items-center md:justify-between">
             <div>
@@ -57,6 +71,8 @@ export default function RootLayout({
           {children}
         </div>
         <BottomNav />
+        </>
+        )}
         <script
           dangerouslySetInnerHTML={{
             __html: `if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}`
