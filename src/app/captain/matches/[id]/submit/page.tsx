@@ -69,7 +69,7 @@ function ScoreInput({
 }) {
   return (
     <label className="grid justify-items-center gap-2">
-      <span className="text-center text-sm font-semibold tracking-wide text-stone">
+      <span className="text-center text-sm font-semibold tracking-wide text-slate">
         {label}
       </span>
       <input
@@ -88,7 +88,7 @@ function ScoreInput({
           const next = Number(raw);
           onChange(Number.isFinite(next) ? Math.max(0, Math.floor(next)) : 0);
         }}
-        className="w-24 rounded-xl border-2 border-moss/20 bg-moss/10 px-2 py-2 text-center text-3xl font-display tabular-nums shadow-inner placeholder:text-moss/30 sm:w-28 sm:text-4xl"
+        className="w-24 rounded-xl border-2 border-cobalt/20 bg-cobalt/10 px-2 py-2 text-center text-3xl font-display tabular-nums shadow-inner placeholder:text-cobalt/30 sm:w-28 sm:text-4xl"
         aria-label={`${label} score`}
       />
     </label>
@@ -143,40 +143,40 @@ function ScoreRecap({
   const live = computeLivePoints({ g1h, g1a, g2h, g2a });
   return (
     <div className="space-y-3">
-      <div className="rounded-xl bg-white/70 p-3">
-        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-stone">
+      <div className="rounded-xl bg-stucco p-3">
+        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-slate">
           Game 1
         </p>
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
-            <p className="text-sm font-semibold text-stone">{homeLabel}</p>
+            <p className="text-sm font-semibold text-slate">{homeLabel}</p>
             <p className="text-3xl font-display">{scoreDisplay(g1h)}</p>
           </div>
-          <span className="text-lg text-stone">&ndash;</span>
+          <span className="text-lg text-slate">&ndash;</span>
           <div className="text-center">
-            <p className="text-sm font-semibold text-stone">{awayLabel}</p>
+            <p className="text-sm font-semibold text-slate">{awayLabel}</p>
             <p className="text-3xl font-display">{scoreDisplay(g1a)}</p>
           </div>
         </div>
       </div>
-      <div className="rounded-xl bg-white/70 p-3">
-        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-stone">
+      <div className="rounded-xl bg-stucco p-3">
+        <p className="mb-2 text-center text-xs font-semibold uppercase tracking-wide text-slate">
           Game 2
         </p>
         <div className="flex items-center justify-center gap-4">
           <div className="text-center">
-            <p className="text-sm font-semibold text-stone">{homeLabel}</p>
+            <p className="text-sm font-semibold text-slate">{homeLabel}</p>
             <p className="text-3xl font-display">{scoreDisplay(g2h)}</p>
           </div>
-          <span className="text-lg text-stone">&ndash;</span>
+          <span className="text-lg text-slate">&ndash;</span>
           <div className="text-center">
-            <p className="text-sm font-semibold text-stone">{awayLabel}</p>
+            <p className="text-sm font-semibold text-slate">{awayLabel}</p>
             <p className="text-3xl font-display">{scoreDisplay(g2a)}</p>
           </div>
         </div>
       </div>
-      <div className="rounded-xl bg-moss/10 p-3 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-stone">
+      <div className="rounded-xl bg-cobalt/10 p-3 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate">
           Match points
         </p>
         <p className="mt-1 text-xl font-display">
@@ -388,8 +388,8 @@ export default function SubmitScorePage() {
     return (
       <main className="card p-4 text-center">
         <div className="animate-pulse py-12">
-          <div className="mx-auto h-6 w-32 rounded-lg bg-stone/15" />
-          <div className="mx-auto mt-3 h-4 w-48 rounded-lg bg-stone/10" />
+          <div className="mx-auto h-6 w-32 rounded-lg bg-slate/15" />
+          <div className="mx-auto mt-3 h-4 w-48 rounded-lg bg-slate/10" />
         </div>
       </main>
     );
@@ -405,7 +405,7 @@ export default function SubmitScorePage() {
           </svg>
         </div>
         <h2 className="section-title">Already submitted</h2>
-        <p className="mt-1 text-sm text-stone">
+        <p className="mt-1 text-sm text-slate">
           Your scores for this match have been recorded.
         </p>
         <div className="mt-1">
@@ -421,7 +421,7 @@ export default function SubmitScorePage() {
         </div>
 
         <div className="mt-5 flex flex-col gap-3">
-          <a href="/captain/matches" className="tap-btn rounded-xl bg-moss px-5 py-3 text-center font-semibold text-white">
+          <a href="/captain/matches" className="tap-btn rounded-xl bg-cobalt px-5 py-3 text-center font-semibold text-white">
             Back to my matches
           </a>
         </div>
@@ -482,7 +482,7 @@ export default function SubmitScorePage() {
           )}
         </div>
         <h2 className="section-title">{msg.title}</h2>
-        <p className="mt-2 text-sm text-stone">{msg.desc}</p>
+        <p className="mt-2 text-sm text-slate">{msg.desc}</p>
 
         {/* Show submitted scores */}
         <div className="mt-4">
@@ -493,7 +493,7 @@ export default function SubmitScorePage() {
         </div>
 
         <div className="mt-5 flex flex-col gap-3">
-          <a href="/captain/matches" className="tap-btn rounded-xl bg-moss px-5 py-3 text-center font-semibold text-white">
+          <a href="/captain/matches" className="tap-btn rounded-xl bg-cobalt px-5 py-3 text-center font-semibold text-white">
             Back to my matches
           </a>
           <a href="/" className="tap-btn rounded-xl bg-white/80 px-5 py-3 text-center font-semibold text-ink">
@@ -512,7 +512,7 @@ export default function SubmitScorePage() {
 
         <div className="mt-3 flex items-center justify-center gap-2 text-sm">
           <TeamName name={homeFmt} />
-          <span className="text-stone">vs</span>
+          <span className="text-slate">vs</span>
           <TeamName name={awayFmt} />
         </div>
 
@@ -529,8 +529,8 @@ export default function SubmitScorePage() {
         </div>
 
         {notes ? (
-          <div className="mt-3 rounded-xl bg-white/70 p-3">
-            <p className="text-xs font-semibold uppercase tracking-wide text-stone">Notes</p>
+          <div className="mt-3 rounded-xl bg-stucco p-3">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate">Notes</p>
             <p className="mt-1 text-sm">{notes}</p>
           </div>
         ) : null}
@@ -543,7 +543,7 @@ export default function SubmitScorePage() {
           <button
             onClick={handleSubmit}
             disabled={submitting}
-            className="tap-btn w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white disabled:opacity-60"
+            className="tap-btn w-full rounded-xl bg-cobalt px-5 py-3.5 text-base font-semibold text-white disabled:opacity-60"
           >
             {submitting
               ? submitPhase === "retrying"
@@ -553,7 +553,7 @@ export default function SubmitScorePage() {
           </button>
           <button
             onClick={() => setStep("entry")}
-            className="tap px-4 py-3 text-sm font-semibold text-stone"
+            className="tap px-4 py-3 text-sm font-semibold text-slate"
           >
             ← Go back & edit
           </button>
@@ -568,7 +568,7 @@ export default function SubmitScorePage() {
       <h2 className="section-title text-center">Enter scores</h2>
       <div className="mt-1 flex items-center justify-center gap-2 text-sm">
         <TeamName name={homeFmt} />
-        <span className="text-stone">vs</span>
+        <span className="text-slate">vs</span>
         <TeamName name={awayFmt} />
       </div>
 
@@ -582,8 +582,8 @@ export default function SubmitScorePage() {
       ) : null}
 
       {/* Game 1 */}
-      <div className="mt-4 rounded-xl bg-white/70 p-3">
-        <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-stone">
+      <div className="mt-4 rounded-xl bg-stucco p-3">
+        <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-slate">
           Game 1
         </p>
         <div className="grid grid-cols-2 gap-4">
@@ -593,8 +593,8 @@ export default function SubmitScorePage() {
       </div>
 
       {/* Game 2 */}
-      <div className="mt-3 rounded-xl bg-white/70 p-3">
-        <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-stone">
+      <div className="mt-3 rounded-xl bg-stucco p-3">
+        <p className="mb-3 text-center text-xs font-semibold uppercase tracking-wide text-slate">
           Game 2
         </p>
         <div className="grid grid-cols-2 gap-4">
@@ -604,14 +604,14 @@ export default function SubmitScorePage() {
       </div>
 
       {/* Live match points preview */}
-      <div className="mt-3 rounded-xl bg-moss/10 p-3 text-center">
-        <p className="text-xs font-semibold uppercase tracking-wide text-stone">
+      <div className="mt-3 rounded-xl bg-cobalt/10 p-3 text-center">
+        <p className="text-xs font-semibold uppercase tracking-wide text-slate">
           Match points
         </p>
         <p className="mt-1 text-xl font-display">
           {live.homePts} &ndash; {live.awayPts}
         </p>
-        <p className="text-sm text-stone">
+        <p className="text-sm text-slate">
           Total: {live.homeTotal} &ndash; {live.awayTotal}
         </p>
       </div>
@@ -625,7 +625,7 @@ export default function SubmitScorePage() {
             onChange={(e) => setNotes(e.target.value)}
             placeholder="Anything worth noting..."
             rows={2}
-            className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base"
+            className="rounded-xl border border-tile bg-stucco px-3 py-2.5 text-base"
           />
         </label>
       </div>
@@ -638,7 +638,7 @@ export default function SubmitScorePage() {
               setError(null);
               setStep("confirm");
             }}
-            className="tap-btn w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white"
+            className="tap-btn w-full rounded-xl bg-cobalt px-5 py-3.5 text-base font-semibold text-white"
           >
             Review final scores
           </button>
@@ -646,7 +646,7 @@ export default function SubmitScorePage() {
           <button
             onClick={handleSaveDraft}
             disabled={submitting}
-            className="tap-btn w-full rounded-xl bg-moss px-5 py-3.5 text-base font-semibold text-white disabled:opacity-60"
+            className="tap-btn w-full rounded-xl bg-cobalt px-5 py-3.5 text-base font-semibold text-white disabled:opacity-60"
           >
             {submitting ? "Saving..." : "Save partial score"}
           </button>

@@ -17,17 +17,17 @@ export default function GlobalError({
     <main className="space-y-4">
       <section className="card fade-in p-6 md:p-8">
         <h2 className="section-title">Something went wrong</h2>
-        <p className="mt-2 text-sm text-stone">
+        <p className="mt-2 text-sm text-slate">
           We hit an unexpected error. Try again, or refresh the page.
         </p>
         {error.digest ? (
-          <p className="mt-2 text-xs text-stone/80">Reference: {error.digest}</p>
+          <p className="mt-2 text-xs text-slate/80">Reference: {error.digest}</p>
         ) : null}
         <div className="mt-4 flex gap-2">
           <button
             type="button"
             onClick={reset}
-            className="tap-btn rounded-xl bg-moss px-5 py-3 text-base font-semibold text-white shadow-sm"
+            className="tap-btn rounded-xl bg-cobalt px-5 py-3 text-base font-semibold text-white shadow-sm"
           >
             Try again
           </button>

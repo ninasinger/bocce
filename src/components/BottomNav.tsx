@@ -52,7 +52,7 @@ export function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="btm-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-white/60 bg-white/95 backdrop-blur-md xl:hidden">
+    <nav className="btm-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-tile bg-white/95 backdrop-blur-md xl:hidden">
       {tabs.map((tab) => {
         const active = pathname.startsWith(tab.href);
         return (
@@ -61,12 +61,12 @@ export function BottomNav() {
             href={tab.href}
             aria-current={active ? "page" : undefined}
             className={`flex flex-1 flex-col items-center gap-0.5 py-2 text-xs font-semibold transition-all duration-200 ${
-              active ? "text-moss" : "text-stone"
+              active ? "text-cobalt" : "text-slate"
             }`}
           >
             <span
               className={`rounded-lg p-1 transition-all duration-200 ${
-                active ? "bg-moss/10 shadow-sm" : "hover:bg-white"
+                active ? "bg-cobalt/10 shadow-sm" : "hover:bg-white"
               }`}
             >
               {tab.icon}

@@ -207,7 +207,7 @@ export default function CommissionerMatchReview() {
   if (!authorized) {
     return (
       <main className="card p-4 md:p-6">
-        <p className="text-sm text-stone">Checking commissioner access...</p>
+        <p className="text-sm text-slate">Checking commissioner access...</p>
       </main>
     );
   }
@@ -221,11 +221,11 @@ export default function CommissionerMatchReview() {
           </svg>
         </div>
         <h2 className="section-title">Correction saved</h2>
-        <p className="mt-2 text-sm text-stone">
+        <p className="mt-2 text-sm text-slate">
           The official final scores have been updated for this match.
         </p>
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <a href="/commissioner" className="tap-btn rounded-xl bg-moss px-5 py-3 text-center font-semibold text-white">
+          <a href="/commissioner" className="tap-btn rounded-xl bg-cobalt px-5 py-3 text-center font-semibold text-white">
             Back to dashboard
           </a>
           <a href="/schedule" className="tap-btn rounded-xl bg-white/80 px-5 py-3 text-center font-semibold text-ink">
@@ -238,7 +238,7 @@ export default function CommissionerMatchReview() {
 
   return (
     <main className="card p-4 md:p-6">
-      <a href="/commissioner" className="tap inline-flex items-center gap-1 text-sm font-semibold text-moss">
+      <a href="/commissioner" className="tap inline-flex items-center gap-1 text-sm font-semibold text-cobalt">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4">
           <polyline points="15 18 9 12 15 6" />
         </svg>
@@ -246,7 +246,7 @@ export default function CommissionerMatchReview() {
       </a>
 
       <h2 className="section-title mt-3">Match review</h2>
-      <p className="mt-1 text-sm text-stone">
+      <p className="mt-1 text-sm text-slate">
         Compare submissions and enter an official correction if needed.
       </p>
 
@@ -265,7 +265,7 @@ export default function CommissionerMatchReview() {
       ) : null}
 
       {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
-      {message ? <p className="mt-3 text-sm text-moss">{message}</p> : null}
+      {message ? <p className="mt-3 text-sm text-cobalt">{message}</p> : null}
 
       <h3 className="section-title mt-6 text-base">Submissions</h3>
       {loadingSubmissions ? (
@@ -274,12 +274,12 @@ export default function CommissionerMatchReview() {
           <SkeletonCard />
         </div>
       ) : submissions.length === 0 && !error ? (
-        <p className="mt-3 text-sm text-stone">No submissions.</p>
+        <p className="mt-3 text-sm text-slate">No submissions.</p>
       ) : (
         <div className="mt-3 space-y-3 md:grid md:grid-cols-2 md:gap-3 md:space-y-0">
           {submissions.map((submission) => (
-            <div key={submission.id} className="rounded-xl bg-white/70 p-3 md:p-4">
-              <p className="text-xs uppercase tracking-wide text-stone">
+            <div key={submission.id} className="rounded-xl bg-stucco p-3 md:p-4">
+              <p className="text-xs uppercase tracking-wide text-slate">
                 {formatMatchTeamName(submission.submitted_team, "Team")} submission
               </p>
               <div className="mt-2 space-y-1">
@@ -290,18 +290,18 @@ export default function CommissionerMatchReview() {
                   Game 2: {submission.game2_home_score} - {submission.game2_away_score}
                 </p>
               </div>
-              <p className="mt-2 text-sm text-stone">Notes: {submission.notes || "None"}</p>
+              <p className="mt-2 text-sm text-slate">Notes: {submission.notes || "None"}</p>
             </div>
           ))}
         </div>
       )}
 
       <h3 className="section-title mt-6 text-base">Score history</h3>
-      <p className="mt-1 text-sm text-stone">
+      <p className="mt-1 text-sm text-slate">
         Immutable event log for submissions and official score changes.
       </p>
       {history.length === 0 ? (
-        <p className="mt-3 text-sm text-stone">No history entries yet for this match.</p>
+        <p className="mt-3 text-sm text-slate">No history entries yet for this match.</p>
       ) : (
         <div className="mt-3 space-y-2">
           {history.map((item) => {
@@ -310,13 +310,13 @@ export default function CommissionerMatchReview() {
             const label = ACTION_LABELS[item.action] || item.action.replace(/_/g, " ");
             const isFirstEvent = !item.before_values;
             return (
-              <div key={item.id} className="rounded-xl border border-white/60 bg-white/70 p-3">
+              <div key={item.id} className="rounded-xl border border-tile bg-stucco p-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <StatusBadge status={badgeStatus} />
-                  <span className="text-sm text-stone">
+                  <span className="text-sm text-slate">
                     {new Date(item.created_at).toLocaleString()}
                   </span>
-                  <span className="text-xs font-semibold uppercase tracking-wide text-stone">
+                  <span className="text-xs font-semibold uppercase tracking-wide text-slate">
                     {item.actor_role}
                   </span>
                 </div>
@@ -330,8 +330,8 @@ export default function CommissionerMatchReview() {
                           <span className="tabular-nums">{row.after}</span>
                         ) : (
                           <>
-                            <span className="tabular-nums text-stone">{row.before}</span>
-                            <span aria-hidden className="text-stone">→</span>
+                            <span className="tabular-nums text-slate">{row.before}</span>
+                            <span aria-hidden className="text-slate">→</span>
                             <span className="tabular-nums font-semibold">{row.after}</span>
                           </>
                         )}
@@ -356,12 +356,12 @@ export default function CommissionerMatchReview() {
       )}
 
       <h3 className="section-title mt-6 text-base">Commissioner correction</h3>
-      <p className="mt-1 text-sm text-stone">
+      <p className="mt-1 text-sm text-slate">
         Enter the official final scores for this match.
       </p>
-      <form className="mt-3 grid gap-3 rounded-2xl border-2 border-moss/30 bg-field/30 p-3 md:p-4" onSubmit={onCorrect}>
-        <div className="rounded-xl border border-moss/20 bg-moss/10 p-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-stone">Previous score</p>
+      <form className="mt-3 grid gap-3 rounded-2xl border-2 border-cobalt/30 bg-stucco/30 p-3 md:p-4" onSubmit={onCorrect}>
+        <div className="rounded-xl border border-cobalt/20 bg-cobalt/10 p-3">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate">Previous score</p>
           {previousScore ? (
             <div className="mt-2 space-y-1 text-sm">
               <p>
@@ -372,7 +372,7 @@ export default function CommissionerMatchReview() {
               </p>
             </div>
           ) : (
-            <p className="mt-2 text-sm text-stone">No previous score submitted yet.</p>
+            <p className="mt-2 text-sm text-slate">No previous score submitted yet.</p>
           )}
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -388,7 +388,7 @@ export default function CommissionerMatchReview() {
               required
               value={game1HomeScore}
               onChange={(event) => setGame1HomeScore(Math.max(0, Number(event.target.value) || 0))}
-              className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
+              className="w-16 rounded-xl border border-slate/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
           <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
@@ -403,7 +403,7 @@ export default function CommissionerMatchReview() {
               required
               value={game1AwayScore}
               onChange={(event) => setGame1AwayScore(Math.max(0, Number(event.target.value) || 0))}
-              className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
+              className="w-16 rounded-xl border border-slate/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
         </div>
@@ -420,7 +420,7 @@ export default function CommissionerMatchReview() {
               required
               value={game2HomeScore}
               onChange={(event) => setGame2HomeScore(Math.max(0, Number(event.target.value) || 0))}
-              className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
+              className="w-16 rounded-xl border border-slate/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
           <label className="grid min-w-0 gap-1.5 text-sm font-semibold">
@@ -435,7 +435,7 @@ export default function CommissionerMatchReview() {
               required
               value={game2AwayScore}
               onChange={(event) => setGame2AwayScore(Math.max(0, Number(event.target.value) || 0))}
-              className="w-16 rounded-xl border border-stone/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
+              className="w-16 rounded-xl border border-slate/30 bg-white px-2 py-2 text-center text-lg font-semibold tabular-nums"
             />
           </label>
         </div>
@@ -444,17 +444,17 @@ export default function CommissionerMatchReview() {
           <textarea
             name="reason"
             required
-            className="min-h-[80px] rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+            className="min-h-[80px] rounded-xl border border-slate/30 bg-white px-3 py-2.5"
           />
         </label>
         <label className="grid gap-1.5 text-sm font-semibold">
           Notes (optional)
           <textarea
             name="notes"
-            className="min-h-[80px] rounded-xl border border-stone/30 bg-white px-3 py-2.5"
+            className="min-h-[80px] rounded-xl border border-slate/30 bg-white px-3 py-2.5"
           />
         </label>
-        <button className="tap-btn rounded-xl bg-moss px-4 py-3 font-semibold text-white">
+        <button className="tap-btn rounded-xl bg-cobalt px-4 py-3 font-semibold text-white">
           Save correction
         </button>
       </form>

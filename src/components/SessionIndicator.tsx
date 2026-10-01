@@ -76,12 +76,11 @@ export function SessionIndicator() {
     };
   }, [pathname]);
 
+  // Visitors can't sign in from the public nav, so "Not signed in" is noise.
+  if (variant === "neutral") return null;
+
   const className =
-    variant === "commissioner"
-      ? "bg-moss/90 text-white"
-      : variant === "captain"
-        ? "bg-sky-100 text-sky-800"
-        : "bg-white/80 text-stone";
+    variant === "commissioner" ? "bg-cobalt text-white" : "bg-sky-100 text-sky-800";
 
   return <p className={`badge ${className}`}>{label}</p>;
 }

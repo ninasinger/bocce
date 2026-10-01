@@ -125,7 +125,7 @@ export default function CaptainDashboardPage() {
           <>
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-semibold uppercase tracking-wide text-stone">
+                <p className="text-xs font-semibold uppercase tracking-wide text-slate">
                   My Team
                 </p>
                 <h2 className="mt-1 text-2xl font-display">
@@ -134,7 +134,7 @@ export default function CaptainDashboardPage() {
               </div>
               <a
                 href="/captain/matches"
-                className="tap-btn rounded-lg bg-moss px-4 py-2 text-sm font-semibold text-white"
+                className="tap-btn rounded-lg bg-cobalt px-4 py-2 text-sm font-semibold text-white"
               >
                 Enter scores
               </a>
@@ -155,14 +155,14 @@ export default function CaptainDashboardPage() {
           </div>
         ) : (
           <div className="mt-3 grid grid-cols-2 gap-3">
-            <div className="rounded-xl bg-white/70 p-3">
-              <p className="text-xs uppercase tracking-wide text-stone">Record (games)</p>
+            <div className="rounded-xl bg-stucco p-3">
+              <p className="text-xs uppercase tracking-wide text-slate">Record (games)</p>
               <p className="mt-1 text-2xl font-display">
                 {wins}-{losses}
               </p>
             </div>
-            <div className="rounded-xl bg-white/70 p-3">
-              <p className="text-xs uppercase tracking-wide text-stone">Matches played</p>
+            <div className="rounded-xl bg-stucco p-3">
+              <p className="text-xs uppercase tracking-wide text-slate">Matches played</p>
               <p className="mt-1 text-2xl font-display">{verifiedMatches.length}</p>
             </div>
           </div>
@@ -177,17 +177,17 @@ export default function CaptainDashboardPage() {
             <SkeletonCard />
           </div>
         ) : nextMatch && myTeam ? (
-          <div className="mt-3 rounded-xl bg-white/70 p-3">
+          <div className="mt-3 rounded-xl bg-stucco p-3">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={nextMatch.status} />
-              <span className="text-xs text-stone">
+              <span className="text-xs text-slate">
                 Week {nextMatch.week_number}
               </span>
             </div>
             <p className="mt-2 text-sm font-semibold">
               vs <TeamName name={getOpponent(nextMatch, myTeam)} />
             </p>
-            <p className="mt-1 text-sm text-stone">
+            <p className="mt-1 text-sm text-slate">
               {formatMatchDateTime(nextMatch.scheduled_datetime, {
                 weekday: "short",
                 month: "short",
@@ -198,7 +198,7 @@ export default function CaptainDashboardPage() {
             </p>
             <a
               href={`/captain/matches/${nextMatch.id}/submit`}
-              className="tap-btn mt-2.5 inline-flex rounded-lg bg-moss px-4 py-2 text-sm font-semibold text-white"
+              className="tap-btn mt-2.5 inline-flex rounded-lg bg-cobalt px-4 py-2 text-sm font-semibold text-white"
             >
               Enter scores
             </a>
@@ -234,7 +234,7 @@ export default function CaptainDashboardPage() {
               const tied = (myGW ?? 0) === (theirGW ?? 0);
 
               return (
-                <div key={match.id} className="rounded-xl bg-white/70 p-3">
+                <div key={match.id} className="rounded-xl bg-stucco p-3">
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
@@ -249,7 +249,7 @@ export default function CaptainDashboardPage() {
                         >
                           {won ? "Win" : tied ? "Tie" : "Loss"}
                         </span>
-                        <span className="text-xs text-stone">Week {match.week_number}</span>
+                        <span className="text-xs text-slate">Week {match.week_number}</span>
                       </div>
                       <p className="mt-1.5 text-sm font-semibold">
                         vs <TeamName name={opponent} />
@@ -259,7 +259,7 @@ export default function CaptainDashboardPage() {
                       <p className="text-lg font-display">
                         {myScore ?? "-"}-{theirScore ?? "-"}
                       </p>
-                      <p className="text-sm text-stone">
+                      <p className="text-sm text-slate">
                         {myGW ?? 0}-{theirGW ?? 0} Games Won
                       </p>
                     </div>

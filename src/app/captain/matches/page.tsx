@@ -56,7 +56,7 @@ export default function CaptainMatchesPage() {
   return (
     <main className="card p-4 md:p-6">
       <h2 className="section-title">My matches</h2>
-      <p className="mt-1 text-sm text-stone">
+      <p className="mt-1 text-sm text-slate">
         Enter scores for this week. You can save one completed game and finish the match later.
       </p>
 
@@ -65,7 +65,7 @@ export default function CaptainMatchesPage() {
       <div className="sticky-filters mt-3">
         <div className="flex items-center gap-3">
           <select
-            className="flex-1 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base font-semibold"
+            className="flex-1 rounded-xl border border-tile bg-stucco px-3 py-2.5 text-base font-semibold"
             value={selectedWeek}
             onChange={(event) => setSelectedWeek(Number(event.target.value))}
           >
@@ -78,10 +78,10 @@ export default function CaptainMatchesPage() {
           </select>
           <button
             onClick={loadMatches}
-            className="tap flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-white/70 border border-white/60"
+            className="tap flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-xl bg-stucco border border-tile"
             aria-label="Refresh"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-stone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-slate">
               <polyline points="23 4 23 10 17 10" />
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
@@ -98,10 +98,10 @@ export default function CaptainMatchesPage() {
         ) : visibleMatches.length === 0 ? (
           <EmptyState icon="clipboard" message={`No matches for week ${selectedWeek}.`} />
         ) : visibleMatches.map((match) => (
-          <div key={match.id} className="rounded-xl bg-white/70 p-3">
+          <div key={match.id} className="rounded-xl bg-stucco p-3">
             <div className="flex flex-wrap items-center gap-2">
               <StatusBadge status={match.status} />
-              <span className="text-sm text-stone">
+              <span className="text-sm text-slate">
                 {formatMatchDateTime(match.scheduled_datetime, {
                   weekday: "short",
                   month: "short",
@@ -113,12 +113,12 @@ export default function CaptainMatchesPage() {
             </div>
             <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
               <TeamName name={formatMatchTeamName(match.home_team)} />
-              <span className="text-stone">vs</span>
+              <span className="text-slate">vs</span>
               <TeamName name={formatMatchTeamName(match.away_team)} />
             </div>
             <a
               href={`/captain/matches/${match.id}/submit`}
-              className="tap-btn mt-2.5 inline-flex rounded-lg bg-moss px-4 py-2 text-sm font-semibold text-white"
+              className="tap-btn mt-2.5 inline-flex rounded-lg bg-cobalt px-4 py-2 text-sm font-semibold text-white"
             >
               Enter scores
             </a>

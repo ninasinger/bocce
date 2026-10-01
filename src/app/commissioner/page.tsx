@@ -155,7 +155,7 @@ export default function CommissionerDashboard() {
   if (!authorized) {
     return (
       <main className="card p-4 md:p-6">
-        <p className="text-sm text-stone">Checking commissioner access...</p>
+        <p className="text-sm text-slate">Checking commissioner access...</p>
       </main>
     );
   }
@@ -164,7 +164,7 @@ export default function CommissionerDashboard() {
     <main className="space-y-4 md:space-y-6">
       <section className="card p-4 md:p-6">
         <h2 className="section-title">Admin dashboard</h2>
-        <p className="mt-1 text-sm text-stone">
+        <p className="mt-1 text-sm text-slate">
           Review submissions, resolve disputes, close the week, and trigger exports.
         </p>
 
@@ -172,7 +172,7 @@ export default function CommissionerDashboard() {
           <label className="grid gap-2 text-sm font-semibold">
             Season
             <select
-              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base"
+              className="rounded-xl border border-tile bg-stucco px-3 py-2.5 text-base"
               value={seasonId}
               onChange={(event) => setSeasonId(event.target.value)}
             >
@@ -187,7 +187,7 @@ export default function CommissionerDashboard() {
           <label className="grid gap-2 text-sm font-semibold">
             Week
             <select
-              className="rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-base"
+              className="rounded-xl border border-tile bg-stucco px-3 py-2.5 text-base"
               value={selectedWeek}
               onChange={(event) => setSelectedWeek(Number(event.target.value))}
             >
@@ -204,7 +204,7 @@ export default function CommissionerDashboard() {
         <div className="mt-4 grid grid-cols-2 gap-2 md:flex md:flex-wrap md:gap-3">
           <button
             onClick={closeWeek}
-            className="tap-btn rounded-xl bg-moss px-4 py-2.5 text-sm font-semibold text-white"
+            className="tap-btn rounded-xl bg-cobalt px-4 py-2.5 text-sm font-semibold text-white"
           >
             Close week
           </button>
@@ -222,35 +222,35 @@ export default function CommissionerDashboard() {
           </button>
         </div>
 
-        {message ? <p className="mt-3 text-sm text-moss">{message}</p> : null}
-        <p className="mt-2 text-sm text-stone">
+        {message ? <p className="mt-3 text-sm text-cobalt">{message}</p> : null}
+        <p className="mt-2 text-sm text-slate">
           Drive: {driveConnected ? `Connected (${driveEmail || "Google"})` : "Not connected"}
         </p>
       </section>
 
       <section className="card p-4 md:p-6">
         <h3 className="section-title">Action queue</h3>
-        <p className="mt-1 text-sm text-stone">Week {selectedWeek} priorities</p>
+        <p className="mt-1 text-sm text-slate">Week {selectedWeek} priorities</p>
         <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
-          <div className="rounded-xl bg-white/70 p-3 md:p-4">
-            <p className="text-xs uppercase tracking-wide text-stone">Disputes</p>
+          <div className="rounded-xl bg-stucco p-3 md:p-4">
+            <p className="text-xs uppercase tracking-wide text-slate">Disputes</p>
             <p className="mt-1 text-2xl font-display">{disputes.length}</p>
           </div>
-          <div className="rounded-xl bg-white/70 p-3 md:p-4">
-            <p className="text-xs uppercase tracking-wide text-stone">Missing</p>
+          <div className="rounded-xl bg-stucco p-3 md:p-4">
+            <p className="text-xs uppercase tracking-wide text-slate">Missing</p>
             <p className="mt-1 text-2xl font-display">{missingSubmissions.length}</p>
           </div>
-          <div className="col-span-2 rounded-xl bg-white/70 p-3 md:col-span-1 md:p-4">
-            <p className="text-xs uppercase tracking-wide text-stone">Next action</p>
+          <div className="col-span-2 rounded-xl bg-stucco p-3 md:col-span-1 md:p-4">
+            <p className="text-xs uppercase tracking-wide text-slate">Next action</p>
             {nextActionMatch ? (
               <a
                 href={`/commissioner/matches/${nextActionMatch.id}`}
-                className="tap-btn mt-2 inline-flex rounded-lg bg-moss px-3 py-2 text-sm font-semibold text-white"
+                className="tap-btn mt-2 inline-flex rounded-lg bg-cobalt px-3 py-2 text-sm font-semibold text-white"
               >
                 Review next match
               </a>
             ) : (
-              <p className="mt-2 text-sm text-stone">All clear for this week</p>
+              <p className="mt-2 text-sm text-slate">All clear for this week</p>
             )}
           </div>
         </div>
@@ -261,11 +261,11 @@ export default function CommissionerDashboard() {
           <h3 className="section-title">
             {queueView === "needs_review" ? "Needs review" : `Week ${selectedWeek} matches`}
           </h3>
-          <div className="inline-flex rounded-xl bg-white/70 p-1 text-sm font-semibold">
+          <div className="inline-flex rounded-xl bg-stucco p-1 text-sm font-semibold">
             <button
               onClick={() => setQueueView("needs_review")}
               className={`tap rounded-lg px-3 py-1.5 ${
-                queueView === "needs_review" ? "bg-moss text-white" : "text-stone"
+                queueView === "needs_review" ? "bg-cobalt text-white" : "text-slate"
               }`}
             >
               Needs review
@@ -276,7 +276,7 @@ export default function CommissionerDashboard() {
             <button
               onClick={() => setQueueView("all")}
               className={`tap rounded-lg px-3 py-1.5 ${
-                queueView === "all" ? "bg-moss text-white" : "text-stone"
+                queueView === "all" ? "bg-cobalt text-white" : "text-slate"
               }`}
             >
               All matches
@@ -284,35 +284,35 @@ export default function CommissionerDashboard() {
           </div>
         </div>
         {queueView === "needs_review" ? (
-          <p className="mt-1 text-sm text-stone">
+          <p className="mt-1 text-sm text-slate">
             Disputed matches and scores missing for {STALE_THRESHOLD_DAYS}+ days, oldest first.
           </p>
         ) : null}
         <div className="mt-3 space-y-2">
           {visibleQueue.length === 0 ? (
-            <p className="text-sm text-stone">
+            <p className="text-sm text-slate">
               {queueView === "needs_review"
                 ? "All clear — no matches need review right now."
                 : `No matches for week ${selectedWeek}.`}
             </p>
           ) : null}
           {visibleQueue.map((match) => (
-            <div key={match.id} className="rounded-xl bg-white/70 p-3">
+            <div key={match.id} className="rounded-xl bg-stucco p-3">
               <div className="flex items-center justify-between gap-2">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     <StatusBadge status={match.status} />
-                    <span className="text-xs text-stone">Wk {match.week_number}</span>
+                    <span className="text-xs text-slate">Wk {match.week_number}</span>
                   </div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm">
                     <TeamName name={formatMatchTeamName(match.home_team)} />
-                    <span className="text-stone">vs</span>
+                    <span className="text-slate">vs</span>
                     <TeamName name={formatMatchTeamName(match.away_team)} />
                   </div>
                 </div>
                 <a
                   href={`/commissioner/matches/${match.id}`}
-                  className="tap-btn flex-shrink-0 rounded-lg bg-moss px-3 py-2 text-sm font-semibold text-white"
+                  className="tap-btn flex-shrink-0 rounded-lg bg-cobalt px-3 py-2 text-sm font-semibold text-white"
                 >
                   Review
                 </a>
@@ -332,17 +332,17 @@ export default function CommissionerDashboard() {
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
                       <StatusBadge status="disputed" />
-                      <span className="text-xs text-stone">Week {match.week_number}</span>
+                      <span className="text-xs text-slate">Week {match.week_number}</span>
                     </div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-sm">
                       <TeamName name={formatMatchTeamName(match.home_team)} />
-                      <span className="text-stone">vs</span>
+                      <span className="text-slate">vs</span>
                       <TeamName name={formatMatchTeamName(match.away_team)} />
                     </div>
                   </div>
                   <a
                     href={`/commissioner/matches/${match.id}`}
-                    className="tap-btn flex-shrink-0 rounded-lg bg-moss px-3 py-2 text-sm font-semibold text-white"
+                    className="tap-btn flex-shrink-0 rounded-lg bg-cobalt px-3 py-2 text-sm font-semibold text-white"
                   >
                     Review
                   </a>

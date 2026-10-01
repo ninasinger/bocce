@@ -1,7 +1,7 @@
 export function Skeleton({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse rounded-lg bg-stone/15 ${className}`}
+      className={`animate-pulse rounded-lg bg-slate/15 ${className}`}
       aria-hidden="true"
     />
   );
@@ -9,7 +9,7 @@ export function Skeleton({ className = "" }: { className?: string }) {
 
 export function SkeletonCard() {
   return (
-    <div className="rounded-xl bg-white/70 p-3">
+    <div className="rounded-xl bg-stucco p-3">
       <Skeleton className="h-4 w-24" />
       <Skeleton className="mt-2 h-5 w-48" />
       <Skeleton className="mt-2 h-4 w-32" />
@@ -19,7 +19,7 @@ export function SkeletonCard() {
 
 export function SkeletonStandingRow() {
   return (
-    <div className="flex items-center justify-between rounded-xl bg-white/70 p-3">
+    <div className="flex items-center justify-between rounded-xl bg-stucco p-3">
       <div className="flex items-center gap-2">
         <Skeleton className="h-7 w-7 rounded-full" />
         <Skeleton className="h-4 w-28" />
@@ -31,7 +31,7 @@ export function SkeletonStandingRow() {
 
 export function SkeletonAwardCard() {
   return (
-    <div className="rounded-2xl border border-white/60 bg-white/50 p-4">
+    <div className="rounded-2xl border border-tile bg-white/50 p-4">
       <div className="flex items-start gap-3">
         <Skeleton className="h-8 w-8 rounded-lg" />
         <div className="flex-1">

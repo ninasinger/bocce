@@ -1,12 +1,11 @@
+// Majolica tints for team initial circles.
 const TEAM_COLORS = [
-  "bg-emerald-200 text-emerald-900",
-  "bg-rose-200 text-rose-900",
-  "bg-sky-200 text-sky-900",
-  "bg-amber-200 text-amber-900",
-  "bg-violet-200 text-violet-900",
-  "bg-teal-200 text-teal-900",
-  "bg-lime-200 text-lime-900",
-  "bg-orange-200 text-orange-900"
+  "bg-cobalt/15 text-cobalt-deep",
+  "bg-lemon/40 text-lemon-deep",
+  "bg-leaf/20 text-leaf-deep",
+  "bg-sky-100 text-sky-900",
+  "bg-terracotta/20 text-terracotta-deep",
+  "bg-slate/20 text-ink"
 ];
 
 function hash(input: string) {

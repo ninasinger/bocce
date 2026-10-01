@@ -46,7 +46,7 @@ export default function CommissionerLoginPage() {
   return (
     <main className="card p-6">
       <h2 className="section-title">Commissioner Access</h2>
-      <p className="mt-2 text-sm text-stone">
+      <p className="mt-2 text-sm text-slate">
         Sign in with your Google account to manage the league.
       </p>
 
@@ -54,7 +54,7 @@ export default function CommissionerLoginPage() {
         <label className="grid gap-2 text-sm font-semibold">
           Season
           <select
-            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            className="rounded-xl border border-tile bg-stucco px-4 py-3"
             value={seasonId}
             onChange={(event) => setSeasonId(event.target.value)}
           >
@@ -73,7 +73,7 @@ export default function CommissionerLoginPage() {
         <button
           onClick={signInWithGoogle}
           disabled={!seasonId}
-          className="flex items-center justify-center gap-3 rounded-xl border border-moss/30 bg-moss/10 px-4 py-3.5 font-semibold text-ink shadow-sm ring-1 ring-moss/20 transition-all hover:bg-moss/15 active:scale-[0.98] disabled:opacity-50"
+          className="flex items-center justify-center gap-3 rounded-xl border border-cobalt/30 bg-cobalt/10 px-4 py-3.5 font-semibold text-ink shadow-sm ring-1 ring-cobalt/20 transition-all hover:bg-cobalt/15 active:scale-[0.98] disabled:opacity-50"
         >
           <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white shadow-sm">
             <svg viewBox="0 0 24 24" className="h-5 w-5" aria-hidden="true">

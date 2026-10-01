@@ -17,7 +17,7 @@ export function LeagueTabs({
     <div
       role="group"
       aria-label="League"
-      className={`flex min-h-[2.75rem] gap-1 rounded-xl border border-white/60 bg-white/70 p-1 ${className}`}
+      className={`flex min-h-[2.75rem] gap-1.5 ${className}`}
     >
       {seasons.map((season) => {
         const active = season.id === selectedId;
@@ -27,8 +27,10 @@ export function LeagueTabs({
             type="button"
             aria-pressed={active}
             onClick={() => onSelect(season.id)}
-            className={`tap min-w-0 flex-1 basis-0 rounded-lg px-2 py-1.5 text-sm font-semibold leading-tight md:px-3 md:text-base ${
-              active ? "bg-moss text-white shadow-sm" : "text-ink hover:bg-white"
+            className={`tap min-w-0 flex-1 basis-0 rounded-lg border px-2 py-2 text-sm font-semibold leading-tight md:px-3 md:text-base ${
+              active
+                ? "border-cobalt bg-cobalt text-white shadow-sm"
+                : "border-cobalt/30 bg-white text-cobalt hover:border-cobalt"
             }`}
           >
             {season.name}

@@ -24,19 +24,25 @@ function truncate(value: string, max = 26) {
   return value.length > max ? `${value.slice(0, max - 1)}…` : value;
 }
 
+type Rgb = [number, number, number];
+
+// Majolica palette, matching tailwind.config.ts.
 const THEME = {
-  pageBg: [0.97, 0.94, 0.9] as [number, number, number],
-  cardBg: [0.99, 0.99, 0.985] as [number, number, number],
-  cardBorder: [0.9, 0.88, 0.84] as [number, number, number],
-  moss: [0.18, 0.36, 0.31] as [number, number, number],
-  mossSoft: [0.79, 0.86, 0.82] as [number, number, number],
-  clay: [0.85, 0.66, 0.44] as [number, number, number],
-  ink: [0.11, 0.12, 0.13] as [number, number, number],
-  stone: [0.39, 0.37, 0.34] as [number, number, number],
-  mutedRow: [0.965, 0.975, 0.97] as [number, number, number]
+  pageBg: [0.984, 0.973, 0.945] as Rgb, // stucco
+  cardBg: [1, 1, 1] as Rgb,
+  cardBorder: [0.863, 0.89, 0.937] as Rgb, // tile
+  cobalt: [0.118, 0.306, 0.612] as Rgb,
+  cobaltSoft: [0.886, 0.914, 0.957] as Rgb,
+  lemon: [0.949, 0.761, 0.188] as Rgb,
+  ink: [0.078, 0.157, 0.294] as Rgb,
+  slate: [0.337, 0.408, 0.541] as Rgb,
+  mutedRow: [0.984, 0.973, 0.945] as Rgb
 };
 
-const LEAGUE_TITLE = "John Pirelli Womens Bocce League 2026";
+// Plain hyphen: the PDF writer emits raw text in Helvetica, so "·" would garble.
+export function leagueTitle(seasonName: string) {
+  return `John Pirelli Lodge Bocce - ${seasonName}`;
+}
 
 function courtSortValue(courtText: string) {
   const match = courtText.match(/\d+/);
@@ -68,7 +74,17 @@ function sortScheduleRows(rows: ScheduleRow[]) {
   });
 }
 
-function drawPageChrome(canvas: PdfCanvas, badgeText = "BOCCE LEAGUE") {
+// A strip of majolica tiles built from squares (the writer has no paths).
+function drawTileStrip(canvas: PdfCanvas, x: number, y: number, width: number) {
+  const size = 20;
+  for (let left = x; left + size <= x + width; left += size) {
+    canvas.rect(left, y, size, size, { stroke: false, fill: true, fillColor: THEME.cobalt });
+    canvas.rect(left + 4, y + 4, 12, 12, { stroke: false, fill: true, fillColor: [1, 1, 1] });
+    canvas.rect(left + 7, y + 7, 6, 6, { stroke: false, fill: true, fillColor: THEME.lemon });
+  }
+}
+
+function drawPageChrome(canvas: PdfCanvas) {
   canvas.rect(0, 0, 612, 792, {
     stroke: false,
     fill: true,
@@ -80,43 +96,39 @@ function drawPageChrome(canvas: PdfCanvas, badgeText = "BOCCE LEAGUE") {
     fillColor: THEME.cardBg,
     strokeColor: THEME.cardBorder
   });
-  canvas.rect(36, 36, 220, 20, {
-    stroke: false,
-    fill: true,
-    fillColor: [0.93, 0.85, 0.64]
-  });
-  canvas.text(47, 50, badgeText, { size: 9, bold: true, color: THEME.ink });
+  drawTileStrip(canvas, 36, 36, 540);
 }
 
-function drawHeader(canvas: PdfCanvas, title: string, subtitle: string, badgeText?: string) {
-  drawPageChrome(canvas, badgeText);
+function drawHeader(canvas: PdfCanvas, title: string, subtitle: string) {
+  drawPageChrome(canvas);
   canvas.rect(36, 66, 540, 70, {
     stroke: true,
     fill: true,
-    fillColor: [0.94, 0.96, 0.93],
+    fillColor: THEME.pageBg,
     strokeColor: THEME.cardBorder
   });
   canvas.rect(36, 66, 540, 5, {
     stroke: false,
     fill: true,
-    fillColor: THEME.clay
+    fillColor: THEME.lemon
   });
-  canvas.text(52, 96, title, { bold: true, size: 20, color: THEME.ink });
-  canvas.text(52, 118, subtitle, { size: 10, color: THEME.stone });
+  canvas.text(52, 96, title, { bold: true, size: 20, color: THEME.cobalt });
+  canvas.text(52, 118, subtitle, { size: 10, color: THEME.slate });
 }
 
 function drawTableHeader(canvas: PdfCanvas, y: number, headers: string[], colX: number[]) {
   canvas.rect(36, y - 14, 540, 18, {
     stroke: false,
     fill: true,
-    fillColor: THEME.mossSoft
+    fillColor: THEME.cobaltSoft
   });
   headers.forEach((header, i) => {
-    canvas.text(colX[i], y, header, { bold: true, size: 9, color: THEME.moss });
+    canvas.text(colX[i], y, header, { bold: true, size: 9, color: THEME.cobalt });
   });
 }
 
-export function buildFullLeagueSchedulePdf(_seasonName: string, rows: ScheduleRow[]) {
+export function buildFullLeagueSchedulePdf(seasonName: string, rows: ScheduleRow[]) {
+  const title = leagueTitle(seasonName);
   const pages: PdfCanvas[] = [];
   const sortedRows = sortScheduleRows(rows);
   const rowsPerPage = 48;
@@ -130,12 +142,7 @@ export function buildFullLeagueSchedulePdf(_seasonName: string, rows: ScheduleRo
     if (pageRows.length === 0) break;
 
     const canvas = new PdfCanvas();
-    drawHeader(
-      canvas,
-      "Full League Schedule",
-      `${LEAGUE_TITLE} - Page ${pageIndex + 1}`,
-      LEAGUE_TITLE
-    );
+    drawHeader(canvas, "Full League Schedule", `${title} - Page ${pageIndex + 1}`);
     drawTableHeader(canvas, 164, headers, colX);
 
     pageRows.forEach((row, rowIndex) => {
@@ -147,10 +154,10 @@ export function buildFullLeagueSchedulePdf(_seasonName: string, rows: ScheduleRo
           fillColor: THEME.mutedRow
         });
       }
-      canvas.text(colX[0], y, String(row.week), { size: 8, color: THEME.stone });
-      canvas.text(colX[1], y, row.dayText || "-", { size: 8, color: THEME.stone });
-      canvas.text(colX[2], y, `${row.dateText} ${row.timeText}`, { size: 8, color: THEME.stone });
-      canvas.text(colX[3], y, row.courtText || "-", { size: 8, color: THEME.stone });
+      canvas.text(colX[0], y, String(row.week), { size: 8, color: THEME.slate });
+      canvas.text(colX[1], y, row.dayText || "-", { size: 8, color: THEME.slate });
+      canvas.text(colX[2], y, `${row.dateText} ${row.timeText}`, { size: 8, color: THEME.slate });
+      canvas.text(colX[3], y, row.courtText || "-", { size: 8, color: THEME.slate });
       canvas.text(colX[4], y, truncate(row.homeTeam, 20), { size: 8, bold: true, color: THEME.ink });
       canvas.text(colX[5], y, truncate(row.awayTeam, 20), { size: 8, bold: true, color: THEME.ink });
     });
@@ -162,17 +169,17 @@ export function buildFullLeagueSchedulePdf(_seasonName: string, rows: ScheduleRo
 }
 
 export function buildTeamSchedulePdf(
-  _seasonName: string,
+  seasonName: string,
   teamName: string,
   rows: TeamScheduleRow[]
 ) {
   const canvas = new PdfCanvas();
-  drawHeader(canvas, LEAGUE_TITLE, teamName, LEAGUE_TITLE);
+  drawHeader(canvas, leagueTitle(seasonName), teamName);
 
   canvas.rect(36, 152, 540, 576, {
     stroke: true,
     fill: true,
-    fillColor: [0.985, 0.99, 0.985],
+    fillColor: THEME.cardBg,
     strokeColor: THEME.cardBorder,
     lineWidth: 1
   });
@@ -188,11 +195,11 @@ export function buildTeamSchedulePdf(
       strokeColor: THEME.cardBorder,
       fillColor: THEME.mutedRow
     });
-    canvas.text(colX[0], y, String(row.week), { bold: true, size: 10, color: THEME.moss });
-    canvas.text(colX[1], y, row.dayText || "-", { size: 9, color: THEME.stone });
-    canvas.text(colX[2], y, row.dateTimeText, { size: 9, color: THEME.stone });
+    canvas.text(colX[0], y, String(row.week), { bold: true, size: 10, color: THEME.cobalt });
+    canvas.text(colX[1], y, row.dayText || "-", { size: 9, color: THEME.slate });
+    canvas.text(colX[2], y, row.dateTimeText, { size: 9, color: THEME.slate });
     canvas.text(colX[3], y, truncate(row.matchupText, 30), { size: 10, bold: true, color: THEME.ink });
-    canvas.text(colX[4], y, row.courtText || "-", { size: 9, align: "right", color: THEME.stone });
+    canvas.text(colX[4], y, row.courtText || "-", { size: 9, align: "right", color: THEME.slate });
   });
 
   return buildPdf([canvas.toPage()]);

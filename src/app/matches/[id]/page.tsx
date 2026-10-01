@@ -64,12 +64,12 @@ export default function MatchDetailPage() {
           <SkeletonCard />
         </div>
       ) : error || !match ? (
-        <p className="mt-4 text-sm text-stone">Match not found.</p>
+        <p className="mt-4 text-sm text-slate">Match not found.</p>
       ) : (
         <>
           <div className="mt-2 flex items-center gap-2">
             <StatusBadge status={match.status} />
-            <span className="text-sm text-stone">
+            <span className="text-sm text-slate">
               {formatMatchDateTime(match.scheduled_datetime, {
                 weekday: "short",
                 month: "short",
@@ -82,18 +82,18 @@ export default function MatchDetailPage() {
           </div>
 
           <div className="mt-6 space-y-3">
-            <div className="rounded-xl bg-white/70 p-4">
-              <p className="text-xs uppercase tracking-wide text-stone">Teams</p>
+            <div className="rounded-xl bg-stucco p-4">
+              <p className="text-xs uppercase tracking-wide text-slate">Teams</p>
               <div className="mt-2 flex items-center gap-2 font-semibold">
                 <TeamName name={formatMatchTeamName(match.home_team)} />
-                <span className="text-stone">vs</span>
+                <span className="text-slate">vs</span>
                 <TeamName name={formatMatchTeamName(match.away_team)} />
               </div>
             </div>
 
             {hasScores && (
-              <div className="rounded-xl bg-white/70 p-4">
-                <p className="text-xs uppercase tracking-wide text-stone">Scoreline</p>
+              <div className="rounded-xl bg-stucco p-4">
+                <p className="text-xs uppercase tracking-wide text-slate">Scoreline</p>
                 <div className="mt-2 space-y-1">
                   <div className="flex items-center gap-2">
                     <TeamName name={formatMatchTeamName(match.home_team)} compact />
@@ -112,8 +112,8 @@ export default function MatchDetailPage() {
             )}
 
             {match.notes && (
-              <div className="rounded-xl bg-white/70 p-4">
-                <p className="text-xs uppercase tracking-wide text-stone">Notes</p>
+              <div className="rounded-xl bg-stucco p-4">
+                <p className="text-xs uppercase tracking-wide text-slate">Notes</p>
                 <p className="mt-2 text-sm">{match.notes}</p>
               </div>
             )}

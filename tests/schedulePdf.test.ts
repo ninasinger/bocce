@@ -27,9 +27,10 @@ function row(overrides: Partial<ScheduleRow>): ScheduleRow {
 }
 
 test("full league schedule PDF uses requested labels and removes generated metadata", () => {
-  const pdf = pdfText(buildFullLeagueSchedulePdf("Bocce League 2026", [row({})]));
+  const pdf = pdfText(buildFullLeagueSchedulePdf("Co-ed Fall 2026", [row({})]));
 
-  assert.ok(pdf.includes("John Pirelli Womens Bocce League 2026"));
+  assert.ok(pdf.includes("John Pirelli Lodge Bocce - Co-ed Fall 2026"));
+  assert.ok(!pdf.includes("Womens"));
   assert.ok(pdf.includes("(TEAM 1) Tj"));
   assert.ok(pdf.includes("(TEAM 2) Tj"));
   assert.ok(!pdf.includes("HOME TEAM"));
@@ -49,9 +50,10 @@ test("team schedule PDF uses league title, team subtitle, and opponent-only matc
       awayTeam: "Team A"
     })
   ]);
-  const pdf = pdfText(buildTeamSchedulePdf("Bocce League 2026", "Team A", rows));
+  const pdf = pdfText(buildTeamSchedulePdf("Co-ed Fall 2026", "Team A", rows));
 
-  assert.ok(pdf.includes("John Pirelli Womens Bocce League 2026"));
+  assert.ok(pdf.includes("John Pirelli Lodge Bocce - Co-ed Fall 2026"));
+  assert.ok(!pdf.includes("Womens"));
   assert.ok(pdf.includes("(Team A) Tj"));
   assert.ok(pdf.includes("(Team B) Tj"));
   assert.ok(pdf.includes("(Team C) Tj"));

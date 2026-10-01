@@ -23,7 +23,7 @@ function TeamRosterLink({ row }: { row: Standing }) {
   return (
     <Link
       href={`/teams/${row.teamId}`}
-      className="tap -m-1 inline-flex rounded-lg p-1 text-ink underline decoration-moss/40 underline-offset-4"
+      className="tap -m-1 inline-flex rounded-lg p-1 text-ink underline decoration-cobalt/40 underline-offset-4"
     >
       <TeamName name={row.teamName} />
     </Link>
@@ -73,7 +73,7 @@ export default function StandingsPage() {
   return (
     <main className="card p-4 md:p-6">
       <h2 className="section-title">Standings</h2>
-      <p className="mt-1 text-sm text-stone">
+      <p className="mt-1 text-sm text-slate">
         Standings update in real time as scores are finalized and may not reflect games that have not been entered yet.
       </p>
 
@@ -87,10 +87,10 @@ export default function StandingsPage() {
           />
           <button
             onClick={loadStandings}
-            className="tap flex h-11 w-11 items-center justify-center rounded-xl border border-white/60 bg-white/70"
+            className="tap flex h-11 w-11 items-center justify-center rounded-xl border border-tile bg-stucco"
             aria-label="Refresh"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-stone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-slate">
               <polyline points="23 4 23 10 17 10" />
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
@@ -113,21 +113,21 @@ export default function StandingsPage() {
         ) : standings.length === 0 ? (
           <EmptyState icon="trophy" message="No standings yet. Matches need to be verified first." />
         ) : standings.map((row) => (
-          <div key={row.teamName} className="rounded-xl bg-white/70 p-3">
+          <div key={row.teamName} className="rounded-xl bg-stucco p-3">
             <div className="flex items-center justify-between">
               <span className="inline-flex items-center gap-2">
-                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-moss/10 text-sm font-bold text-moss">
+                <span className="flex h-7 w-7 items-center justify-center rounded-full bg-cobalt/10 text-sm font-bold text-cobalt">
                   {row.rank}
                 </span>
                 <TeamRosterLink row={row} />
               </span>
-              <span className="text-lg font-display">{row.gamesWon} <span className="text-sm text-stone">Games Won</span></span>
+              <span className="font-display text-2xl font-bold text-cobalt">{row.gamesWon} <span className="font-body text-sm font-normal text-slate">Games Won</span></span>
             </div>
-            <div className="mt-1.5 flex gap-4 text-sm text-stone">
+            <div className="mt-1.5 flex gap-4 text-sm text-slate">
               <span>{row.gamesPlayed} games played</span>
               <span>{row.gamesWon} games won</span>
             </div>
-            <div className="mt-1.5 flex gap-4 text-sm text-stone">
+            <div className="mt-1.5 flex gap-4 text-sm text-slate">
               <span>{row.totalPoints} total scores</span>
               <span>{row.matchPoints} total points</span>
             </div>
@@ -136,7 +136,7 @@ export default function StandingsPage() {
       </div>
 
       {/* Desktop: table layout */}
-      <div className="mt-4 hidden overflow-hidden rounded-xl border border-white/60 md:block">
+      <div className="mt-4 hidden overflow-hidden rounded-xl border border-tile md:block">
         {loading ? (
           <div className="space-y-2 p-4">
             <SkeletonStandingRow />
@@ -147,7 +147,7 @@ export default function StandingsPage() {
           <EmptyState icon="trophy" message="No standings yet. Matches need to be verified first." />
         ) : (
           <table className="w-full text-sm">
-            <thead className="bg-white/60 text-left">
+            <thead className="bg-stucco text-left text-slate">
               <tr>
                 <th className="p-3">Rank</th>
                 <th className="p-3">Team</th>
@@ -157,10 +157,10 @@ export default function StandingsPage() {
                 <th className="p-3">Total Points</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/60 bg-white/40">
+            <tbody className="divide-y divide-tile bg-white">
               {standings.map((row) => (
                 <tr key={row.teamName}>
-                  <td className="p-3">
+                  <td className="p-3 font-display text-xl font-bold text-cobalt">
                     {row.rank}
                   </td>
                   <td className="p-3 font-semibold">

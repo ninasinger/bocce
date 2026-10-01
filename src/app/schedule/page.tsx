@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
+import { MatchScoreTable } from "@/components/MatchScoreTable";
 import { LeagueTabs } from "@/components/LeagueTabs";
 import { SkeletonCard } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
@@ -179,27 +180,6 @@ export default function SchedulePage() {
     return groups;
   }, [visibleMatches]);
 
-  function winnerText(item: MatchRow) {
-    if (item.home_total_score == null || item.away_total_score == null) return "";
-    const homeName = formatMatchTeamName(item.home_team);
-    const awayName = formatMatchTeamName(item.away_team);
-    if (item.home_total_score > item.away_total_score) return `Winner: ${homeName}`;
-    if (item.away_total_score > item.home_total_score) return `Winner: ${awayName}`;
-    return "Winner: Tie";
-  }
-
-  function gameScoresText(item: MatchRow) {
-    if (
-      item.game1_home_score == null ||
-      item.game1_away_score == null ||
-      item.game2_home_score == null ||
-      item.game2_away_score == null
-    ) {
-      return "";
-    }
-    return `Game 1: ${item.game1_home_score}-${item.game1_away_score} · Game 2: ${item.game2_home_score}-${item.game2_away_score}`;
-  }
-
   function courtText(item: MatchRow) {
     if (item.court_text) return item.court_text;
     return "";
@@ -215,7 +195,7 @@ export default function SchedulePage() {
     return (
       <Link
         href={`/teams/${id}`}
-        className="tap -m-1 inline-flex rounded-lg p-1 text-ink underline decoration-moss/40 underline-offset-4"
+        className="tap -m-1 inline-flex max-w-full rounded-lg p-1 text-inherit underline decoration-cobalt/40 underline-offset-4"
       >
         {content}
       </Link>
@@ -255,7 +235,7 @@ export default function SchedulePage() {
             }}
           />
           <select
-            className="w-24 rounded-xl border border-white/60 bg-white/70 px-2 py-2.5 text-sm font-semibold md:w-28 md:px-3 md:text-base"
+            className="w-24 rounded-xl border border-tile bg-stucco px-2 py-2.5 text-sm font-semibold md:w-28 md:px-3 md:text-base"
             value={selectedWeek}
             onChange={(event) => {
               const next = event.target.value === "all" ? "all" : Number(event.target.value);
@@ -273,10 +253,10 @@ export default function SchedulePage() {
           </select>
           <button
             onClick={loadSchedule}
-            className="tap flex h-11 w-11 items-center justify-center rounded-xl border border-white/60 bg-white/70"
+            className="tap flex h-11 w-11 items-center justify-center rounded-xl border border-tile bg-stucco"
             aria-label="Refresh"
           >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-stone">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 text-slate">
               <polyline points="23 4 23 10 17 10" />
               <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
             </svg>
@@ -284,7 +264,7 @@ export default function SchedulePage() {
         </div>
         <div className="mt-2 grid grid-cols-1 gap-2 md:flex md:items-center md:gap-3">
           <select
-            className="w-full min-w-0 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm font-semibold md:w-56 md:text-base"
+            className="w-full min-w-0 rounded-xl border border-tile bg-stucco px-3 py-2.5 text-sm font-semibold md:w-56 md:text-base"
             value={exportScope}
             onChange={(event) => setExportScope(event.target.value as "league" | "team")}
           >
@@ -293,7 +273,7 @@ export default function SchedulePage() {
           </select>
           {exportScope === "team" ? (
             <select
-              className="min-w-0 rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm font-semibold md:w-64 md:text-base"
+              className="min-w-0 rounded-xl border border-tile bg-stucco px-3 py-2.5 text-sm font-semibold md:w-64 md:text-base"
               value={exportTeamId}
               onChange={(event) => setExportTeamId(event.target.value)}
             >
@@ -308,7 +288,7 @@ export default function SchedulePage() {
           <button
             onClick={exportSchedulePdf}
             disabled={exportScope === "team" && !exportTeamId}
-            className="tap inline-flex items-center justify-center gap-2 rounded-xl bg-moss px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
+            className="tap inline-flex items-center justify-center gap-2 rounded-xl bg-cobalt px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <svg
               viewBox="0 0 24 24"
@@ -376,14 +356,18 @@ export default function SchedulePage() {
             {groupedMatches.map((group) => (
               group.matches.length > 0 ? (
                 <section key={group.label} className="space-y-2">
-                  <h3 className="text-sm font-semibold uppercase tracking-wide text-stone">
+                  <h3 className="text-sm font-semibold uppercase tracking-wide text-cobalt">
                     {group.label}
                   </h3>
                   {group.matches.map((item) => (
-                    <div key={item.id} className="tap rounded-xl bg-white/70 p-3">
+                    <div key={item.id} className="match-card">
                       <div className="flex flex-wrap items-center gap-2">
-                        <StatusBadge status={item.status} />
-                        <span className="text-sm text-stone">
+                        {courtText(item) ? (
+                          <span className="rounded-full bg-lemon/30 px-2 py-0.5 text-sm font-semibold text-lemon-deep">
+                            {courtText(item)}
+                          </span>
+                        ) : null}
+                        <span className="text-sm text-slate">
                           {formatMatchDateTime(item.scheduled_datetime, {
                             weekday: "short",
                             month: "short",
@@ -392,32 +376,17 @@ export default function SchedulePage() {
                             minute: "2-digit"
                           })}
                         </span>
-                        {courtText(item) ? (
-                          <span className="rounded-full bg-moss/10 px-2 py-0.5 text-sm font-semibold text-moss">
-                            {courtText(item)}
-                          </span>
-                        ) : null}
+                        <span className="ml-auto">
+                          <StatusBadge status={item.status} />
+                        </span>
                       </div>
-                      <div className="mt-2 flex flex-wrap items-center gap-2 font-semibold">
-                        {teamLink(item.home_team)}
-                        <span className="text-stone font-normal">vs</span>
-                        {teamLink(item.away_team)}
+                      <div className="mt-3">
+                        <MatchScoreTable
+                          match={item}
+                          home={teamLink(item.home_team)}
+                          away={teamLink(item.away_team)}
+                        />
                       </div>
-                      {(item.status === "verified" || item.status === "corrected") &&
-                        item.home_total_score != null && item.away_total_score != null ? (
-                        <p className="mt-1 text-sm text-stone">
-                          Final: {item.home_total_score}-{item.away_total_score}
-                          {item.home_games_won != null && item.away_games_won != null
-                            ? ` | Games: ${item.home_games_won}-${item.away_games_won}`
-                            : null}
-                        </p>
-                      ) : null}
-                      {(item.status === "verified" || item.status === "corrected") && gameScoresText(item) ? (
-                        <p className="mt-1 text-sm text-stone">{gameScoresText(item)}</p>
-                      ) : null}
-                      {(item.status === "verified" || item.status === "corrected") && winnerText(item) ? (
-                        <p className="mt-1 text-sm font-semibold text-moss">{winnerText(item)}</p>
-                      ) : null}
                     </div>
                   ))}
                 </section>

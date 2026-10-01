@@ -84,7 +84,7 @@ export default function CaptainLoginPage() {
           <label className="grid gap-2 text-sm font-semibold">
             Season
             <select
-              className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+              className="rounded-xl border border-tile bg-stucco px-4 py-3"
               value={seasonId}
               onChange={(event) => setSeasonId(event.target.value)}
             >
@@ -100,7 +100,7 @@ export default function CaptainLoginPage() {
         <label className="grid gap-2 text-sm font-semibold">
           Team
           <select
-            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            className="rounded-xl border border-tile bg-stucco px-4 py-3"
             value={teamId}
             onChange={(event) => setTeamId(event.target.value)}
           >
@@ -119,7 +119,7 @@ export default function CaptainLoginPage() {
             type="password"
             value={teamCode}
             onChange={(event) => setTeamCode(event.target.value)}
-            className="rounded-xl border border-white/60 bg-white/70 px-4 py-3"
+            className="rounded-xl border border-tile bg-stucco px-4 py-3"
             placeholder="Enter code"
           />
         </label>
@@ -128,12 +128,12 @@ export default function CaptainLoginPage() {
 
         <button
           disabled={!teamId || !teamCode || loading}
-          className="rounded-xl bg-moss px-4 py-3 font-semibold text-white disabled:opacity-50"
+          className="rounded-xl bg-cobalt px-4 py-3 font-semibold text-white disabled:opacity-50"
         >
           {loading ? "Signing in..." : "Sign in"}
         </button>
 
-        <p className="text-sm text-stone text-center">
+        <p className="text-sm text-slate text-center">
           Forgot your team code? Ask your commissioner.
         </p>
       </form>

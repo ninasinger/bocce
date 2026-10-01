@@ -36,27 +36,27 @@ export default async function TeamRosterPage({ params }: { params: { id: string 
 
   return (
     <main className="space-y-4">
-      <Link href="/schedule" className="tap inline-flex text-sm font-semibold text-moss">
+      <Link href="/schedule" className="tap inline-flex text-sm font-semibold text-cobalt">
         Back to schedule
       </Link>
       <section className="card p-4 md:p-6">
-        <p className="text-sm font-semibold uppercase tracking-wide text-stone">
+        <p className="text-sm font-semibold uppercase tracking-wide text-slate">
           {seasonName(team.season)}
         </p>
         <h2 className="section-title mt-2">
           <TeamName name={displayName} />
         </h2>
         {team.captain_name ? (
-          <p className="mt-2 text-sm text-stone">Captain: {team.captain_name}</p>
+          <p className="mt-2 text-sm text-slate">Captain: {team.captain_name}</p>
         ) : null}
         <div className="mt-5 grid gap-2 sm:grid-cols-2">
           {members.map((member) => (
-            <div key={member} className="rounded-xl bg-white/70 px-4 py-3 font-semibold text-ink">
+            <div key={member} className="rounded-xl bg-stucco px-4 py-3 font-semibold text-ink">
               {member}
             </div>
           ))}
           {members.length === 0 ? (
-            <p className="rounded-xl bg-white/70 px-4 py-3 text-sm text-stone">
+            <p className="rounded-xl bg-stucco px-4 py-3 text-sm text-slate">
               No roster has been added for this team yet.
             </p>
           ) : null}

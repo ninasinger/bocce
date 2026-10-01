@@ -17,7 +17,8 @@
     "src/lib/simplePdf.ts",
     "src/lib/week.ts",
     "src/lib/seasonSelection.ts",
-    "src/lib/latestRequest.ts"
+    "src/lib/latestRequest.ts",
+    "src/lib/scoreTable.ts"
   ],
   "exclude": ["node_modules", ".next"]
 }
