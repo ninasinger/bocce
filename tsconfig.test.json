@@ -15,7 +15,9 @@
     "src/lib/scheduleIcs.ts",
     "src/lib/schedulePdf.ts",
     "src/lib/simplePdf.ts",
-    "src/lib/week.ts"
+    "src/lib/week.ts",
+    "src/lib/seasonSelection.ts",
+    "src/lib/latestRequest.ts"
   ],
   "exclude": ["node_modules", ".next"]
 }

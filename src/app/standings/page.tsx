@@ -1,12 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { TeamName } from "@/components/TeamName";
 import { SkeletonStandingRow } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
+import { LeagueTabs } from "@/components/LeagueTabs";
+import { useSelectedSeason } from "@/lib/useSelectedSeason";
+import { createLatestRequestTracker } from "@/lib/latestRequest";
 
-type Season = { id: string; name: string; year: number };
 type Standing = {
   teamId: string;
   rank: number;
@@ -29,24 +31,13 @@ function TeamRosterLink({ row }: { row: Standing }) {
 }
 
 export default function StandingsPage() {
-  const [seasons, setSeasons] = useState<Season[]>([]);
-  const [seasonId, setSeasonId] = useState("");
+  const { seasons, seasonId, selectSeason, seasonsError } = useSelectedSeason();
   const [standings, setStandings] = useState<Standing[]>([]);
   const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function loadSeasons() {
-      const res = await fetch("/api/seasons");
-      const json = await res.json();
-      const list: Season[] = json.seasons || [];
-      setSeasons(list);
-      setSeasonId(list[0]?.id || "");
-    }
-
-    loadSeasons();
-  }, []);
+  const requests = useRef(createLatestRequestTracker());
 
   const loadStandings = useCallback(async () => {
+    const isLatest = requests.current.start();
     if (!seasonId) {
       setStandings([]);
       setLoading(false);
@@ -55,6 +46,7 @@ export default function StandingsPage() {
     setLoading(true);
     const res = await fetch(`/api/seasons/${seasonId}/standings`, { cache: "no-store" });
     const json = await res.json();
+    if (!isLatest()) return;
     setStandings(json.standings || []);
     setLoading(false);
   }, [seasonId]);
@@ -87,18 +79,12 @@ export default function StandingsPage() {
 
       <div className="sticky-filters mt-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 md:flex md:gap-3">
-          <select
-            className="col-span-2 min-w-0 w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm font-semibold md:col-span-1 md:text-base"
-            value={seasonId}
-            onChange={(event) => setSeasonId(event.target.value)}
-          >
-            {seasons.length === 0 ? <option value="">No seasons found</option> : null}
-            {seasons.map((season) => (
-              <option key={season.id} value={season.id}>
-                {season.name}
-              </option>
-            ))}
-          </select>
+          <LeagueTabs
+            className="col-span-2 min-w-0 w-full md:col-span-1"
+            seasons={seasons}
+            selectedId={seasonId}
+            onSelect={selectSeason}
+          />
           <button
             onClick={loadStandings}
             className="tap flex h-11 w-11 items-center justify-center rounded-xl border border-white/60 bg-white/70"
@@ -111,6 +97,8 @@ export default function StandingsPage() {
           </button>
         </div>
       </div>
+
+      {seasonsError ? <p className="mt-3 text-sm text-red-700">{seasonsError}</p> : null}
 
       {/* Mobile: card layout */}
       <div className="mt-4 space-y-2 md:hidden">

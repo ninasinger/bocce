@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { TeamName } from "@/components/TeamName";
 import { StatusBadge } from "@/components/StatusBadge";
+import { LeagueTabs } from "@/components/LeagueTabs";
 import { SkeletonCard } from "@/components/Skeleton";
 import { EmptyState } from "@/components/EmptyState";
 import { errorMessageFromData, fetchJson } from "@/lib/clientFetch";
 import { formatMatchDateTime, formatMatchTeamName, type TeamRef } from "@/lib/matchFormat";
 import { getCurrentWeek } from "@/lib/week";
+import { useSelectedSeason } from "@/lib/useSelectedSeason";
+import { createLatestRequestTracker } from "@/lib/latestRequest";
 
-type Season = { id: string; name: string; year: number };
 type Team = { id: string; name: string };
 type ScheduleTeamRef = ({ id?: string; name: string } | { id?: string; name: string }[]) | null;
 type MatchRow = {
@@ -26,6 +28,10 @@ type MatchRow = {
   away_games_won: number | null;
   home_total_score: number | null;
   away_total_score: number | null;
+  game1_home_score?: number | null;
+  game1_away_score?: number | null;
+  game2_home_score?: number | null;
+  game2_away_score?: number | null;
 };
 type SchedulePageResponse = {
   matches?: MatchRow[];
@@ -58,8 +64,7 @@ function syncWeekParam(week: number | "all") {
 }
 
 export default function SchedulePage() {
-  const [seasons, setSeasons] = useState<Season[]>([]);
-  const [seasonId, setSeasonId] = useState("");
+  const { seasons, seasonId, selectSeason, seasonsError } = useSelectedSeason();
   const [matches, setMatches] = useState<MatchRow[]>([]);
   const [teams, setTeams] = useState<Team[]>([]);
   const [selectedWeek, setSelectedWeek] = useState<number | "all">("all");
@@ -67,8 +72,10 @@ export default function SchedulePage() {
   const [exportTeamId, setExportTeamId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const requests = useRef(createLatestRequestTracker());
 
   const loadSchedule = useCallback(async () => {
+    const isLatest = requests.current.start();
     if (!seasonId) {
       setMatches([]);
       setTeams([]);
@@ -83,6 +90,7 @@ export default function SchedulePage() {
         `/api/seasons/${seasonId}/schedule-page`,
         { cache: "no-store" }
       );
+      if (!isLatest()) return;
       if (!response.ok) {
         setError(errorMessageFromData(data, "Failed to load schedule"));
         setMatches([]);
@@ -102,28 +110,14 @@ export default function SchedulePage() {
         urlWeek !== "all" && availableWeeks.has(urlWeek) ? urlWeek : getCurrentWeek(loadedMatches)
       );
     } catch {
+      if (!isLatest()) return;
       setError("Failed to load schedule");
       setMatches([]);
       setTeams([]);
     } finally {
-      setLoading(false);
+      if (isLatest()) setLoading(false);
     }
   }, [seasonId]);
-
-  useEffect(() => {
-    async function loadSeasons() {
-      try {
-        const { data } = await fetchJson<{ seasons?: Season[] }>("/api/seasons");
-        const list: Season[] = data.seasons || [];
-        setSeasons(list);
-        setSeasonId(list[0]?.id || "");
-      } catch {
-        setError("Could not load seasons");
-      }
-    }
-
-    loadSeasons();
-  }, []);
 
   useEffect(() => {
     loadSchedule();
@@ -194,6 +188,18 @@ export default function SchedulePage() {
     return "Winner: Tie";
   }
 
+  function gameScoresText(item: MatchRow) {
+    if (
+      item.game1_home_score == null ||
+      item.game1_away_score == null ||
+      item.game2_home_score == null ||
+      item.game2_away_score == null
+    ) {
+      return "";
+    }
+    return `Game 1: ${item.game1_home_score}-${item.game1_away_score} · Game 2: ${item.game2_home_score}-${item.game2_away_score}`;
+  }
+
   function courtText(item: MatchRow) {
     if (item.court_text) return item.court_text;
     return "";
@@ -238,18 +244,16 @@ export default function SchedulePage() {
 
       <div className="sticky-filters mt-3">
         <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-2 md:flex md:gap-3">
-          <select
-            className="col-span-2 min-w-0 w-full rounded-xl border border-white/60 bg-white/70 px-3 py-2.5 text-sm font-semibold md:col-span-1 md:text-base"
-            value={seasonId}
-            onChange={(event) => setSeasonId(event.target.value)}
-          >
-            {seasons.length === 0 ? <option value="">No seasons found</option> : null}
-            {seasons.map((season) => (
-              <option key={season.id} value={season.id}>
-                {season.name}
-              </option>
-            ))}
-          </select>
+          <LeagueTabs
+            className="col-span-2 min-w-0 w-full md:col-span-1"
+            seasons={seasons}
+            selectedId={seasonId}
+            onSelect={(nextSeasonId) => {
+              // The new league opens on its own current week.
+              syncWeekParam("all");
+              selectSeason(nextSeasonId);
+            }}
+          />
           <select
             className="w-24 rounded-xl border border-white/60 bg-white/70 px-2 py-2.5 text-sm font-semibold md:w-28 md:px-3 md:text-base"
             value={selectedWeek}
@@ -351,7 +355,9 @@ export default function SchedulePage() {
         </div>
       </div>
 
-      {error ? <p className="mt-3 text-sm text-red-700">{error}</p> : null}
+      {error || seasonsError ? (
+        <p className="mt-3 text-sm text-red-700">{error || seasonsError}</p>
+      ) : null}
 
       <div className="mt-4 space-y-3">
         {loading ? (
@@ -405,6 +411,9 @@ export default function SchedulePage() {
                             ? ` | Games: ${item.home_games_won}-${item.away_games_won}`
                             : null}
                         </p>
+                      ) : null}
+                      {(item.status === "verified" || item.status === "corrected") && gameScoresText(item) ? (
+                        <p className="mt-1 text-sm text-stone">{gameScoresText(item)}</p>
                       ) : null}
                       {(item.status === "verified" || item.status === "corrected") && winnerText(item) ? (
                         <p className="mt-1 text-sm font-semibold text-moss">{winnerText(item)}</p>

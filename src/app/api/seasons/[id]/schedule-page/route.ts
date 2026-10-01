@@ -57,6 +57,10 @@ export async function GET(
         away_games_won,
         home_total_score,
         away_total_score,
+        game1_home_score,
+        game1_away_score,
+        game2_home_score,
+        game2_away_score,
         home_team:teams!matches_home_team_id_fkey(id, name),
         away_team:teams!matches_away_team_id_fkey(id, name)
       `
@@ -139,6 +143,11 @@ export async function GET(
       return {
         ...match,
         status: "verified",
+        // Game-by-game scores predate the correction and may no longer add up.
+        game1_home_score: null,
+        game1_away_score: null,
+        game2_home_score: null,
+        game2_away_score: null,
         home_games_won: numberValue(correction.new_values.home_games_won) ?? match.home_games_won,
         away_games_won: numberValue(correction.new_values.away_games_won) ?? match.away_games_won,
         home_total_score: numberValue(correction.new_values.home_total_score) ?? match.home_total_score,
