@@ -7,7 +7,7 @@ import { DesktopNav } from "@/components/DesktopNav";
 import { SessionIndicator } from "@/components/SessionIndicator";
 
 // Off-season: every page shows only the banner. Set to false to restore the site.
-const OFF_SEASON = true;
+const OFF_SEASON = false;
 
 const display = Fraunces({ subsets: ["latin"], variable: "--font-display" });
 const body = Work_Sans({ subsets: ["latin"], variable: "--font-body" });

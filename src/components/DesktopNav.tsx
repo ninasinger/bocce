@@ -6,23 +6,16 @@ import { usePathname } from "next/navigation";
 const navItems = [
   { href: "/schedule", label: "Schedule" },
   { href: "/standings", label: "Standings" },
-  { href: "/documents", label: "Documents" },
-  { href: "/captain/login", label: "Score Entry", matchPaths: ["/captain"] },
-  { href: "/commissioner/login", label: "Commissioner", matchPaths: ["/commissioner"] }
+  { href: "/documents", label: "Documents" }
 ];
 
 export function DesktopNav() {
   const pathname = usePathname();
 
-  const isActive = (item: (typeof navItems)[number]) => {
-    if (item.matchPaths) return item.matchPaths.some((path) => pathname.startsWith(path));
-    return pathname.startsWith(item.href);
-  };
-
   return (
     <nav className="hidden flex-wrap gap-2 text-sm font-semibold xl:flex">
       {navItems.map((item) => {
-        const active = isActive(item);
+        const active = pathname.startsWith(item.href);
         return (
           <Link
             key={item.href}

@@ -46,43 +46,15 @@ const tabs = [
       </svg>
     ),
   },
-  {
-    label: "Submit",
-    href: "/captain/login",
-    matchPaths: ["/captain"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-        <path d="M12 20h9" />
-        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-      </svg>
-    ),
-  },
-  {
-    label: "Commish",
-    href: "/commissioner/login",
-    matchPaths: ["/commissioner"],
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-5 w-5">
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-      </svg>
-    ),
-  },
 ];
 
 export function BottomNav() {
   const pathname = usePathname();
 
-  function isActive(tab: (typeof tabs)[number]) {
-    if (tab.matchPaths) {
-      return tab.matchPaths.some((p) => pathname.startsWith(p));
-    }
-    return pathname.startsWith(tab.href);
-  }
-
   return (
     <nav className="btm-nav fixed bottom-0 left-0 right-0 z-50 flex items-center justify-around border-t border-white/60 bg-white/95 backdrop-blur-md xl:hidden">
       {tabs.map((tab) => {
-        const active = isActive(tab);
+        const active = pathname.startsWith(tab.href);
         return (
           <Link
             key={tab.href}
