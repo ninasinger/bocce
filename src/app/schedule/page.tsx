@@ -386,7 +386,7 @@ export default function SchedulePage() {
                           <div className="mb-2 text-sm">
                             <p className="font-semibold text-cobalt">Playoffs — {item.playoff.round}</p>
                             <p className="text-slate">
-                              Seeds determined by standings after Week 6. One matchup per team tonight.
+                              Seeds determined by standings after Week 6.
                             </p>
                           </div>
                         ) : null}
