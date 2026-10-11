@@ -386,9 +386,7 @@ export default function SchedulePage() {
                           <div className="mb-2 text-sm">
                             <p className="font-semibold text-cobalt">Playoffs — {item.playoff.round}</p>
                             <p className="text-slate">
-                              {item.playoff.round.startsWith("Semifinal")
-                                ? "Seeds determined by standings after Week 6."
-                                : "Starts after both semifinals finish; time is estimated."}
+                              Seeds determined by standings after Week 6. One matchup per team tonight.
                             </p>
                           </div>
                         ) : null}

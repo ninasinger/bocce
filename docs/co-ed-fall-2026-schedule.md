@@ -28,14 +28,16 @@ All dates are Wednesdays in 2026; times are America/New_York. Regular-season mat
 | --- | --- | --- | --- |
 | 3 | October 14 | 2 | #1 Pauline's Polinas vs #2 Spice Balls |
 | 3 | October 14 | 4 | #3 Boccelism vs #4 Ball Busters |
-| 4 | October 21 | 5 | #4 Ball Busters vs #1 Pauline's Polinas |
-| 4 | October 21 | 3 | #3 Boccelism vs #2 Spice Balls |
-| 5 | October 28 | 2 | #3 Boccelism vs #1 Pauline's Polinas |
-| 5 | October 28 | 4 | #2 Spice Balls vs #4 Ball Busters |
+| 4 | October 21 | 4 | #4 Ball Busters vs #1 Pauline's Polinas |
+| 4 | October 21 | 2 | #3 Boccelism vs #2 Spice Balls |
+| 5 | October 28 | 3 | #3 Boccelism vs #1 Pauline's Polinas |
+| 5 | October 28 | 5 | #2 Spice Balls vs #4 Ball Busters |
 | 6 | November 4 | 5 | #2 Spice Balls vs #1 Pauline's Polinas |
 | 6 | November 4 | 3 | #4 Ball Busters vs #3 Boccelism |
 
 Weeks 1–6 form a double round robin: each team plays every other team twice.
+
+Every court hosts three regular-season matches. Each team visits each of Courts 2, 3, 4, and 5 once or twice, the closest possible balance over six matches. Completed Weeks 1 and 2 keep their actual courts.
 
 ## Week 7 — November 11 playoffs
 
@@ -43,9 +45,7 @@ Seeds are standings positions after Week 6, rather than the team numbers above. 
 
 | Time | Court | Round | Match |
 | --- | --- | --- | --- |
-| 6:30 p.m. | 3 | Semifinal 1 | Seed 1 vs Seed 4 |
-| 6:30 p.m. | 5 | Semifinal 2 | Seed 2 vs Seed 3 |
-| Approximately 7:45 p.m. | 3 | Championship | Winner SF1 vs Winner SF2 |
-| Approximately 7:45 p.m. | 5 | Third-place game | Loser SF1 vs Loser SF2 |
+| 6:30 p.m. | 3 | Championship (1st / 2nd) | Seed 1 vs Seed 2 |
+| 6:30 p.m. | 5 | Third-place game (3rd / 4th) | Seed 3 vs Seed 4 |
 
-The championship and third-place game start after both semifinals finish. Participants remain bracket placeholders until seeds and semifinal results are known.
+Each team plays one matchup on the final night. There are no semifinals. Participants remain seed placeholders until the regular season ends.
