@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { computeAwards, type MatchData } from "@/lib/awards";
 import { computeStandings } from "@/lib/standings";
 import { getCurrentWeek } from "@/lib/week";
+import { withPlayoffTeams } from "@/lib/playoffs";
 
 export type SeasonSummary = {
   currentWeek: number;
@@ -172,6 +173,7 @@ export async function loadSeasonSummary(
 
   const cleanedWeekMatches = weekMatches.map((match) => ({
     ...match,
+    ...withPlayoffTeams(match),
     notes: typeof match.notes === "string" ? match.notes.replace(/\s*-\s*EXTRA\b/gi, "") : match.notes
   }));
 

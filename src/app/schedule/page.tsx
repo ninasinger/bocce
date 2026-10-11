@@ -23,6 +23,7 @@ type MatchRow = {
   status: string;
   notes: string | null;
   court_text?: string | null;
+  playoff?: { round: string } | null;
   home_team: ScheduleTeamRef;
   away_team: ScheduleTeamRef;
   home_games_won: number | null;
@@ -381,6 +382,16 @@ export default function SchedulePage() {
                         </span>
                       </div>
                       <div className="mt-3">
+                        {item.playoff ? (
+                          <div className="mb-2 text-sm">
+                            <p className="font-semibold text-cobalt">Playoffs — {item.playoff.round}</p>
+                            <p className="text-slate">
+                              {item.playoff.round.startsWith("Semifinal")
+                                ? "Seeds determined by standings after Week 6."
+                                : "Starts after both semifinals finish; time is estimated."}
+                            </p>
+                          </div>
+                        ) : null}
                         <MatchScoreTable
                           match={item}
                           home={teamLink(item.home_team)}

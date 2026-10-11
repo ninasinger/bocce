@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { formatMatchTeamName } from "@/lib/matchFormat";
+import { playoffDetails } from "@/lib/playoffs";
 import { courtSortValue, officialCourtText } from "@/lib/officialScheduleCourts";
 import {
   buildFullLeagueSchedulePdf,
@@ -88,8 +89,8 @@ export async function GET(
       timeText,
       scheduledDatetime: match.scheduled_datetime,
       courtText: officialCourtText(match),
-      homeTeam: formatMatchTeamName(match.home_team, "Team 1"),
-      awayTeam: formatMatchTeamName(match.away_team, "Team 2"),
+      homeTeam: formatMatchTeamName(match.home_team, playoffDetails(match.notes)?.homeLabel || "Team 1"),
+      awayTeam: formatMatchTeamName(match.away_team, playoffDetails(match.notes)?.awayLabel || "Team 2"),
       status: match.status || ""
     };
   }).sort((a, b) => {

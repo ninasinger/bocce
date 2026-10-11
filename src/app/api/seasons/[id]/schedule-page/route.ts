@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { resolveSubmissionStatus } from "@/lib/submissionResolution";
 import { getServiceClient } from "@/lib/supabaseServer";
 import { courtSortValue, officialCourtText } from "@/lib/officialScheduleCourts";
+import { withPlayoffTeams } from "@/lib/playoffs";
 
 export const dynamic = "force-dynamic";
 
@@ -134,6 +135,7 @@ export async function GET(
   const cleanedMatches = (matches || []).map((match) => {
     return {
       ...match,
+      ...withPlayoffTeams(match),
       notes: null,
       court_text: officialCourtText(match)
     };
