@@ -117,3 +117,11 @@ export function computeStandings(teams: Team[], matches: MatchResult[]) {
 
   return rows;
 }
+
+// The week standings run "through": the latest week with a final match.
+export function lastFinalWeek(matches: Array<{ week_number: number; status: string }>) {
+  const finalWeeks = matches
+    .filter((m) => m.status === "verified" || m.status === "corrected")
+    .map((m) => m.week_number);
+  return finalWeeks.length ? Math.max(...finalWeeks) : null;
+}

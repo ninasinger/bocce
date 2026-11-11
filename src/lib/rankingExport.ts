@@ -1,5 +1,5 @@
-import { toCsv } from "@/lib/csv";
-import type { StandingRow } from "@/lib/standings";
+import { toCsv } from "./csv";
+import type { StandingRow } from "./standings";
 
 export function toRankingCsv(rows: StandingRow[]) {
   return toCsv(

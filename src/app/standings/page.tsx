@@ -30,6 +30,25 @@ function TeamRosterLink({ row }: { row: Standing }) {
   );
 }
 
+function DownloadIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="h-4 w-4"
+      aria-hidden="true"
+    >
+      <path d="M12 3v12" />
+      <path d="m7 10 5 5 5-5" />
+      <path d="M5 21h14" />
+    </svg>
+  );
+}
+
 export default function StandingsPage() {
   const { seasons, seasonId, selectSeason, seasonsError } = useSelectedSeason();
   const [standings, setStandings] = useState<Standing[]>([]);
@@ -96,6 +115,26 @@ export default function StandingsPage() {
             </svg>
           </button>
         </div>
+        {seasonId ? (
+          <div className="mt-2 grid grid-cols-2 gap-2 md:flex md:gap-3">
+            <a
+              href={`/api/seasons/${seasonId}/standings.pdf`}
+              download
+              className="tap inline-flex items-center justify-center gap-2 rounded-xl bg-cobalt px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:brightness-95"
+            >
+              <DownloadIcon />
+              Download PDF
+            </a>
+            <a
+              href={`/api/seasons/${seasonId}/standings.csv`}
+              download
+              className="tap inline-flex items-center justify-center gap-2 rounded-xl border border-cobalt/30 bg-white px-4 py-2.5 text-sm font-semibold text-cobalt transition hover:border-cobalt"
+            >
+              <DownloadIcon />
+              Download CSV
+            </a>
+          </div>
+        ) : null}
       </div>
 
       {seasonsError ? <p className="mt-3 text-sm text-red-700">{seasonsError}</p> : null}
