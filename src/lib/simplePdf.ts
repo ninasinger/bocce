@@ -27,8 +27,20 @@ function esc(text: string) {
   return text.replace(/\\/g, "\\\\").replace(/\(/g, "\\(").replace(/\)/g, "\\)");
 }
 
-function estimateTextWidth(text: string, size: number) {
-  return text.length * size * 0.52;
+// Approximate Helvetica advance widths (in ems) by character class, close
+// enough for right- and center-aligned text.
+function charWidth(ch: string, bold: boolean) {
+  if (ch === " " || "Iijl.,'".includes(ch)) return 0.278;
+  if (ch >= "0" && ch <= "9") return 0.556;
+  if (ch >= "A" && ch <= "Z") return bold ? 0.69 : 0.67;
+  if (ch >= "a" && ch <= "z") return bold ? 0.56 : 0.5;
+  return bold ? 0.333 : 0.3;
+}
+
+export function estimateTextWidth(text: string, size: number, bold = false) {
+  let ems = 0;
+  for (const ch of text) ems += charWidth(ch, bold);
+  return ems * size;
 }
 
 export class PdfCanvas {
@@ -74,7 +86,7 @@ export class PdfCanvas {
       color = [0, 0, 0],
       align = "left"
     } = options;
-    const width = estimateTextWidth(text, size);
+    const width = estimateTextWidth(text, size, bold);
     let tx = x;
     if (align === "center") tx = x - width / 2;
     if (align === "right") tx = x - width;
